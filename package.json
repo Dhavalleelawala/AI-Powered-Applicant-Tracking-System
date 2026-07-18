@@ -1,0 +1,14 @@
+{
+  "name": "ai-powered-ats",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AI-Powered Applicant Tracking System",
+  "scripts": {
+    "dev:server": "npm run dev --prefix server",
+    "start:server": "npm run start --prefix server",
+    "lint:server": "npm run lint --prefix server"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
