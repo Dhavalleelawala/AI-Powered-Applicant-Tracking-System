@@ -8,9 +8,10 @@ const resumeSchema = new mongoose.Schema(
     originalFileName: { type: String, default: '' },
     mimeType: { type: String, default: '' },
     sizeBytes: { type: Number, default: 0 },
-    s3Key: { type: String, required: true },
+    // Required when a resume object is present (Week 2 upload path).
+    s3Key: { type: String, required: true, trim: true },
     s3Bucket: { type: String, default: '' },
-    extractedText: { type: String, default: '' },
+    extractedText: { type: String, default: '', select: false },
     uploadedAt: { type: Date, default: Date.now },
   },
   { _id: false }

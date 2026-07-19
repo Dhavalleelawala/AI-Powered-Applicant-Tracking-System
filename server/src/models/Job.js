@@ -45,6 +45,19 @@ jobSchema.index({ status: 1, createdAt: -1 });
 jobSchema.index({ companyId: 1, status: 1 });
 jobSchema.index({ recruiterId: 1 });
 
+jobSchema.pre('validate', function validateExperienceRange(next) {
+  if (
+    this.experienceYearsMax !== undefined &&
+    this.experienceYearsMax !== null &&
+    this.experienceYearsMin !== undefined &&
+    this.experienceYearsMin !== null &&
+    this.experienceYearsMax < this.experienceYearsMin
+  ) {
+    return next(new Error('experienceYearsMax must be >= experienceYearsMin'));
+  }
+  return next();
+});
+
 module.exports = mongoose.model('Job', jobSchema);
 module.exports.EMPLOYMENT_TYPES = EMPLOYMENT_TYPES;
 module.exports.JOB_STATUSES = JOB_STATUSES;

@@ -11,6 +11,7 @@ const userSchema = new mongoose.Schema(
       unique: true,
       lowercase: true,
       trim: true,
+      match: [/^\S+@\S+\.\S+$/, 'Invalid email address'],
     },
     passwordHash: { type: String, required: true, select: false },
     role: { type: String, enum: ROLES, required: true },
@@ -26,11 +27,15 @@ const userSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// email unique index comes from `unique: true`
 userSchema.index({ role: 1, companyId: 1 });
 
 userSchema.pre('validate', function validateRecruiterCompany(next) {
   if (this.role === 'recruiter' && !this.companyId) {
     return next(new Error('companyId is required for recruiter users'));
+  }
+  if (this.role === 'applicant' && this.companyId) {
+    this.companyId = null;
   }
   return next();
 });

@@ -61,6 +61,30 @@ Application code (`client/`, `server/`) is built according to the delivery plan.
 
 ---
 
+## Local development (server)
+
+```bash
+cd server
+cp .env.example .env
+npm install
+npm run seed
+npm run dev
+```
+
+Health check: `GET http://localhost:5000/api/health`
+
+### Demo seed accounts (dev only)
+
+| Role | Email | Password |
+|------|--------|----------|
+| Recruiter | `recruiter@demo.com` | `Password123` |
+| Applicant | `applicant@demo.com` | `Password123` |
+
+Seed also creates **Demo Corp**, **2 open jobs**, and **1 sample application**.  
+Re-running `npm run seed` replaces previous demo data for a reproducible local DB.
+
+---
+
 ## License
 
 Zaalima Development — Confidential (per project brief).
