@@ -101,7 +101,43 @@ async function registerRecruiter({ name, email, password, companyName, website }
   }
 }
 
+async function login({ email, password }) {
+  const cleanEmail = normalizeEmail(email);
+
+  if (!cleanEmail || typeof password !== 'string' || !password) {
+    throw new AppError('Email and password are required', {
+      status: 400,
+      code: 'VALIDATION_ERROR',
+    });
+  }
+
+  const user = await User.findOne({ email: cleanEmail }).select(
+    '+passwordHash name email role companyId isActive'
+  );
+
+  if (!user || !user.isActive) {
+    throw new AppError('Invalid email or password', {
+      status: 401,
+      code: 'UNAUTHORIZED',
+    });
+  }
+
+  const ok = await bcrypt.compare(password, user.passwordHash);
+  if (!ok) {
+    throw new AppError('Invalid email or password', {
+      status: 401,
+      code: 'UNAUTHORIZED',
+    });
+  }
+
+  return {
+    token: signToken(user),
+    user: toSafeUser(user),
+  };
+}
+
 module.exports = {
   registerApplicant,
   registerRecruiter,
+  login,
 };

@@ -5,5 +5,6 @@ const router = express.Router();
 
 router.post('/register/applicant', authController.registerApplicant);
 router.post('/register/recruiter', authController.registerRecruiter);
+router.post('/login', authController.login);
 
 module.exports = router;
