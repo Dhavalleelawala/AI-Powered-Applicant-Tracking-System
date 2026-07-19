@@ -1,0 +1,49 @@
+const bcrypt = require('bcryptjs');
+const { User } = require('../models');
+const AppError = require('../utils/AppError');
+const {
+  toSafeUser,
+  signToken,
+  isValidPassword,
+  normalizeEmail,
+} = require('../utils/auth');
+
+async function registerApplicant({ name, email, password }) {
+  const cleanName = String(name || '').trim();
+  const cleanEmail = normalizeEmail(email);
+
+  if (!cleanName) {
+    throw new AppError('Name is required', { status: 400, code: 'VALIDATION_ERROR' });
+  }
+  if (!cleanEmail) {
+    throw new AppError('Email is required', { status: 400, code: 'VALIDATION_ERROR' });
+  }
+  if (!isValidPassword(password)) {
+    throw new AppError('Password must be at least 8 characters and include a letter and a number', {
+      status: 400,
+      code: 'VALIDATION_ERROR',
+    });
+  }
+
+  const existing = await User.findOne({ email: cleanEmail }).select('_id');
+  if (existing) {
+    throw new AppError('email already exists', { status: 409, code: 'DUPLICATE' });
+  }
+
+  const passwordHash = await bcrypt.hash(password, 10);
+  const user = await User.create({
+    name: cleanName,
+    email: cleanEmail,
+    passwordHash,
+    role: 'applicant',
+  });
+
+  return {
+    token: signToken(user),
+    user: toSafeUser(user),
+  };
+}
+
+module.exports = {
+  registerApplicant,
+};

@@ -27,7 +27,7 @@ function signToken(user) {
 function verifyToken(token) {
   try {
     return jwt.verify(token, config.jwt.secret);
-  } catch (_err) {
+  } catch {
     throw new AppError('Invalid or expired token', {
       status: 401,
       code: 'UNAUTHORIZED',
