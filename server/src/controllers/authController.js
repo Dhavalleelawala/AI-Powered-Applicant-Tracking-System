@@ -9,6 +9,16 @@ async function registerApplicant(req, res, next) {
   }
 }
 
+async function registerRecruiter(req, res, next) {
+  try {
+    const data = await authService.registerRecruiter(req.body);
+    return res.status(201).json({ success: true, data });
+  } catch (err) {
+    return next(err);
+  }
+}
+
 module.exports = {
   registerApplicant,
+  registerRecruiter,
 };
