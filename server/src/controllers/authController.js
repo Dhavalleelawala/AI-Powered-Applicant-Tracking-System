@@ -27,8 +27,18 @@ async function login(req, res, next) {
   }
 }
 
+async function getMe(req, res, next) {
+  try {
+    const data = await authService.getMe(req.user.id);
+    return res.status(200).json({ success: true, data });
+  } catch (err) {
+    return next(err);
+  }
+}
+
 module.exports = {
   registerApplicant,
   registerRecruiter,
   login,
+  getMe,
 };

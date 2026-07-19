@@ -136,8 +136,22 @@ async function login({ email, password }) {
   };
 }
 
+async function getMe(userId) {
+  const user = await User.findById(userId).select('_id name email role companyId isActive');
+
+  if (!user || !user.isActive) {
+    throw new AppError('Authentication required', {
+      status: 401,
+      code: 'UNAUTHORIZED',
+    });
+  }
+
+  return { user: toSafeUser(user) };
+}
+
 module.exports = {
   registerApplicant,
   registerRecruiter,
   login,
+  getMe,
 };
