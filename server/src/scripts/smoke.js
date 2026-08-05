@@ -171,6 +171,17 @@ startxref
     'utf8'
   );
 
+  const invalidMime = await fetch(`${BASE}/jobs/${jobId}/applications`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${appToken}` },
+    body: (() => {
+      const badForm = new FormData();
+      badForm.append('resume', new Blob(['not-a-resume'], { type: 'text/plain' }), 'notes.txt');
+      return badForm;
+    })(),
+  });
+  assert(invalidMime.status === 400, 'invalid mime should be 400');
+
   const applyResponse = await fetch(`${BASE}/jobs/${jobId}/applications`, {
     method: 'POST',
     headers: { Authorization: `Bearer ${appToken}` },
@@ -221,11 +232,64 @@ startxref
   });
   assert(ranked.status === 200 && Array.isArray(ranked.body.data), 'ranking list failed');
 
+  const noAuth = await request(`/applications/${applicationId}`);
+  assert(noAuth.status === 401, 'missing token should be 401');
+
+  const otherRecruiter = await request('/auth/register/recruiter', {
+    method: 'POST',
+    body: JSON.stringify({
+      name: 'Other Recruiter',
+      email: `smoke.other.${stamp}@example.com`,
+      password: 'Secret123',
+      companyName: `Other Co ${stamp}`,
+    }),
+  });
+  assert(otherRecruiter.status === 201 && otherRecruiter.body.data?.token, 'other recruiter register failed');
+  const otherToken = otherRecruiter.body.data.token;
+
+  const crossTenantList = await request(`/jobs/${jobId}/applications`, {
+    headers: { Authorization: `Bearer ${otherToken}` },
+  });
+  assert(crossTenantList.status === 404, 'cross-tenant job applications should be 404');
+
+  const crossTenantMove = await request(`/applications/${applicationId}/status`, {
+    method: 'PATCH',
+    headers: { Authorization: `Bearer ${otherToken}` },
+    body: JSON.stringify({ stage: 'offered' }),
+  });
+  assert(crossTenantMove.status === 404, 'cross-tenant stage update should be 404');
+
+  const crossTenantResume = await request(`/applications/${applicationId}/resume-url`, {
+    headers: { Authorization: `Bearer ${otherToken}` },
+  });
+  assert(crossTenantResume.status === 404, 'cross-tenant resume url should be 404');
+
   const archived = await request(`/jobs/${jobId}/archive`, {
     method: 'POST',
     headers: { Authorization: `Bearer ${recToken}` },
   });
   assert(archived.status === 200 && archived.body.data?.status === 'archived', 'archive failed');
+
+  const otherApplicant = await request('/auth/register/applicant', {
+    method: 'POST',
+    body: JSON.stringify({
+      name: 'Late Applicant',
+      email: `smoke.late.${stamp}@example.com`,
+      password: 'Secret123',
+    }),
+  });
+  assert(otherApplicant.status === 201 && otherApplicant.body.data?.token, 'late applicant register failed');
+
+  const applyArchived = await fetch(`${BASE}/jobs/${jobId}/applications`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${otherApplicant.body.data.token}` },
+    body: (() => {
+      const form = new FormData();
+      form.append('resume', new Blob([pdfText], { type: 'application/pdf' }), 'late.pdf');
+      return form;
+    })(),
+  });
+  assert(applyArchived.status === 404, 'apply to archived job should be 404');
 
   console.log('Smoke checks passed.');
 }
