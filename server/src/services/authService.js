@@ -137,7 +137,9 @@ async function login({ email, password }) {
 }
 
 async function getMe(userId) {
-  const user = await User.findById(userId).select('_id name email role companyId isActive');
+  const user = await User.findById(userId).select(
+    '_id name email role companyId isActive phone headline location experienceYears skills savedJobs'
+  );
 
   if (!user || !user.isActive) {
     throw new AppError('Authentication required', {
@@ -149,9 +151,76 @@ async function getMe(userId) {
   return { user: toSafeUser(user) };
 }
 
+async function updateProfile(userId, body) {
+  const user = await User.findById(userId);
+  if (!user || !user.isActive) {
+    throw new AppError('Authentication required', { status: 401, code: 'UNAUTHORIZED' });
+  }
+
+  if (body.name !== undefined) user.name = String(body.name).trim();
+  if (body.phone !== undefined) user.phone = String(body.phone).trim();
+  if (body.headline !== undefined) user.headline = String(body.headline).trim();
+  if (body.location !== undefined) user.location = String(body.location).trim();
+  if (body.experienceYears !== undefined) {
+    user.experienceYears = Math.max(0, Number(body.experienceYears) || 0);
+  }
+  if (body.skills !== undefined) {
+    user.skills = Array.isArray(body.skills)
+      ? body.skills
+      : String(body.skills || '')
+          .split(',')
+          .map((s) => s.trim())
+          .filter(Boolean);
+  }
+
+  if (!user.name) {
+    throw new AppError('Name is required', { status: 400, code: 'VALIDATION_ERROR' });
+  }
+
+  await user.save();
+  return { user: toSafeUser(user) };
+}
+
+async function toggleSavedJob(userId, jobId) {
+  const user = await User.findById(userId);
+  if (!user || user.role !== 'applicant') {
+    throw new AppError('Only applicants can save jobs', { status: 403, code: 'FORBIDDEN' });
+  }
+
+  const id = String(jobId);
+  const exists = user.savedJobs.some((j) => String(j) === id);
+  if (exists) {
+    user.savedJobs = user.savedJobs.filter((j) => String(j) !== id);
+  } else {
+    user.savedJobs.push(jobId);
+  }
+  await user.save();
+  return { saved: !exists, savedJobs: user.savedJobs.map((j) => String(j)) };
+}
+
+async function listSavedJobs(userId) {
+  const user = await User.findById(userId).populate({
+    path: 'savedJobs',
+    match: { status: 'open' },
+    populate: { path: 'companyId', select: 'name website' },
+  });
+  if (!user || user.role !== 'applicant') {
+    throw new AppError('Only applicants can view saved jobs', { status: 403, code: 'FORBIDDEN' });
+  }
+  const jobs = (user.savedJobs || []).filter(Boolean).map((job) => ({
+    ...job.toObject(),
+    id: String(job._id),
+    companyName: job.companyId?.name || '',
+  }));
+  return { jobs };
+}
+
 module.exports = {
   registerApplicant,
   registerRecruiter,
   login,
   getMe,
+  updateProfile,
+  toggleSavedJob,
+  listSavedJobs,
 };

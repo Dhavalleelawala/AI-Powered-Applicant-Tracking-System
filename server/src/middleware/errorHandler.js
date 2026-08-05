@@ -1,5 +1,12 @@
 const AppError = require('../utils/AppError');
 
+function badRequest(res, code, message) {
+  return res.status(400).json({
+    success: false,
+    error: { code, message },
+  });
+}
+
 function notFoundHandler(req, res, _next) {
   res.status(404).json({
     success: false,
@@ -16,13 +23,15 @@ function errorHandler(err, _req, res, _next) {
   }
 
   if (err.name === 'ValidationError') {
-    return res.status(400).json({
-      success: false,
-      error: {
-        code: 'VALIDATION_ERROR',
-        message: err.message,
-      },
-    });
+    return badRequest(res, 'VALIDATION_ERROR', err.message);
+  }
+
+  if (err.name === 'CastError') {
+    return badRequest(res, 'VALIDATION_ERROR', 'Invalid resource identifier');
+  }
+
+  if (err.name === 'MulterError') {
+    return badRequest(res, 'UPLOAD_ERROR', err.message);
   }
 
   if (err.code === 11000) {

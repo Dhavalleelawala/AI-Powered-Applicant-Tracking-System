@@ -36,9 +36,39 @@ async function getMe(req, res, next) {
   }
 }
 
+async function updateProfile(req, res, next) {
+  try {
+    const data = await authService.updateProfile(req.user.id, req.body);
+    return res.json({ success: true, data });
+  } catch (err) {
+    return next(err);
+  }
+}
+
+async function toggleSavedJob(req, res, next) {
+  try {
+    const data = await authService.toggleSavedJob(req.user.id, req.params.jobId);
+    return res.json({ success: true, data });
+  } catch (err) {
+    return next(err);
+  }
+}
+
+async function listSavedJobs(req, res, next) {
+  try {
+    const data = await authService.listSavedJobs(req.user.id);
+    return res.json({ success: true, data: data.jobs });
+  } catch (err) {
+    return next(err);
+  }
+}
+
 module.exports = {
   registerApplicant,
   registerRecruiter,
   login,
   getMe,
+  updateProfile,
+  toggleSavedJob,
+  listSavedJobs,
 };

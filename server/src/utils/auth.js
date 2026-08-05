@@ -9,6 +9,12 @@ function toSafeUser(user) {
     email: user.email,
     role: user.role,
     companyId: user.companyId ? String(user.companyId) : null,
+    phone: user.phone || '',
+    headline: user.headline || '',
+    location: user.location || '',
+    experienceYears: user.experienceYears || 0,
+    skills: user.skills || [],
+    savedJobs: (user.savedJobs || []).map((id) => String(id)),
   };
 }
 
