@@ -22,6 +22,15 @@ const userSchema = new mongoose.Schema(
     },
     phone: { type: String, default: '', trim: true },
     headline: { type: String, default: '', trim: true },
+    location: { type: String, default: '', trim: true },
+    experienceYears: { type: Number, default: 0, min: 0 },
+    skills: {
+      type: [String],
+      default: [],
+      set: (skills) =>
+        [...new Set((skills || []).map((s) => String(s).trim().toLowerCase()).filter(Boolean))].slice(0, 40),
+    },
+    savedJobs: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Job' }],
     isActive: { type: Boolean, default: true },
   },
   { timestamps: true }

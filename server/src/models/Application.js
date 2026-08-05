@@ -44,7 +44,16 @@ const stageHistorySchema = new mongoose.Schema(
   { _id: false }
 );
 
-// Stub for Day 1 — wired fully in Week 2 (apply + S3).
+const recruiterNoteSchema = new mongoose.Schema(
+  {
+    text: { type: String, required: true, trim: true, maxlength: 2000 },
+    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    createdAt: { type: Date, default: Date.now },
+  },
+  { _id: true }
+);
+
+// Wired for apply + pipeline + HR collaboration.
 const applicationSchema = new mongoose.Schema(
   {
     jobId: {
@@ -64,6 +73,14 @@ const applicationSchema = new mongoose.Schema(
     },
     coverLetter: { type: String, default: '' },
     stage: { type: String, enum: STAGES, default: 'applied' },
+    rejectionReason: { type: String, default: '', trim: true, maxlength: 500 },
+    tags: {
+      type: [String],
+      default: [],
+      set: (tags) =>
+        [...new Set((tags || []).map((t) => String(t).trim().toLowerCase()).filter(Boolean))].slice(0, 20),
+    },
+    recruiterNotes: { type: [recruiterNoteSchema], default: [] },
     resume: { type: resumeSchema },
     aiAnalysis: { type: aiAnalysisSchema },
     aiStatus: { type: String, enum: AI_STATUSES, default: 'pending' },
@@ -78,6 +95,8 @@ applicationSchema.index({ jobId: 1, 'aiAnalysis.matchScore': -1 });
 applicationSchema.index({ applicantId: 1, createdAt: -1 });
 applicationSchema.index({ companyId: 1, stage: 1 });
 applicationSchema.index({ jobId: 1, stage: 1 });
+applicationSchema.index({ companyId: 1, tags: 1 });
+applicationSchema.index({ companyId: 1, updatedAt: -1 });
 
 module.exports = mongoose.model('Application', applicationSchema);
 module.exports.STAGES = STAGES;

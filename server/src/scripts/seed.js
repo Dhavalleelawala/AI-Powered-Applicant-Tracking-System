@@ -20,10 +20,16 @@ const DEMO = {
     email: 'applicant@demo.com',
     role: 'applicant',
     headline: 'Full-stack engineer',
+    location: 'Remote',
+    experienceYears: 3,
+    skills: ['react', 'nodejs', 'mongodb'],
   },
   jobs: [
     {
       title: 'Full Stack Developer',
+      department: 'Engineering',
+      openings: 3,
+      priority: 'high',
       description: `${SEED_TAG} Build and ship React + Node features for our hiring platform.
 You will own API design, MongoDB data modeling, and recruiter-facing UI.
 Strong JavaScript fundamentals and production experience with REST APIs required.
@@ -38,6 +44,9 @@ Nice to have: AWS S3, JWT auth, and AI/LLM integration awareness.`,
     },
     {
       title: 'Frontend Engineer (React)',
+      department: 'Engineering',
+      openings: 2,
+      priority: 'medium',
       description: `${SEED_TAG} Design polished hiring experiences with React, React Query, and MUI.
 Focus on dashboards, Kanban pipelines, forms, and accessible UX.
 You collaborate closely with backend on job board and ranking screens.
@@ -49,6 +58,22 @@ Nice to have: Vite, role-based route guards, and performance-minded list UIs.`,
       employmentType: 'full-time',
       status: 'open',
       salaryRange: { min: 700000, max: 1200000, currency: 'INR' },
+    },
+    {
+      title: 'Talent Acquisition Specialist',
+      department: 'People / HR',
+      openings: 1,
+      priority: 'critical',
+      description: `${SEED_TAG} Own end-to-end hiring for a 400+ person company with 10–40 open vacancies.
+Run Rolefit pipelines, partner with hiring managers, and keep time-to-shortlist low.
+Experience with ATS tools, stakeholder management, and structured interviews required.`,
+      requiredSkills: ['recruiting', 'ats', 'sourcing', 'stakeholder-management'],
+      experienceYearsMin: 2,
+      experienceYearsMax: 6,
+      location: 'Hybrid',
+      employmentType: 'full-time',
+      status: 'open',
+      salaryRange: { min: 600000, max: 1100000, currency: 'INR' },
     },
   ],
 };
@@ -142,7 +167,7 @@ async function seed() {
   console.log('Company:   Demo Corp');
   console.log(`Recruiter: ${DEMO.recruiter.email} / ${DEMO_PASSWORD}`);
   console.log(`Applicant: ${DEMO.applicant.email} / ${DEMO_PASSWORD}`);
-  console.log(`Jobs:      ${jobs.length} open`);
+  console.log(`Jobs:      ${jobs.length} open (with departments / openings / priority)`);
   console.log('Apps:      1 sample application (placeholder S3 key)');
   console.log('');
 

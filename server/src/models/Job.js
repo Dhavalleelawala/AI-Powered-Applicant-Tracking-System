@@ -2,11 +2,16 @@ const mongoose = require('mongoose');
 
 const EMPLOYMENT_TYPES = ['full-time', 'part-time', 'contract', 'internship'];
 const JOB_STATUSES = ['open', 'archived', 'draft'];
+const JOB_PRIORITIES = ['low', 'medium', 'high', 'critical'];
 
 const jobSchema = new mongoose.Schema(
   {
     title: { type: String, required: true, trim: true },
     description: { type: String, required: true, trim: true },
+    department: { type: String, default: '', trim: true },
+    openings: { type: Number, default: 1, min: 1, max: 100 },
+    priority: { type: String, enum: JOB_PRIORITIES, default: 'medium' },
+    closesAt: { type: Date, default: null },
     requiredSkills: {
       type: [String],
       default: [],
@@ -43,7 +48,9 @@ const jobSchema = new mongoose.Schema(
 
 jobSchema.index({ status: 1, createdAt: -1 });
 jobSchema.index({ companyId: 1, status: 1 });
+jobSchema.index({ companyId: 1, department: 1, status: 1 });
 jobSchema.index({ recruiterId: 1 });
+jobSchema.index({ priority: 1, status: 1 });
 
 jobSchema.pre('validate', function validateExperienceRange(next) {
   if (
@@ -61,3 +68,4 @@ jobSchema.pre('validate', function validateExperienceRange(next) {
 module.exports = mongoose.model('Job', jobSchema);
 module.exports.EMPLOYMENT_TYPES = EMPLOYMENT_TYPES;
 module.exports.JOB_STATUSES = JOB_STATUSES;
+module.exports.JOB_PRIORITIES = JOB_PRIORITIES;
