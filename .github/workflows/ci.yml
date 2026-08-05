@@ -20,3 +20,69 @@ jobs:
           cache-dependency-path: server/package-lock.json
       - run: npm ci
       - run: npm run lint
+
+  build-client:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: client
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: client/package-lock.json
+      - run: npm ci
+      - run: npm run build
+        env:
+          VITE_API_BASE_URL: http://localhost:5000/api
+
+  smoke-api:
+    runs-on: ubuntu-latest
+    services:
+      mongo:
+        image: mongo:7
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --eval 'db.runCommand({ ping: 1 })'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: server/package-lock.json
+      - run: npm ci
+      - name: Start API
+        run: |
+          nohup npm start > /tmp/rolefit-api.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -sf http://127.0.0.1:5000/api/health >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "API failed to start" >&2
+          cat /tmp/rolefit-api.log >&2
+          exit 1
+        env:
+          NODE_ENV: test
+          PORT: 5000
+          MONGODB_URI: mongodb://127.0.0.1:27017/ats_ci
+          CLIENT_URL: http://localhost:5173
+          JWT_SECRET: ci-jwt-secret-change-me
+          FILE_TOKEN_SECRET: ci-file-token-secret
+          STORAGE_DRIVER: local
+          LOCAL_UPLOAD_DIR: uploads
+      - run: npm run smoke
+        env:
+          PORT: 5000
+          SMOKE_BASE_URL: http://127.0.0.1:5000/api

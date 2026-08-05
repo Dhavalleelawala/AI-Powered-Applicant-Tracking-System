@@ -1,67 +1,25 @@
-# AI-Powered Applicant Tracking System
+# Rolefit
 
-**Company product:** AI-assisted ATS for posting jobs, collecting applications, securing resumes, and ranking candidates by semantic job fit.
+**AI-assisted Applicant Tracking System** — post jobs, collect applications, store resumes securely, rank candidates by job fit, and move them through a hiring pipeline.
 
-This repository is planned as a **production-minded company MVP** (4 weeks × 5 working days), not a toy prototype.
-
----
-
-## Start Here
-
-### Leadership / Product
-
-1. [Product Strategy](./docs/pro/01-product-strategy.md)
-2. [PRD](./docs/pro/02-prd.md)
-3. [Professional Delivery Plan](./docs/pro/09-delivery-plan-pro.md)
-
-### Engineering
-
-1. [Pro Docs Index](./docs/pro/README.md)
-2. [Technical Design](./docs/pro/03-technical-design.md)
-3. [ADRs](./docs/pro/03-adrs.md)
-4. [API Spec](./docs/06-api-specification.md)
-5. [Day-by-day Timeline](./docs/15-development-timeline-4weeks-5days.md)
-
-### Non-technical
-
-1. [System Design Simple](./docs/13-system-design-simple.md)
-2. [Database Model Simple](./docs/14-database-model-simple.md)
+Built with the **MERN** stack (MongoDB, Express, React, Node) as a company-style MVP product.
 
 ---
 
-## Tech Stack
+## Product
 
-| Layer | Technology |
-|-------|------------|
-| Frontend | React.js, React Query, Material-UI |
-| Backend | Node.js, Express.js |
-| Optional AI worker | Python microservice |
-| Database | MongoDB |
-| Files | Multer, AWS S3 |
-| Parsing / AI | pdf-parse, OpenAI or Gemini |
-| Email | Nodemailer |
+| Role | What they do |
+|------|----------------|
+| Recruiter | Create jobs, review ranked applicants, run Kanban pipeline |
+| Applicant | Browse jobs, apply with resume, track status |
+
+**Differentiator:** semantic AI ranking tied to each job description (with a local heuristic fallback when no LLM key is set).
 
 ---
 
-## Product Principles (short)
+## Quick start
 
-1. Tenant safety over features  
-2. Async AI, sync apply UX  
-3. Evidence beside every AI score  
-4. Boring reliable architecture for MVP  
-5. Pre-approved scope cuts beat missed launch  
-
----
-
-## Status
-
-Professional planning docs are in [`docs/pro/`](./docs/pro/README.md).  
-Implementation references are in [`docs/`](./docs/README.md).  
-Application code (`client/`, `server/`) is built according to the delivery plan.
-
----
-
-## Local development (server)
+### 1. Backend
 
 ```bash
 cd server
@@ -71,17 +29,76 @@ npm run seed
 npm run dev
 ```
 
-Health check: `GET http://localhost:5000/api/health`
+API: `http://localhost:5000`  
+Health: `GET /api/health`  
+Smoke checks: `npm run smoke` (from `server/`)
 
-### Demo seed accounts (dev only)
+### 2. Frontend
+
+```bash
+cd client
+cp .env.example .env
+npm install
+npm run dev
+```
+
+App: `http://localhost:5173`
+
+### 3. Or both from root
+
+```bash
+npm install
+npm run seed
+npm run dev
+```
+
+---
+
+## Demo accounts (after seed)
 
 | Role | Email | Password |
 |------|--------|----------|
 | Recruiter | `recruiter@demo.com` | `Password123` |
 | Applicant | `applicant@demo.com` | `Password123` |
 
-Seed also creates **Demo Corp**, **2 open jobs**, and **1 sample application**.  
-Re-running `npm run seed` replaces previous demo data for a reproducible local DB.
+Seed also creates **Demo Corp**, **2 open jobs**, and **1 sample application**.
+
+---
+
+## Stack
+
+| Layer | Tech |
+|-------|------|
+| Frontend | React (Vite), React Query, MUI (Rolefit theme), React Router |
+| Backend | Node.js, Express |
+| Database | MongoDB (Mongoose) |
+| Files | Local uploads by default; AWS S3 when configured |
+| AI | OpenAI / Gemini adapter, or heuristic scorer |
+| Email | Nodemailer (or console fallback) |
+
+---
+
+## Docker (optional)
+
+Requires Docker Desktop. From the repo root:
+
+```bash
+docker compose up --build
+```
+
+- Web UI: http://localhost:8080  
+- API: http://localhost:5000  
+- MongoDB: localhost:27017  
+
+Set `JWT_SECRET`, `FILE_TOKEN_SECRET`, and optional `OPENAI_API_KEY` in your environment before starting.
+
+---
+
+## Docs
+
+- Product / delivery: [`docs/pro/`](./docs/pro/README.md)
+- Implementation: [`docs/`](./docs/README.md)
+- Day-by-day plan: [`docs/15-development-timeline-4weeks-5days.md`](./docs/15-development-timeline-4weeks-5days.md)
 
 ---
 

@@ -1,0 +1,11 @@
+node_modules
+**/node_modules
+client/dist
+server/uploads
+uploads
+.git
+.env
+**/.env
+*.log
+coverage
+.vite
