@@ -1,0 +1,12 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Syne:wght@500;600;700;800&display=swap');
+
+* { box-sizing: border-box; }
+body { margin: 0; background: #F7F4EF; }
+@keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes drift { 50% { transform: translate(20px, -16px); } }
+.reveal { animation: rise .7s cubic-bezier(.2,.8,.2,1) both; }
+.reveal-delay { animation: rise .7s .16s cubic-bezier(.2,.8,.2,1) both; }
+.hero-orb { animation: drift 9s ease-in-out infinite; }
+.nav-link { position: relative; }
+.nav-link:after { content: ''; position: absolute; width: 0; height: 2px; background: #1FA7A0; bottom: -5px; left: 0; transition: width .22s ease; }
+.nav-link:hover:after { width: 100%; }
