@@ -13,9 +13,16 @@ function redirectAfterAuth(user, location) {
   return user.role === 'recruiter' ? '/recruiter' : '/jobs';
 }
 
+function passwordHint(password) {
+  if (!password) return '';
+  if (password.length < 8) return 'Needs at least 8 characters.';
+  if (!/[A-Za-z]/.test(password) || !/\d/.test(password)) return 'Include both a letter and a number.';
+  return '';
+}
+
 export function LoginPage() {
   const { login } = useAuth();
-  const { showToast } = useToast();
+  const { showToast, showError } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
   const [form, setForm] = useState({ email: '', password: '' });
@@ -24,6 +31,10 @@ export function LoginPage() {
 
   const submit = async (e) => {
     e.preventDefault();
+    if (!form.email.trim() || !form.password) {
+      setError('Email and password are required.');
+      return;
+    }
     setSending(true);
     setError('');
     try {
@@ -33,6 +44,7 @@ export function LoginPage() {
       navigate(redirectAfterAuth(r.data.user, location));
     } catch (err) {
       setError(err);
+      showError(err);
     } finally {
       setSending(false);
     }
@@ -40,7 +52,7 @@ export function LoginPage() {
 
   return (
     <AuthFrame title="Welcome back" subtitle="Continue where your hiring work left off.">
-      <Box component="form" onSubmit={submit}>
+      <Box component="form" onSubmit={submit} noValidate>
         <Stack spacing={2.25}>
           <TextField
             label="Email"
@@ -75,15 +87,28 @@ export function LoginPage() {
 export function RegisterPage({ role }) {
   const recruiter = role === 'recruiter';
   const { login } = useAuth();
-  const { showToast } = useToast();
+  const { showToast, showError } = useToast();
   const nav = useNavigate();
   const location = useLocation();
   const [form, setForm] = useState({ name: '', email: '', password: '', companyName: '', website: '' });
   const [error, setError] = useState('');
   const [sending, setSending] = useState(false);
+  const hint = passwordHint(form.password);
 
   const submit = async (e) => {
     e.preventDefault();
+    if (!form.name.trim() || !form.email.trim() || !form.password) {
+      setError('Please complete the required fields.');
+      return;
+    }
+    if (recruiter && !form.companyName.trim()) {
+      setError('Company name is required.');
+      return;
+    }
+    if (hint) {
+      setError(hint);
+      return;
+    }
     setSending(true);
     setError('');
     try {
@@ -93,6 +118,7 @@ export function RegisterPage({ role }) {
       nav(redirectAfterAuth(r.data.user, location));
     } catch (err) {
       setError(err);
+      showError(err);
     } finally {
       setSending(false);
     }
@@ -103,7 +129,7 @@ export function RegisterPage({ role }) {
       title={recruiter ? 'Build your clearer pipeline.' : 'Find work that fits.'}
       subtitle={recruiter ? 'Set up your Rolefit hiring workspace.' : 'Create your candidate profile in minutes.'}
     >
-      <Box component="form" onSubmit={submit}>
+      <Box component="form" onSubmit={submit} noValidate>
         <Stack spacing={2.25}>
           <TextField label="Full name" autoComplete="name" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
           <TextField label="Work email" type="email" autoComplete="email" required value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
@@ -117,13 +143,14 @@ export function RegisterPage({ role }) {
             label="Password"
             type="password"
             autoComplete="new-password"
-            helperText="Use 8+ characters with a letter and a number."
+            helperText={hint || 'Use 8+ characters with a letter and a number.'}
+            error={Boolean(hint)}
             required
             value={form.password}
             onChange={(e) => setForm({ ...form, password: e.target.value })}
           />
           {error && <Alert severity="error">{String(error)}</Alert>}
-          <Button type="submit" variant="contained" color="secondary" size="large" disabled={sending}>
+          <Button type="submit" variant="contained" color="secondary" size="large" disabled={sending || Boolean(hint && form.password)}>
             {sending ? 'Creating account…' : recruiter ? 'Create hiring workspace' : 'Create my account'}
           </Button>
         </Stack>

@@ -24,11 +24,13 @@ import {
   Typography,
 } from '@mui/material';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { applicationsApi, hiringApi, jobsApi } from '../../api/client';
+import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { EmptyState, LoadingRows, Page, PageHeader, SectionLabel, StatTile } from '../../components/ui/Primitives';
 import { useToast } from '../../context/ToastContext';
+import { useUrlFilters } from '../../hooks/useUrlFilters';
 
 export function DashboardPage() {
   const qc = useQueryClient();
@@ -62,6 +64,7 @@ export function DashboardPage() {
   const vacancies = analyticsData?.vacancies || [];
   const isLoading = jobsLoading || analyticsLoading;
   const error = jobsError || analyticsError;
+  const [archiveTarget, setArchiveTarget] = useState(null);
 
   return (
     <Page maxWidth="xl">
@@ -218,7 +221,7 @@ export function DashboardPage() {
                     Duplicate
                   </Button>
                   {j.status !== 'archived' && (
-                    <Button color="error" startIcon={<Archive />} onClick={() => archive.mutate(j.id || j._id)}>
+                    <Button color="error" startIcon={<Archive />} onClick={() => setArchiveTarget(j)}>
                       Archive
                     </Button>
                   )}
@@ -235,6 +238,24 @@ export function DashboardPage() {
           )}
         </>
       )}
+      <ConfirmDialog
+        open={Boolean(archiveTarget)}
+        title="Archive this role?"
+        description={
+          archiveTarget
+            ? `"${archiveTarget.title}" will leave the public board. Existing applications stay in your pipeline.`
+            : ''
+        }
+        confirmLabel="Archive role"
+        confirmColor="error"
+        loading={archive.isPending}
+        onClose={() => setArchiveTarget(null)}
+        onConfirm={() => {
+          archive.mutate(archiveTarget.id || archiveTarget._id, {
+            onSettled: () => setArchiveTarget(null),
+          });
+        }}
+      />
     </Page>
   );
 }
@@ -391,9 +412,10 @@ async function openResume(applicationId) {
 export function PipelinePage() {
   const { jobId } = useParams();
   const qc = useQueryClient();
-  const { showToast } = useToast();
+  const { showToast, showError } = useToast();
   const [selected, setSelected] = useState([]);
   const [notes, setNotes] = useState({});
+  const [rejectTarget, setRejectTarget] = useState(null);
   const { data, isLoading, error } = useQuery({
     queryKey: ['job-applications', jobId],
     queryFn: () => applicationsApi.forJob(jobId).then((r) => r.data),
@@ -406,9 +428,11 @@ export function PipelinePage() {
     mutationFn: ({ id, stage, rejectionReason }) => applicationsApi.move(id, { stage, rejectionReason }),
     onSuccess: () => {
       setSelected([]);
+      setRejectTarget(null);
       qc.invalidateQueries({ queryKey: ['job-applications', jobId] });
       showToast('Candidate stage updated');
     },
+    onError: (err) => showError(err),
   });
   const addNote = useMutation({
     mutationFn: ({ id, text }) => applicationsApi.addNote(id, text),
@@ -417,6 +441,7 @@ export function PipelinePage() {
       qc.invalidateQueries({ queryKey: ['job-applications', jobId] });
       showToast('Note added');
     },
+    onError: (err) => showError(err),
   });
   const bulkMove = useMutation({
     mutationFn: (applicationIds) => applicationsApi.bulkMove(jobId, { applicationIds, stage: 'interview' }),
@@ -425,10 +450,19 @@ export function PipelinePage() {
       qc.invalidateQueries({ queryKey: ['job-applications', jobId] });
       showToast('Candidates moved to interview');
     },
+    onError: (err) => showError(err),
   });
   const apps = data || [];
   const toggleSelected = (id) =>
     setSelected((current) => (current.includes(id) ? current.filter((selectedId) => selectedId !== id) : [...current, id]));
+
+  const requestStageChange = (application, nextStage) => {
+    if (nextStage === 'rejected') {
+      setRejectTarget(application);
+      return;
+    }
+    move.mutate({ id: application.id || application._id, stage: nextStage });
+  };
 
   return (
     <Page maxWidth="xl">
@@ -496,12 +530,7 @@ export function PipelinePage() {
                           select
                           size="small"
                           value={stage}
-                          onChange={(e) => {
-                            const nextStage = e.target.value;
-                            const rejectionReason =
-                              nextStage === 'rejected' ? window.prompt('Rejection reason (optional):') || undefined : undefined;
-                            move.mutate({ id: a.id || a._id, stage: nextStage, rejectionReason });
-                          }}
+                          onChange={(e) => requestStageChange(a, e.target.value)}
                           sx={{ mt: 1.5, width: '100%' }}
                         >
                           {stages.map((s) => (
@@ -531,7 +560,12 @@ export function PipelinePage() {
                             Add
                           </Button>
                         </Stack>
-                        <Button size="small" startIcon={<Description />} sx={{ mt: 1 }} onClick={() => openResume(a.id || a._id).catch(alert)}>
+                        <Button
+                          size="small"
+                          startIcon={<Description />}
+                          sx={{ mt: 1 }}
+                          onClick={() => openResume(a.id || a._id).catch((err) => showError(err.message || err))}
+                        >
                           Resume
                         </Button>
                       </Paper>
@@ -542,16 +576,39 @@ export function PipelinePage() {
           </Grid>
         ))}
       </Grid>
+      <ConfirmDialog
+        open={Boolean(rejectTarget)}
+        title="Reject this candidate?"
+        description={
+          rejectTarget
+            ? `${rejectTarget.applicant?.name || rejectTarget.applicantName || 'This candidate'} will move to Rejected. You can still review their application later.`
+            : ''
+        }
+        requireReason
+        reasonLabel="Rejection reason (optional)"
+        confirmLabel="Reject"
+        confirmColor="error"
+        loading={move.isPending}
+        onClose={() => setRejectTarget(null)}
+        onConfirm={(reason) => {
+          move.mutate({
+            id: rejectTarget.id || rejectTarget._id,
+            stage: 'rejected',
+            rejectionReason: reason || undefined,
+          });
+        }}
+      />
     </Page>
   );
 }
 
 export function CandidatesPage() {
-  const [filters, setFilters] = useState({ q: '', stage: '', minScore: '' });
+  const filterDefaults = useMemo(() => ({ q: '', stage: '', minScore: '' }), []);
+  const { values, setFilter, clearFilters, activeCount } = useUrlFilters(filterDefaults);
   const params = {
-    q: filters.q || undefined,
-    stage: filters.stage || undefined,
-    minScore: filters.minScore === '' ? undefined : Number(filters.minScore),
+    q: values.q || undefined,
+    stage: values.stage || undefined,
+    minScore: values.minScore === '' ? undefined : Number(values.minScore),
   };
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['company-candidates', params],
@@ -567,17 +624,17 @@ export function CandidatesPage() {
         subtitle="Search every candidate across your active hiring work."
       />
       <Paper sx={{ p: 3, mb: 3, bgcolor: 'rgba(255,255,255,0.92)' }}>
-        <Grid container spacing={2}>
-          <Grid item xs={12} md={6}>
+        <Grid container spacing={2} alignItems="center">
+          <Grid item xs={12} md={5}>
             <TextField
               fullWidth
               label="Search name, email, skills"
-              value={filters.q}
-              onChange={(e) => setFilters({ ...filters, q: e.target.value })}
+              value={values.q}
+              onChange={(e) => setFilter('q', e.target.value)}
             />
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
-            <TextField fullWidth select label="Stage" value={filters.stage} onChange={(e) => setFilters({ ...filters, stage: e.target.value })}>
+            <TextField fullWidth select label="Stage" value={values.stage} onChange={(e) => setFilter('stage', e.target.value)}>
               <MenuItem value="">All stages</MenuItem>
               {stages.map((stage) => (
                 <MenuItem key={stage} value={stage}>
@@ -586,15 +643,22 @@ export function CandidatesPage() {
               ))}
             </TextField>
           </Grid>
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid item xs={12} sm={6} md={2}>
             <TextField
               fullWidth
               type="number"
               label="Minimum score"
               inputProps={{ min: 0, max: 100 }}
-              value={filters.minScore}
-              onChange={(e) => setFilters({ ...filters, minScore: e.target.value })}
+              value={values.minScore}
+              onChange={(e) => setFilter('minScore', e.target.value)}
             />
+          </Grid>
+          <Grid item xs={12} md={2}>
+            {activeCount > 0 && (
+              <Button fullWidth onClick={clearFilters}>
+                Clear ({activeCount})
+              </Button>
+            )}
           </Grid>
         </Grid>
       </Paper>

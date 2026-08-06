@@ -15,12 +15,13 @@ import {
   Typography,
 } from '@mui/material';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { useDeferredValue, useMemo, useState } from 'react';
+import { useDeferredValue, useMemo } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { authApi, jobsApi } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { EmptyState, Page, PageHeader } from '../components/ui/Primitives';
+import { useUrlFilters } from '../hooks/useUrlFilters';
 
 export function LandingPage() {
   return (
@@ -104,19 +105,20 @@ export function LandingPage() {
 }
 
 export function JobsPage() {
-  const [search, setSearch] = useState('');
-  const [location, setLocation] = useState('');
-  const [department, setDepartment] = useState('');
-  const [employmentType, setEmploymentType] = useState('');
-  const deferredSearch = useDeferredValue(search);
+  const filterDefaults = useMemo(
+    () => ({ q: '', location: '', department: '', employmentType: '' }),
+    []
+  );
+  const { values, setFilter, clearFilters, activeCount } = useUrlFilters(filterDefaults);
+  const deferredSearch = useDeferredValue(values.q);
   const params = useMemo(
     () => ({
       q: deferredSearch || undefined,
-      location: location || undefined,
-      department: department || undefined,
-      employmentType: employmentType || undefined,
+      location: values.location || undefined,
+      department: values.department || undefined,
+      employmentType: values.employmentType || undefined,
     }),
-    [deferredSearch, location, department, employmentType]
+    [deferredSearch, values.location, values.department, values.employmentType]
   );
   const { data, isLoading, error, refetch, isFetching } = useQuery({
     queryKey: ['jobs', params],
@@ -131,18 +133,35 @@ export function JobsPage() {
         title="Find a role with room to grow."
         subtitle="Search by craft, place, or team — then apply in minutes."
       />
-      <Paper sx={{ p: { xs: 2, md: 2.5 }, mb: 3, bgcolor: 'rgba(255,255,255,0.9)' }}>
+      <Paper sx={{ p: { xs: 2, md: 2.5 }, mb: 3, bgcolor: 'rgba(255,255,255,0.9)' }} component="form" onSubmit={(e) => e.preventDefault()}>
         <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5}>
           <TextField
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            value={values.q}
+            onChange={(e) => setFilter('q', e.target.value)}
             placeholder="Search by title or skill"
             fullWidth
+            inputProps={{ 'aria-label': 'Search jobs' }}
             InputProps={{ startAdornment: <InputAdornment position="start"><Search /></InputAdornment> }}
           />
-          <TextField label="Location" value={location} onChange={(e) => setLocation(e.target.value)} sx={{ minWidth: { md: 160 } }} />
-          <TextField label="Department" value={department} onChange={(e) => setDepartment(e.target.value)} sx={{ minWidth: { md: 150 } }} />
-          <TextField select label="Type" value={employmentType} onChange={(e) => setEmploymentType(e.target.value)} sx={{ minWidth: { md: 150 } }}>
+          <TextField
+            label="Location"
+            value={values.location}
+            onChange={(e) => setFilter('location', e.target.value)}
+            sx={{ minWidth: { md: 160 } }}
+          />
+          <TextField
+            label="Department"
+            value={values.department}
+            onChange={(e) => setFilter('department', e.target.value)}
+            sx={{ minWidth: { md: 150 } }}
+          />
+          <TextField
+            select
+            label="Type"
+            value={values.employmentType}
+            onChange={(e) => setFilter('employmentType', e.target.value)}
+            sx={{ minWidth: { md: 150 } }}
+          >
             <MenuItem value="">All types</MenuItem>
             {['full-time', 'part-time', 'contract', 'internship'].map((type) => (
               <MenuItem key={type} value={type}>
@@ -150,6 +169,11 @@ export function JobsPage() {
               </MenuItem>
             ))}
           </TextField>
+          {activeCount > 0 && (
+            <Button onClick={clearFilters} sx={{ whiteSpace: 'nowrap' }}>
+              Clear ({activeCount})
+            </Button>
+          )}
         </Stack>
       </Paper>
       {error ? (
@@ -158,7 +182,7 @@ export function JobsPage() {
         </Alert>
       ) : (
         <>
-          <Typography variant="body2" color="text.secondary" mb={2}>
+          <Typography variant="body2" color="text.secondary" mb={2} aria-live="polite">
             {isLoading ? 'Loading roles…' : `${jobs.length} role${jobs.length === 1 ? '' : 's'}${isFetching ? ' · updating' : ''}`}
           </Typography>
           <Grid container spacing={2}>
@@ -178,10 +202,17 @@ export function JobsPage() {
                   <Grid item xs={12}>
                     <EmptyState
                       title="No roles match that search."
-                      text="Try a different title, skill, or check back soon."
-                      actionLabel="Clear filters"
+                      text="Try a different title, skill, or clear filters to see everything open."
+                      actionLabel={activeCount ? 'Clear filters' : 'Browse later'}
                       actionTo="/jobs"
                     />
+                    {activeCount > 0 && (
+                      <Box textAlign="center" mt={2}>
+                        <Button onClick={clearFilters} variant="outlined">
+                          Clear filters
+                        </Button>
+                      </Box>
+                    )}
                   </Grid>
                 )}
           </Grid>

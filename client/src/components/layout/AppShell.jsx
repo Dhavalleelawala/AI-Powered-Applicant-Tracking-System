@@ -57,6 +57,21 @@ export function AppShell({ children }) {
 
   return (
     <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+      <Button
+        href="#main-content"
+        sx={{
+          position: 'absolute',
+          left: 16,
+          top: 12,
+          zIndex: 2000,
+          transform: 'translateY(-120%)',
+          bgcolor: 'secondary.main',
+          color: 'primary.main',
+          '&:focus': { transform: 'translateY(0)' },
+        }}
+      >
+        Skip to content
+      </Button>
       <AppBar
         position="sticky"
         color="transparent"
@@ -218,7 +233,12 @@ export function AppShell({ children }) {
         </Box>
       </Drawer>
 
-      <Box component="main" sx={{ flex: 1 }}>
+      <Box
+        component="main"
+        id="main-content"
+        tabIndex={-1}
+        sx={{ flex: 1, outline: 'none' }}
+      >
         {children}
       </Box>
 

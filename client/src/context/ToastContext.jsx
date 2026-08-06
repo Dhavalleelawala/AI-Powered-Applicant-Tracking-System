@@ -10,7 +10,11 @@ export function ToastProvider({ children }) {
     setToast({ open: true, message: String(message || ''), severity });
   }, []);
 
-  const value = useMemo(() => ({ showToast }), [showToast]);
+  const showError = useCallback((message) => {
+    setToast({ open: true, message: String(message || 'Something went wrong'), severity: 'error' });
+  }, []);
+
+  const value = useMemo(() => ({ showToast, showError }), [showToast, showError]);
 
   return (
     <ToastContext.Provider value={value}>
@@ -37,7 +41,7 @@ export function ToastProvider({ children }) {
 export function useToast() {
   const ctx = useContext(ToastContext);
   if (!ctx) {
-    return { showToast: () => undefined };
+    return { showToast: () => undefined, showError: () => undefined };
   }
   return ctx;
 }
