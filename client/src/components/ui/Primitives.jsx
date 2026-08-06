@@ -3,7 +3,11 @@ import { Link } from 'react-router-dom';
 
 export function Page({ children, maxWidth = 'lg', narrow = false, className = 'page-enter' }) {
   return (
-    <Container maxWidth={narrow ? 'sm' : maxWidth} className={className} sx={{ py: { xs: 4.5, md: 6.5 } }}>
+    <Container
+      maxWidth={narrow ? 'sm' : maxWidth}
+      className={className}
+      sx={{ py: { xs: 'var(--rf-page-py)', md: 'var(--rf-page-py-md)' } }}
+    >
       {children}
     </Container>
   );

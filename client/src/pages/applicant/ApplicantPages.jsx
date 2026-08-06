@@ -582,9 +582,11 @@ export function MyApplicationsPage() {
               />
             ))}
           </Stack>
-          {apps.map((a) => (
-            <ApplicationCard key={a.id || a._id} application={a} />
-          ))}
+          <Stack spacing={2} className="stagger-in">
+            {apps.map((a) => (
+              <ApplicationCard key={a.id || a._id} application={a} />
+            ))}
+          </Stack>
         </Stack>
       </QueryState>
     </Page>

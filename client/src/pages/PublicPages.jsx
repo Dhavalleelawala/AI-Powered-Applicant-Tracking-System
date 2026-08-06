@@ -240,7 +240,7 @@ export function JobsPage() {
               />
             }
           >
-            <Box className="job-list" role="list">
+            <Box className="job-list stagger-in" role="list">
               {jobs.map((job) => (
                 <JobRow key={job.id || job._id} job={job} />
               ))}

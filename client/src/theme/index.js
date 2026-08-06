@@ -113,7 +113,7 @@ export const theme = createTheme({
         sizeSmall: { padding: '6px 12px', fontSize: '0.85rem' },
         contained: {
           '&:hover': { transform: 'translateY(-1px)' },
-          '&:active': { transform: 'translateY(0)' },
+          '&:active': { transform: 'translateY(1px) scale(0.985)' },
         },
         containedSecondary: {
           '&:hover': { backgroundColor: emberDeep },

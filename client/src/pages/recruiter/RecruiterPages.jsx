@@ -49,6 +49,22 @@ export function DashboardPage() {
   const { showToast } = useToast();
   const [drawerId, setDrawerId] = useState(null);
   const [archiveTarget, setArchiveTarget] = useState(null);
+  const [compact, setCompact] = useState(() => {
+    try {
+      return localStorage.getItem('rolefit_recruiter_compact') === '1';
+    } catch {
+      return false;
+    }
+  });
+
+  useEffect(() => {
+    document.documentElement.dataset.compact = compact ? 'true' : 'false';
+    try {
+      localStorage.setItem('rolefit_recruiter_compact', compact ? '1' : '0');
+    } catch {
+      /* ignore */
+    }
+  }, [compact]);
   const { data: jobsData, isLoading: jobsLoading, error: jobsError, refetch: refetchJobs } = useQuery({
     queryKey: ['recruiter-jobs'],
     queryFn: () => jobsApi.mine().then((r) => r.data),
@@ -102,6 +118,13 @@ export function DashboardPage() {
         subtitle="Start with the queue — then open pipelines for deeper work."
         actions={
           <Stack direction="row" spacing={1}>
+            <Button
+              variant="outlined"
+              onClick={() => setCompact((value) => !value)}
+              aria-pressed={compact}
+            >
+              {compact ? 'Comfortable' : 'Compact'}
+            </Button>
             <Button component={Link} to="/recruiter/candidates" variant="outlined">
               Directory
             </Button>
@@ -162,7 +185,7 @@ export function DashboardPage() {
                       {attention?.totals?.[key] ?? rows.length}
                     </Typography>
                   </Typography>
-                  <Stack spacing={1}>
+                  <Stack spacing={1} className="stagger-in">
                     {rows.map((item) => (
                       <Box
                         key={item.id}
@@ -565,6 +588,7 @@ function PipelineCard({
   movePending,
   onResume,
   onOpen,
+  flashing,
 }) {
   const id = a.id || a._id;
   const [openNotes, setOpenNotes] = useState(false);
@@ -577,7 +601,7 @@ function PipelineCard({
 
   return (
     <Paper
-      className={`pipeline-card${dragging ? ' is-dragging' : ''}`}
+      className={`pipeline-card${dragging ? ' is-dragging' : ''}${flashing ? ' is-flash' : ''}`}
       draggable
       onDragStart={(event) => {
         event.dataTransfer.setData('applicationId', id);
@@ -711,6 +735,7 @@ export function PipelinePage() {
   const [rejectTarget, setRejectTarget] = useState(null);
   const [dropStage, setDropStage] = useState(null);
   const [drawerId, setDrawerId] = useState(null);
+  const [flashId, setFlashId] = useState(null);
   const { data: job } = useQuery({
     queryKey: ['job', jobId],
     queryFn: () => jobsApi.get(jobId).then((r) => r.data),
@@ -725,9 +750,11 @@ export function PipelinePage() {
   });
   const move = useMutation({
     mutationFn: ({ id, stage, rejectionReason }) => applicationsApi.move(id, { stage, rejectionReason }),
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       setSelected([]);
       setRejectTarget(null);
+      setFlashId(variables.id);
+      window.setTimeout(() => setFlashId(null), 600);
       qc.invalidateQueries({ queryKey: ['job-applications', jobId] });
       qc.invalidateQueries({ queryKey: ['recruiter-attention'] });
       showToast('Candidate stage updated');
@@ -877,6 +904,7 @@ export function PipelinePage() {
                           movePending={move.isPending}
                           onResume={(cardId) => openResume(cardId).catch((err) => showError(err.message || err))}
                           onOpen={() => setDrawerId(id)}
+                          flashing={flashId === id}
                         />
                       );
                     })
@@ -1009,7 +1037,7 @@ export function CandidatesPage() {
       ) : isLoading ? (
         <LoadingRows />
       ) : candidates.length ? (
-        <Stack spacing={1.5}>
+        <Stack spacing={1.5} className="stagger-in">
           <Typography variant="body2" color="text.secondary">
             {meta.total} candidate{meta.total === 1 ? '' : 's'}
             {meta.totalPages > 1 ? ` · Page ${meta.page} of ${meta.totalPages}` : ''}

@@ -12,7 +12,7 @@ import {
   Toolbar,
   Typography,
 } from '@mui/material';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { OfflineBanner } from './OfflineBanner';
@@ -51,6 +51,15 @@ export function AppShell({ children }) {
   const location = useLocation();
   const [open, setOpen] = useState(false);
   const isLanding = location.pathname === '/';
+  const density =
+    user?.role === 'recruiter' ? 'recruiter' : user?.role === 'applicant' ? 'applicant' : 'public';
+
+  useEffect(() => {
+    document.documentElement.dataset.density = density;
+    return () => {
+      delete document.documentElement.dataset.density;
+    };
+  }, [density]);
 
   const links =
     user?.role === 'recruiter'
@@ -258,7 +267,13 @@ export function AppShell({ children }) {
         </Box>
       </Drawer>
 
-      <Box component="main" id="main-content" tabIndex={-1} sx={{ flex: 1, outline: 'none' }}>
+      <Box
+        component="main"
+        id="main-content"
+        tabIndex={-1}
+        className={`shell-main density-${density}`}
+        sx={{ flex: 1, outline: 'none' }}
+      >
         {children}
       </Box>
 

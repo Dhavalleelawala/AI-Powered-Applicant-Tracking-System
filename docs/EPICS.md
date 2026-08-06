@@ -109,6 +109,14 @@ Status: `planned` · `in_progress` · `done`
 - **Notes:** ErrorState, QueryState, SuccessBanner, PageSkeleton; adopted across jobs/apps/saved/recruiter; toast + offline + boundary aligned.
 - **Paths:** `client/src/components/ui/Primitives.jsx`, pages, `ToastContext`, `ErrorBoundary`
 
+### E16 — Motion & density
+- **Status:** done
+- **Goal:** Intentional motion for presence/hierarchy; denser recruiter workspace vs spacious applicant.
+- **Accept:** Staggered list enters; role-based density; reduced-motion respected; pipeline/drawer feel snappier.
+- **Shipped:** 2026-08-06
+- **Notes:** Role density via `data-density`; recruiter Compact toggle; stagger-in lists; stage-flash on move; page padding tokens.
+- **Paths:** `AppShell.jsx`, `styles.css`, `Primitives.jsx`, recruiter/applicant/public pages
+
 ---
 
 ## Planned (next)

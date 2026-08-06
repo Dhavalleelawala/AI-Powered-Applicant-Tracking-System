@@ -3,6 +3,13 @@
 All notable Rolefit changes are listed here. Newest first.
 Epics are tracked in [`docs/EPICS.md`](./docs/EPICS.md) — **one completed epic → one commit**.
 
+## 2026-08-06 (E16 — Motion & density)
+
+- Role-based density (`applicant` spacious vs `recruiter` tighter page padding)
+- Recruiter dashboard Compact / Comfortable toggle (persisted)
+- Staggered list enters on jobs, applications, attention, directory
+- Pipeline stage-flash after move; button press scale; reduced-motion respected
+
 ## 2026-08-06 (E15 — System feedback kit)
 
 - Shared `ErrorState`, `QueryState`, `SuccessBanner`, `InfoBanner`, `WarningBanner`, `PageSkeleton`
