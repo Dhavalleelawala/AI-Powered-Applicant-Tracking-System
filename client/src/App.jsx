@@ -1,6 +1,7 @@
 import { Route, Routes } from 'react-router-dom';
 import { AppShell } from './components/layout/AppShell';
 import { ScrollToTop } from './components/layout/ScrollToTop';
+import { DocumentTitle } from './components/layout/DocumentTitle';
 import { ProtectedRoute } from './routes/ProtectedRoute';
 import { LandingPage, JobDetailPage, JobsPage, NotFoundPage } from './pages/PublicPages';
 import { LoginPage, RegisterPage } from './pages/AuthPages';
@@ -19,6 +20,7 @@ export default function App() {
   return (
     <AppShell>
       <ScrollToTop />
+      <DocumentTitle />
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/jobs" element={<JobsPage />} />

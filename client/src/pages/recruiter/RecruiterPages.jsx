@@ -27,10 +27,12 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { applicationsApi, hiringApi, jobsApi } from '../../api/client';
+import { AppBreadcrumbs } from '../../components/ui/AppBreadcrumbs';
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { EmptyState, LoadingRows, Page, PageHeader, SectionLabel, StatTile } from '../../components/ui/Primitives';
 import { useToast } from '../../context/ToastContext';
 import { useUrlFilters } from '../../hooks/useUrlFilters';
+import { useBeforeUnloadWarning, useLeaveConfirm } from '../../hooks/useUnsavedWarning';
 
 export function DashboardPage() {
   const qc = useQueryClient();
@@ -263,8 +265,11 @@ export function DashboardPage() {
 export function JobFormPage() {
   const { jobId } = useParams();
   const nav = useNavigate();
-  const { showToast } = useToast();
+  const { showToast, showError } = useToast();
   const editing = Boolean(jobId);
+  const [dirty, setDirty] = useState(false);
+  const { requestLeave, dialog: leaveDialog } = useLeaveConfirm();
+  useBeforeUnloadWarning(dirty);
   const [form, setForm] = useState({
     title: '',
     description: '',
@@ -300,19 +305,29 @@ export function JobFormPage() {
         employmentType: data.employmentType || 'full-time',
         status: data.status || 'open',
       });
+      setDirty(false);
     }
   }, [data]);
 
   const save = useMutation({
     mutationFn: (body) => (editing ? jobsApi.update(jobId, body) : jobsApi.create(body)),
     onSuccess: () => {
+      setDirty(false);
       showToast(editing ? 'Role updated' : 'Role published');
       nav('/recruiter');
     },
+    onError: (err) => showError(err),
   });
-  const set = (key) => (e) => setForm({ ...form, [key]: e.target.value });
+  const set = (key) => (e) => {
+    setDirty(true);
+    setForm({ ...form, [key]: e.target.value });
+  };
   const submit = (e) => {
     e.preventDefault();
+    if (String(form.description || '').trim().length < 50) {
+      showError('Description needs at least 50 characters for quality AI matching.');
+      return;
+    }
     save.mutate({
       ...form,
       requiredSkills: form.requiredSkills
@@ -326,8 +341,19 @@ export function JobFormPage() {
     });
   };
 
+  const goBack = () => {
+    if (dirty) requestLeave(() => nav('/recruiter'));
+    else nav('/recruiter');
+  };
+
   return (
     <Page narrow>
+      <AppBreadcrumbs
+        items={[
+          { label: 'Dashboard', to: '/recruiter' },
+          { label: editing ? 'Edit role' : 'New role' },
+        ]}
+      />
       <PageHeader
         eyebrow={editing ? 'EDIT ROLE' : 'NEW ROLE'}
         title={editing ? 'Refine the role.' : 'Open a new role.'}
@@ -373,7 +399,7 @@ export function JobFormPage() {
             required
             value={form.description}
             onChange={set('description')}
-            helperText="Write at least ~50 characters so AI ranking has enough context."
+            helperText={`${String(form.description || '').trim().length}/50+ characters for AI matching.`}
           />
           <TextField label="Status" select value={form.status} onChange={set('status')}>
             {['draft', 'open'].map((x) => (
@@ -387,10 +413,11 @@ export function JobFormPage() {
             <Button type="submit" color="secondary" variant="contained" size="large" disabled={save.isPending}>
               {save.isPending ? 'Saving…' : editing ? 'Save changes' : 'Publish role'}
             </Button>
-            <Button onClick={() => nav('/recruiter')}>Cancel</Button>
+            <Button onClick={goBack}>Cancel</Button>
           </Stack>
         </Stack>
       </Paper>
+      {leaveDialog}
     </Page>
   );
 }
@@ -466,6 +493,12 @@ export function PipelinePage() {
 
   return (
     <Page maxWidth="xl">
+      <AppBreadcrumbs
+        items={[
+          { label: 'Dashboard', to: '/recruiter' },
+          { label: 'Pipeline' },
+        ]}
+      />
       <PageHeader
         eyebrow="PIPELINE"
         title="Candidate pipeline"
@@ -702,8 +735,15 @@ export function CandidatesPage() {
 export function RankingPage() {
   const { jobId } = useParams();
   const qc = useQueryClient();
-  const { showToast } = useToast();
-  const [filters, setFilters] = useState({ minScore: 0, skill: '', minExperience: '', sort: 'score_desc' });
+  const { showToast, showError } = useToast();
+  const filterDefaults = useMemo(() => ({ minScore: '0', skill: '', minExperience: '', sort: 'score_desc' }), []);
+  const { values, setFilter, clearFilters, activeCount } = useUrlFilters(filterDefaults);
+  const filters = {
+    minScore: Number(values.minScore) || 0,
+    skill: values.skill,
+    minExperience: values.minExperience,
+    sort: values.sort || 'score_desc',
+  };
   const [actionError, setActionError] = useState('');
   const { data, isLoading, error } = useQuery({
     queryKey: ['job-applications', jobId, filters],
@@ -726,48 +766,69 @@ export function RankingPage() {
       qc.invalidateQueries({ queryKey: ['job-applications', jobId] });
       showToast('Reanalysis queued');
     },
-    onError: (err) => setActionError(String(err)),
+    onError: (err) => {
+      setActionError(String(err));
+      showError(err);
+    },
   });
   const apps = data || [];
 
   return (
     <Page>
+      <AppBreadcrumbs
+        items={[
+          { label: 'Dashboard', to: '/recruiter' },
+          { label: 'Pipeline', to: `/recruiter/jobs/${jobId}/applications` },
+          { label: 'Ranking' },
+        ]}
+      />
       <PageHeader
         eyebrow="RANKING"
         title="Shortlist with signal."
         subtitle="Filter by score, skills, and experience — then open evidence."
         actions={
-          <Button component={Link} to={`/recruiter/jobs/${jobId}/applications`} variant="outlined">
-            Open pipeline
-          </Button>
+          <Stack direction="row" spacing={1}>
+            {activeCount > 0 && <Button onClick={clearFilters}>Clear filters</Button>}
+            <Button component={Link} to={`/recruiter/jobs/${jobId}/applications`} variant="outlined">
+              Open pipeline
+            </Button>
+          </Stack>
         }
       />
-      <Paper sx={{ p: 3, mb: 3, bgcolor: 'rgba(255,255,255,0.92)' }}>
+      <Paper sx={{ p: 3, mb: 3, bgcolor: 'rgba(255,255,255,0.92)', position: 'sticky', top: 72, zIndex: 2 }}>
         <Grid container spacing={3} alignItems="center">
           <Grid item xs={12} md={4}>
             <Typography gutterBottom>Minimum match: {filters.minScore}</Typography>
-            <Slider color="secondary" value={filters.minScore} onChange={(_, v) => setFilters({ ...filters, minScore: v })} />
+            <Slider
+              color="secondary"
+              value={filters.minScore}
+              onChange={(_, v) => setFilter('minScore', String(v))}
+              valueLabelDisplay="auto"
+            />
           </Grid>
           <Grid item xs={12} md={3}>
-            <TextField fullWidth label="Required skill" value={filters.skill} onChange={(e) => setFilters({ ...filters, skill: e.target.value })} />
+            <TextField fullWidth label="Required skill" value={values.skill} onChange={(e) => setFilter('skill', e.target.value)} />
           </Grid>
           <Grid item xs={12} md={2}>
             <TextField
               fullWidth
               type="number"
               label="Min years"
-              value={filters.minExperience}
-              onChange={(e) => setFilters({ ...filters, minExperience: e.target.value })}
+              value={values.minExperience}
+              onChange={(e) => setFilter('minExperience', e.target.value)}
             />
           </Grid>
           <Grid item xs={12} md={3}>
-            <TextField fullWidth select label="Sort" value={filters.sort} onChange={(e) => setFilters({ ...filters, sort: e.target.value })}>
+            <TextField fullWidth select label="Sort" value={values.sort} onChange={(e) => setFilter('sort', e.target.value)}>
               <MenuItem value="score_desc">Highest score</MenuItem>
               <MenuItem value="newest">Newest first</MenuItem>
             </TextField>
           </Grid>
         </Grid>
       </Paper>
+      <Typography variant="body2" color="text.secondary" mb={2} aria-live="polite">
+        {isLoading ? 'Ranking candidates…' : `${apps.length} candidate${apps.length === 1 ? '' : 's'}`}
+      </Typography>
       {(error || actionError) && (
         <Alert severity="error" sx={{ mb: 2 }}>
           {error || actionError}

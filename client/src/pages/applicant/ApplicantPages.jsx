@@ -17,16 +17,18 @@ import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { applicationsApi, authApi, jobsApi } from '../../api/client';
 import { EmptyState, LoadingRows, Page, PageHeader, StageChip } from '../../components/ui/Primitives';
+import { AppBreadcrumbs } from '../../components/ui/AppBreadcrumbs';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 
 export function ApplyJobPage() {
   const { jobId } = useParams();
   const nav = useNavigate();
-  const { showToast } = useToast();
+  const { showToast, showError } = useToast();
   const [resume, setResume] = useState(null);
   const [coverLetter, setCoverLetter] = useState('');
   const [error, setError] = useState('');
+  const [dragging, setDragging] = useState(false);
   const { data: job } = useQuery({
     queryKey: ['job', jobId],
     queryFn: () => jobsApi.get(jobId).then((r) => r.data),
@@ -43,11 +45,13 @@ export function ApplyJobPage() {
       showToast('Application submitted — AI review is starting');
       nav('/applicant/applications');
     },
-    onError: (err) => setError(String(err)),
+    onError: (err) => {
+      setError(String(err));
+      showError(err);
+    },
   });
 
-  const select = (e) => {
-    const file = e.target.files?.[0];
+  const acceptFile = (file) => {
     if (!file) return;
     const allowed = [
       'application/pdf',
@@ -62,8 +66,17 @@ export function ApplyJobPage() {
     setResume(file);
   };
 
+  const select = (e) => acceptFile(e.target.files?.[0]);
+
   return (
     <Page narrow>
+      <AppBreadcrumbs
+        items={[
+          { label: 'Jobs', to: '/jobs' },
+          { label: job?.title || 'Role', to: `/jobs/${jobId}` },
+          { label: 'Apply' },
+        ]}
+      />
       <PageHeader
         eyebrow="APPLICATION"
         title="Put yourself forward."
@@ -84,19 +97,34 @@ export function ApplyJobPage() {
             component="label"
             variant="outlined"
             startIcon={<CloudUpload />}
+            onDragEnter={(e) => {
+              e.preventDefault();
+              setDragging(true);
+            }}
+            onDragOver={(e) => e.preventDefault()}
+            onDragLeave={() => setDragging(false)}
+            onDrop={(e) => {
+              e.preventDefault();
+              setDragging(false);
+              acceptFile(e.dataTransfer.files?.[0]);
+            }}
             sx={{
-              py: 2.5,
+              py: 3,
               borderStyle: 'dashed',
               justifyContent: 'flex-start',
-              bgcolor: resume ? 'rgba(31,167,160,0.06)' : 'transparent',
+              bgcolor: dragging || resume ? 'rgba(31,167,160,0.08)' : 'transparent',
+              borderColor: dragging ? 'secondary.main' : undefined,
             }}
           >
-            {resume ? resume.name : 'Choose resume (PDF or DOCX)'}
+            {resume ? resume.name : 'Drop resume here, or choose PDF/DOCX'}
             <input hidden type="file" accept=".pdf,.doc,.docx" onChange={select} />
           </Button>
           {resume && (
             <Typography variant="body2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <AttachFile fontSize="small" /> {resume.name} · {(resume.size / 1024).toFixed(0)} KB
+              <Button size="small" onClick={() => setResume(null)} sx={{ ml: 1 }}>
+                Remove
+              </Button>
             </Typography>
           )}
           <TextField
@@ -106,6 +134,7 @@ export function ApplyJobPage() {
             value={coverLetter}
             onChange={(e) => setCoverLetter(e.target.value)}
             placeholder="A short note on why this role fits your craft."
+            helperText={`${coverLetter.length} characters`}
           />
           {error && <Alert severity="error">{error}</Alert>}
           <Button type="submit" variant="contained" color="secondary" size="large" disabled={apply.isPending}>
