@@ -3,6 +3,12 @@
 All notable Rolefit changes are listed here. Newest first.
 Epics are tracked in [`docs/EPICS.md`](./docs/EPICS.md) — **one completed epic → one commit**.
 
+## 2026-08-06 (E24 — Applicant apply trust)
+
+- Apply Ready step shows the live profile + resume required checklist with per-item Fix links
+- Rolefit attach confirms `{Applicant Name}.pdf` and marks confidence before Review
+- Review step and My applications success banner spell out the post-submit AI scoring next step
+
 ## 2026-08-06 (E23 — Recruiter mobile pipeline)
 
 - Pipeline on phones uses stage tabs instead of horizontal kanban scroll

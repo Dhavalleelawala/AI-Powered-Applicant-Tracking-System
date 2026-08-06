@@ -47,7 +47,7 @@ Ordered by demo clarity and craft.
 ### E24 — Applicant apply trust
 - **Goal:** Apply wizard shows readiness + resume preview confidence before submit.
 - **Accept:** Ready step mirrors live checklist; attached Rolefit resume shows name filename; clear post-submit next step.
-- **Status:** planned
+- **Status:** done
 
 ### E25 — Demo narrative polish
 - **Goal:** Recruiter Decisions → Ranking → Pipeline and Applicant Ready → Apply tell one story without dead ends.

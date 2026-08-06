@@ -178,9 +178,12 @@ Status: `planned` · `in_progress` · `done`
 ## Planned (next)
 
 ### E24 — Applicant apply trust
-- **Status:** planned
+- **Status:** done
 - **Goal:** Apply wizard shows readiness + resume preview confidence before submit.
 - **Accept:** Ready step mirrors live checklist; attached Rolefit resume shows name filename; clear post-submit next step.
+- **Shipped:** 2026-08-06
+- **Notes:** Ready step shows live profile/resume required checklist with Fix links; Rolefit attach confirms `{Name}.pdf`; Review step explains post-submit; My applications success banner states AI scoring next step.
+- **Paths:** `ApplicantPages.jsx` ApplyJobPage/MyApplicationsPage, `styles.css`
 
 ### E25 — Demo narrative polish
 - **Status:** planned

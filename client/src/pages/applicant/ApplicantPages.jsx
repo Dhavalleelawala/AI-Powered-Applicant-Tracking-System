@@ -1,4 +1,4 @@
-import { AttachFile, CloudUpload } from '@mui/icons-material';
+import { AttachFile, CheckCircle, CloudUpload, RadioButtonUnchecked } from '@mui/icons-material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import {
   Accordion,
@@ -31,12 +31,58 @@ import { useBeforeUnloadWarning, useLeaveConfirm } from '../../hooks/useUnsavedW
 import { applicantReadiness, profileChecklist } from '../../utils/applicantCompleteness';
 import { ApplicantJourney, JourneyFooter } from '../../components/applicant/ApplicantJourney';
 
+function ReadyCheckList({ title, checklist, fixTo }) {
+  return (
+    <Box className="apply-ready-list">
+      <Stack direction="row" justifyContent="space-between" alignItems="baseline" sx={{ mb: 1 }}>
+        <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+          {title}
+        </Typography>
+        <Typography variant="body2" color={checklist.complete ? 'success.main' : 'warning.main'} sx={{ fontWeight: 600 }}>
+          {checklist.percent}%
+        </Typography>
+      </Stack>
+      <Stack spacing={0.75} component="ul" sx={{ m: 0, p: 0, listStyle: 'none' }}>
+        {checklist.items
+          .filter((item) => item.required)
+          .map((item) => (
+            <Box
+              key={item.id}
+              component="li"
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1,
+                color: item.done ? 'text.primary' : 'text.secondary',
+              }}
+            >
+              {item.done ? (
+                <CheckCircle sx={{ fontSize: 18, color: 'success.main' }} aria-hidden />
+              ) : (
+                <RadioButtonUnchecked sx={{ fontSize: 18, color: 'warning.main' }} aria-hidden />
+              )}
+              <Typography variant="body2" component="span" sx={{ flex: 1 }}>
+                {item.label}
+              </Typography>
+              {!item.done && (
+                <Button component={Link} to={item.to || fixTo} size="small" color="inherit" sx={{ minWidth: 0, px: 1 }}>
+                  Fix
+                </Button>
+              )}
+            </Box>
+          ))}
+      </Stack>
+    </Box>
+  );
+}
+
 export function ApplyJobPage() {
   const { jobId } = useParams();
   const nav = useNavigate();
   const { user } = useAuth();
   const { showToast, showError } = useToast();
   const [resume, setResume] = useState(null);
+  const [rolefitAttached, setRolefitAttached] = useState(false);
   const [coverLetter, setCoverLetter] = useState('');
   const [error, setError] = useState('');
   const [dragging, setDragging] = useState(false);
@@ -100,6 +146,7 @@ export function ApplyJobPage() {
       return;
     }
     setError('');
+    setRolefitAttached(false);
     setResume(file);
   };
 
@@ -112,7 +159,8 @@ export function ApplyJobPage() {
       const { blob, filename } = await authApi.downloadResumePdf(user?.name);
       const file = new File([blob], filename, { type: 'application/pdf' });
       setResume(file);
-      showToast('Rolefit resume attached');
+      setRolefitAttached(true);
+      showToast(`Attached ${filename}`);
     } catch (err) {
       setError(String(err));
       showError(err);
@@ -121,7 +169,7 @@ export function ApplyJobPage() {
     }
   };
 
-  const steps = ['Ready', 'Resume', 'Submit'];
+  const steps = ['Ready', 'Resume', 'Review'];
 
   return (
     <Page narrow>
@@ -184,33 +232,16 @@ export function ApplyJobPage() {
             <Stack spacing={2.5}>
               <Typography variant="h3">Confirm you’re ready</Typography>
               <Typography color="text.secondary">
-                Recruiters see your profile and resume together. Finish required details before you attach a file.
+                Same checklist as your journey home — finish every required item before you attach a file.
               </Typography>
-              <Stack spacing={1}>
-                <Alert severity={readiness.profile.complete ? 'success' : 'warning'}>
-                  Profile {readiness.profile.percent}%
-                  {!readiness.profile.complete && (
-                    <>
-                      {' '}
-                      — missing {readiness.profile.missingRequired.map((i) => i.label).join(', ')}.{' '}
-                      <Button component={Link} to="/applicant/profile" size="small" color="inherit">
-                        Fix profile
-                      </Button>
-                    </>
-                  )}
-                </Alert>
-                <Alert severity={readiness.resume.complete ? 'success' : 'warning'}>
-                  Resume {readiness.resume.percent}%
-                  {!readiness.resume.complete && (
-                    <>
-                      {' '}
-                      — missing {readiness.resume.missingRequired.map((i) => i.label).join(', ')}.{' '}
-                      <Button component={Link} to="/applicant/resume" size="small" color="inherit">
-                        Fix resume
-                      </Button>
-                    </>
-                  )}
-                </Alert>
+              <Alert severity={readiness.readyToApply ? 'success' : 'warning'}>
+                {readiness.readyToApply
+                  ? 'Profile and Rolefit resume are ready. Continue to attach your file.'
+                  : `Overall readiness ${readiness.percent}%. Fix the open items below, then come back.`}
+              </Alert>
+              <Stack spacing={2.5} className="apply-ready-grid">
+                <ReadyCheckList title="Profile" checklist={readiness.profile} fixTo="/applicant/profile" />
+                <ReadyCheckList title="Rolefit resume" checklist={readiness.resume} fixTo="/applicant/resume" />
               </Stack>
             </Stack>
           )}
@@ -218,6 +249,9 @@ export function ApplyJobPage() {
           {step === 1 && (
             <Stack spacing={2.5}>
               <Typography variant="h3">Attach your resume</Typography>
+              <Typography color="text.secondary">
+                Prefer your Rolefit PDF — recruiters see it as <strong>{user?.name?.trim() || 'Your Name'}.pdf</strong>.
+              </Typography>
               <Button
                 component="label"
                 variant="outlined"
@@ -246,16 +280,38 @@ export function ApplyJobPage() {
                 <input hidden type="file" accept=".pdf,.doc,.docx" aria-label="Resume file" onChange={select} />
               </Button>
               {resume && (
-                <Typography variant="body2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <AttachFile fontSize="small" /> {resume.name} · {(resume.size / 1024).toFixed(0)} KB
-                  <Button size="small" onClick={() => setResume(null)} sx={{ ml: 1 }}>
-                    Remove
-                  </Button>
-                </Typography>
+                <Alert
+                  severity={rolefitAttached ? 'success' : 'info'}
+                  icon={rolefitAttached ? <CheckCircle fontSize="inherit" /> : <AttachFile fontSize="inherit" />}
+                  action={
+                    <Button
+                      size="small"
+                      color="inherit"
+                      onClick={() => {
+                        setResume(null);
+                        setRolefitAttached(false);
+                      }}
+                    >
+                      Remove
+                    </Button>
+                  }
+                >
+                  {rolefitAttached ? (
+                    <>
+                      Rolefit resume attached as <strong>{resume.name}</strong> ({(resume.size / 1024).toFixed(0)} KB) —
+                      this is what the hiring team downloads.
+                    </>
+                  ) : (
+                    <>
+                      Attached <strong>{resume.name}</strong> ({(resume.size / 1024).toFixed(0)} KB). You can still switch
+                      to your Rolefit PDF below.
+                    </>
+                  )}
+                </Alert>
               )}
               <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
                 <Button variant="outlined" onClick={useBuiltResume} disabled={loadingBuilt || apply.isPending}>
-                  {loadingBuilt ? 'Loading resume…' : 'Use Rolefit resume'}
+                  {loadingBuilt ? 'Loading resume…' : rolefitAttached ? 'Refresh Rolefit resume' : 'Use Rolefit resume'}
                 </Button>
                 <Button component={Link} to="/applicant/resume" size="small">
                   Edit Rolefit resume
@@ -267,15 +323,32 @@ export function ApplyJobPage() {
 
           {step === 2 && (
             <Stack spacing={2.5}>
-              <Typography variant="h3">Add a short note</Typography>
-              <Alert severity="info">
-                Submitting to <strong>{job?.title || 'this role'}</strong>
-                {resume ? ` with ${resume.name}` : ''}.
+              <Typography variant="h3">Review and send</Typography>
+              <Alert severity="success">
+                Ready for <strong>{job?.title || 'this role'}</strong>
+                {resume ? (
+                  <>
+                    {' '}
+                    with <strong>{resume.name}</strong>
+                    {rolefitAttached ? ' (Rolefit PDF)' : ''}.
+                  </>
+                ) : (
+                  '.'
+                )}
               </Alert>
+              <Box className="apply-submit-next">
+                <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.75 }}>
+                  After you submit
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  AI scores your resume against this role, then your application lands in My applications with stage and
+                  next-step guidance. You can leave this page as soon as submit succeeds.
+                </Typography>
+              </Box>
               <TextField
                 label="Cover letter (optional)"
                 multiline
-                rows={6}
+                rows={5}
                 value={coverLetter}
                 onChange={(e) => setCoverLetter(e.target.value)}
                 placeholder="A short note on why this role fits your craft."
@@ -324,7 +397,7 @@ export function ApplyJobPage() {
                 }}
                 sx={{ width: { xs: '100%', sm: 'auto' } }}
               >
-                Continue to note
+                Continue to review
               </Button>
             </>
           )}
@@ -579,8 +652,18 @@ export function MyApplicationsPage() {
       />
       {justApplied && (
         <SuccessBanner>
-          Application submitted{justAppliedTitle ? ` for ${justAppliedTitle}` : ''}. AI is scoring your resume — this list
-          updates automatically.
+          <Stack spacing={1.25}>
+            <Typography component="span" sx={{ display: 'block', fontWeight: 700 }}>
+              Application submitted{justAppliedTitle ? ` for ${justAppliedTitle}` : ''}.
+            </Typography>
+            <Typography component="span" sx={{ display: 'block' }}>
+              Next: AI is scoring your resume against the role. This list refreshes automatically — watch the fit score
+              and stage on the card below.
+            </Typography>
+            <Button component={Link} to="/jobs" size="small" color="inherit" sx={{ alignSelf: 'flex-start', mt: 0.5 }}>
+              Browse more roles
+            </Button>
+          </Stack>
         </SuccessBanner>
       )}
       <QueryState

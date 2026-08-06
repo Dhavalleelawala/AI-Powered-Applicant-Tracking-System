@@ -658,6 +658,32 @@ a { color: inherit; }
   padding: 4px 0;
 }
 
+.apply-ready-grid {
+  display: grid;
+  gap: 1.25rem;
+}
+
+@media (min-width: 600px) {
+  .apply-ready-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+  }
+}
+
+.apply-ready-list {
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--rf-line);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.apply-submit-next {
+  padding: 0.9rem 1rem;
+  border-left: 3px solid var(--rf-ember, #ff5c35);
+  background: rgba(255, 92, 53, 0.06);
+  border-radius: 0 10px 10px 0;
+}
+
 .resume-preview .MuiPaper-root {
   border: 1px solid var(--rf-line);
 }
