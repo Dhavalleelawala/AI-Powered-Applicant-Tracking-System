@@ -51,7 +51,7 @@ export function PageHeader({ eyebrow, title, subtitle, actions }) {
   );
 }
 
-export function EmptyState({ title, text, actionLabel, actionTo }) {
+export function EmptyState({ title, text, actionLabel, actionTo, onAction }) {
   return (
     <Paper
       sx={{
@@ -67,8 +67,15 @@ export function EmptyState({ title, text, actionLabel, actionTo }) {
       <Typography color="text.secondary" mt={1} mx="auto" maxWidth={420}>
         {text}
       </Typography>
-      {actionLabel && actionTo && (
-        <Button component={Link} to={actionTo} variant="contained" color="secondary" sx={{ mt: 3 }}>
+      {actionLabel && (actionTo || onAction) && (
+        <Button
+          component={actionTo ? Link : 'button'}
+          to={actionTo}
+          onClick={onAction}
+          variant="contained"
+          color="secondary"
+          sx={{ mt: 3 }}
+        >
           {actionLabel}
         </Button>
       )}

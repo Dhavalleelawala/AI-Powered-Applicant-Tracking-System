@@ -166,6 +166,9 @@ export function AppShell({ children }) {
                   <Button component={Link} to="/login" sx={{ color: 'inherit' }}>
                     Sign in
                   </Button>
+                  <Button component={Link} to="/register/applicant" sx={{ color: 'inherit' }}>
+                    Join as applicant
+                  </Button>
                   <Button
                     variant="contained"
                     color={isLanding ? 'secondary' : 'primary'}

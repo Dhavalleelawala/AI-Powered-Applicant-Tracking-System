@@ -527,9 +527,17 @@ export function PipelinePage() {
           {String(error)}
         </Alert>
       )}
-      <Grid container spacing={2}>
+      {!isLoading && apps.length === 0 ? (
+        <EmptyState
+          title="No applications yet."
+          text="Share this role on the public board to start collecting candidates."
+          actionLabel="View public role"
+          actionTo={`/jobs/${jobId}`}
+        />
+      ) : (
+      <Grid container spacing={2} sx={{ overflowX: { xs: 'auto', lg: 'visible' }, flexWrap: { xs: 'nowrap', lg: 'wrap' }, pb: { xs: 1, lg: 0 } }}>
         {stages.map((stage) => (
-          <Grid item xs={12} sm={6} lg={3} key={stage}>
+          <Grid item xs={10} sm={6} lg={3} key={stage} sx={{ minWidth: { xs: 260, lg: 0 } }}>
             <Paper className="pipeline-column" sx={{ p: 2, minHeight: 420, border: '1px solid', borderColor: 'divider' }}>
               <Stack direction="row" justifyContent="space-between" alignItems="center">
                 <Typography variant="h3" fontSize={18} sx={{ textTransform: 'capitalize' }}>
@@ -618,6 +626,7 @@ export function PipelinePage() {
           </Grid>
         ))}
       </Grid>
+      )}
       <ConfirmDialog
         open={Boolean(rejectTarget)}
         title="Reject this candidate?"
@@ -645,18 +654,27 @@ export function PipelinePage() {
 }
 
 export function CandidatesPage() {
-  const filterDefaults = useMemo(() => ({ q: '', stage: '', minScore: '' }), []);
+  const { showError } = useToast();
+  const filterDefaults = useMemo(() => ({ q: '', stage: '', minScore: '', page: '1' }), []);
   const { values, setFilter, clearFilters, activeCount } = useUrlFilters(filterDefaults);
+  const page = Math.max(1, Number(values.page) || 1);
   const params = {
     q: values.q || undefined,
     stage: values.stage || undefined,
     minScore: values.minScore === '' ? undefined : Number(values.minScore),
+    page,
+    limit: 20,
   };
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['company-candidates', params],
-    queryFn: () => hiringApi.candidates(params).then((r) => r.data),
+    queryFn: () =>
+      hiringApi.candidates(params).then((r) => ({
+        candidates: r.data || [],
+        meta: r.meta || { page: 1, totalPages: 1, total: 0 },
+      })),
   });
-  const candidates = data || [];
+  const candidates = data?.candidates || [];
+  const meta = data?.meta || { page: 1, totalPages: 1, total: 0 };
 
   return (
     <Page>
@@ -672,11 +690,23 @@ export function CandidatesPage() {
               fullWidth
               label="Search name, email, skills"
               value={values.q}
-              onChange={(e) => setFilter('q', e.target.value)}
+              onChange={(e) => {
+                setFilter('q', e.target.value);
+                setFilter('page', '1');
+              }}
             />
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
-            <TextField fullWidth select label="Stage" value={values.stage} onChange={(e) => setFilter('stage', e.target.value)}>
+            <TextField
+              fullWidth
+              select
+              label="Stage"
+              value={values.stage}
+              onChange={(e) => {
+                setFilter('stage', e.target.value);
+                setFilter('page', '1');
+              }}
+            >
               <MenuItem value="">All stages</MenuItem>
               {stages.map((stage) => (
                 <MenuItem key={stage} value={stage}>
@@ -692,7 +722,10 @@ export function CandidatesPage() {
               label="Minimum score"
               inputProps={{ min: 0, max: 100 }}
               value={values.minScore}
-              onChange={(e) => setFilter('minScore', e.target.value)}
+              onChange={(e) => {
+                setFilter('minScore', e.target.value);
+                setFilter('page', '1');
+              }}
             />
           </Grid>
           <Grid item xs={12} md={2}>
@@ -712,6 +745,10 @@ export function CandidatesPage() {
         <LoadingRows />
       ) : candidates.length ? (
         <Stack spacing={1.5}>
+          <Typography variant="body2" color="text.secondary">
+            {meta.total} candidate{meta.total === 1 ? '' : 's'}
+            {meta.totalPages > 1 ? ` · Page ${meta.page} of ${meta.totalPages}` : ''}
+          </Typography>
           {candidates.map((candidate) => (
             <Paper
               key={candidate.id}
@@ -723,19 +760,64 @@ export function CandidatesPage() {
                 <Typography variant="body2" color="text.secondary">
                   {candidate.applicant?.email || '—'} · {candidate.job?.title || 'Role unavailable'}
                 </Typography>
+                {candidate.applicant?.headline && (
+                  <Typography variant="body2" color="text.secondary" mt={0.5}>
+                    {candidate.applicant.headline}
+                  </Typography>
+                )}
+                {(candidate.applicant?.skills || []).length > 0 && (
+                  <Stack direction="row" gap={0.75} flexWrap="wrap" useFlexGap mt={1}>
+                    {candidate.applicant.skills.slice(0, 5).map((skill) => (
+                      <Chip key={skill} size="small" label={skill} variant="outlined" />
+                    ))}
+                  </Stack>
+                )}
               </Box>
               <Chip color="secondary" label={`${candidate.matchScore ?? '—'} match`} />
               <Chip label={candidate.stage} sx={{ textTransform: 'capitalize' }} />
-              {candidate.job && (
-                <Button component={Link} to={`/recruiter/jobs/${candidate.job.id}/applications`} variant="outlined">
-                  View pipeline
-                </Button>
+              {candidate.aiStatus && (
+                <Chip size="small" label={`AI: ${candidate.aiStatus}`} variant="outlined" />
               )}
+              <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                <Button
+                  size="small"
+                  startIcon={<Description />}
+                  onClick={() => openResume(candidate.id).catch((err) => showError(err.message || err))}
+                >
+                  Resume
+                </Button>
+                {candidate.job && (
+                  <>
+                    <Button component={Link} to={`/recruiter/jobs/${candidate.job.id}/applications`} variant="outlined" size="small">
+                      Pipeline
+                    </Button>
+                    <Button component={Link} to={`/recruiter/jobs/${candidate.job.id}/ranking`} variant="outlined" size="small">
+                      Ranking
+                    </Button>
+                  </>
+                )}
+              </Stack>
             </Paper>
           ))}
+          {meta.totalPages > 1 && (
+            <Stack direction="row" spacing={1} justifyContent="center" pt={1}>
+              <Button disabled={meta.page <= 1} onClick={() => setFilter('page', String(meta.page - 1))}>
+                Previous
+              </Button>
+              <Button disabled={meta.page >= meta.totalPages} onClick={() => setFilter('page', String(meta.page + 1))}>
+                Next
+              </Button>
+            </Stack>
+          )}
         </Stack>
       ) : (
-        <EmptyState title="No candidates match these filters." text="Try broadening your search or score threshold." />
+        <EmptyState
+          title="No candidates match these filters."
+          text={activeCount ? 'Try broadening your search or score threshold.' : 'Share an open role to start receiving applications.'}
+          actionLabel={activeCount ? 'Clear filters' : 'Open dashboard'}
+          actionTo={activeCount ? undefined : '/recruiter'}
+          onAction={activeCount ? clearFilters : undefined}
+        />
       )}
     </Page>
   );

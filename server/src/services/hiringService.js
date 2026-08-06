@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { Application, Job } = require('../models');
+const { Application, Job, User } = require('../models');
 
 async function getHiringAnalytics(companyId) {
   const companyObjectId =
@@ -97,30 +97,34 @@ async function searchCandidates(companyId, query) {
     filter.tags = String(query.tag).trim().toLowerCase();
   }
 
+  const q = String(query.q || '').trim();
+  if (q) {
+    const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const rx = new RegExp(escaped, 'i');
+    const matchingUsers = await User.find({
+      $or: [{ name: rx }, { email: rx }, { skills: rx }, { headline: rx }],
+    })
+      .select('_id')
+      .lean();
+    const applicantIds = matchingUsers.map((user) => user._id);
+    filter.$or = [{ applicantId: { $in: applicantIds } }, { 'aiAnalysis.summary': rx }];
+  }
+
   const page = Math.max(1, Number.parseInt(query.page, 10) || 1);
   const limit = Math.min(50, Math.max(1, Number.parseInt(query.limit, 10) || 20));
   const skip = (page - 1) * limit;
 
-  let applications = await Application.find(filter)
-    .populate('applicantId', 'name email phone headline location skills experienceYears')
-    .populate('jobId', 'title department')
-    .sort({ 'aiAnalysis.matchScore': -1, updatedAt: -1 })
-    .skip(skip)
-    .limit(limit)
-    .lean();
+  const [applications, total] = await Promise.all([
+    Application.find(filter)
+      .populate('applicantId', 'name email phone headline location skills experienceYears')
+      .populate('jobId', 'title department')
+      .sort({ 'aiAnalysis.matchScore': -1, updatedAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean(),
+    Application.countDocuments(filter),
+  ]);
 
-  if (query.q) {
-    const q = String(query.q).toLowerCase();
-    applications = applications.filter((app) => {
-      const name = app.applicantId?.name?.toLowerCase() || '';
-      const email = app.applicantId?.email?.toLowerCase() || '';
-      const skills = (app.applicantId?.skills || []).join(' ');
-      const summary = app.aiAnalysis?.summary?.toLowerCase() || '';
-      return name.includes(q) || email.includes(q) || skills.includes(q) || summary.includes(q);
-    });
-  }
-
-  const total = await Application.countDocuments(filter);
   return {
     applications: applications.map((app) => ({
       id: String(app._id),

@@ -85,7 +85,7 @@ export function LandingPage() {
         <Typography className="reveal-delay" sx={{ maxWidth: 480, fontSize: { xs: 17, md: 19 }, lineHeight: 1.65, mt: 3.5, color: '#D5DDD8' }}>
           Semantic ranking meets a focused pipeline, so every candidate gets the attention they deserve.
         </Typography>
-        <Stack className="reveal-late" direction={{ xs: 'column', sm: 'row' }} spacing={1.5} mt={4.5}>
+        <Stack className="reveal-late" direction={{ xs: 'column', sm: 'row' }} spacing={1.5} mt={4.5} flexWrap="wrap" useFlexGap>
           <Button variant="contained" color="secondary" component={Link} to="/register/recruiter" endIcon={<ArrowOutward />} size="large">
             Start hiring
           </Button>
@@ -97,6 +97,14 @@ export function LandingPage() {
             sx={{ color: '#F7F4EF', borderColor: '#7E958D', '&:hover': { borderColor: '#F7F4EF', bgcolor: 'rgba(247,244,239,0.06)' } }}
           >
             Explore open roles
+          </Button>
+          <Button
+            component={Link}
+            to="/register/applicant"
+            size="large"
+            sx={{ color: '#D5DDD8', '&:hover': { color: '#F7F4EF', bgcolor: 'rgba(247,244,239,0.06)' } }}
+          >
+            Join as applicant
           </Button>
         </Stack>
       </Container>
@@ -333,15 +341,24 @@ export function JobDetailPage() {
           <Chip key={s} label={s} color="secondary" variant="outlined" />
         ))}
       </Stack>
-      {existingApp && (
+      {existingApp && user?.role === 'applicant' && (
         <Alert severity="info" sx={{ mt: 3 }}>
           You already applied on {new Date(existingApp.createdAt).toLocaleDateString()} · Stage:{' '}
           <strong style={{ textTransform: 'capitalize' }}>{existingApp.stage}</strong>
           {existingApp.aiAnalysis?.matchScore != null ? ` · ${existingApp.aiAnalysis.matchScore}% match` : ''}
         </Alert>
       )}
+      {user?.role === 'recruiter' && (
+        <Alert severity="info" sx={{ mt: 3 }}>
+          You’re signed in as a recruiter. Use your dashboard to manage pipelines — applicants apply from a candidate account.
+        </Alert>
+      )}
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.25} mt={4}>
-        {existingApp ? (
+        {user?.role === 'recruiter' ? (
+          <Button variant="contained" color="secondary" size="large" component={Link} to="/recruiter">
+            Open recruiter dashboard
+          </Button>
+        ) : existingApp ? (
           <Button variant="contained" color="secondary" size="large" component={Link} to="/applicant/applications">
             View my application
           </Button>

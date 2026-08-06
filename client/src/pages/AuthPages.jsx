@@ -1,6 +1,6 @@
 import { Alert, Box, Button, Link as MuiLink, Paper, Stack, TextField, Typography } from '@mui/material';
 import { useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { authApi } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
@@ -13,6 +13,10 @@ function redirectAfterAuth(user, location) {
   return user.role === 'recruiter' ? '/recruiter' : '/jobs';
 }
 
+function homeForRole(user) {
+  return user?.role === 'recruiter' ? '/recruiter' : '/jobs';
+}
+
 function passwordHint(password) {
   if (!password) return '';
   if (password.length < 8) return 'Needs at least 8 characters.';
@@ -21,13 +25,15 @@ function passwordHint(password) {
 }
 
 export function LoginPage() {
-  const { login } = useAuth();
+  const { user, login } = useAuth();
   const { showToast, showError } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
   const [form, setForm] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [sending, setSending] = useState(false);
+
+  if (user) return <Navigate to={homeForRole(user)} replace />;
 
   const submit = async (e) => {
     e.preventDefault();
@@ -86,7 +92,7 @@ export function LoginPage() {
 
 export function RegisterPage({ role }) {
   const recruiter = role === 'recruiter';
-  const { login } = useAuth();
+  const { user, login } = useAuth();
   const { showToast, showError } = useToast();
   const nav = useNavigate();
   const location = useLocation();
@@ -94,6 +100,8 @@ export function RegisterPage({ role }) {
   const [error, setError] = useState('');
   const [sending, setSending] = useState(false);
   const hint = passwordHint(form.password);
+
+  if (user) return <Navigate to={homeForRole(user)} replace />;
 
   const submit = async (e) => {
     e.preventDefault();
@@ -157,7 +165,11 @@ export function RegisterPage({ role }) {
       </Box>
       <Typography mt={3} variant="body2" color="text.secondary">
         Already have an account? <MuiLink component={Link} to="/login">Sign in</MuiLink>.
-        {!recruiter && (
+        {recruiter ? (
+          <>
+            {' '}Looking for a role? <MuiLink component={Link} to="/register/applicant">Join as an applicant</MuiLink>.
+          </>
+        ) : (
           <>
             {' '}Looking to hire? <MuiLink component={Link} to="/register/recruiter">Start as a recruiter</MuiLink>.
           </>

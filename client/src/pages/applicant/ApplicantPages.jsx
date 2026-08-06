@@ -30,7 +30,9 @@ export function ApplyJobPage() {
   const [coverLetter, setCoverLetter] = useState('');
   const [error, setError] = useState('');
   const [dragging, setDragging] = useState(false);
-  const { data: job } = useQuery({
+  const dirty = Boolean(resume || coverLetter.trim());
+  useBeforeUnloadWarning(dirty);
+  const { data: job, isLoading: jobLoading, error: jobError, refetch: refetchJob } = useQuery({
     queryKey: ['job', jobId],
     queryFn: () => jobsApi.get(jobId).then((r) => r.data),
   });
@@ -73,7 +75,10 @@ export function ApplyJobPage() {
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
       'application/msword',
     ];
-    if (!allowed.includes(file.type) || file.size > 5 * 1024 * 1024) {
+    const name = String(file.name || '').toLowerCase();
+    const byExt = name.endsWith('.pdf') || name.endsWith('.doc') || name.endsWith('.docx');
+    const byMime = allowed.includes(file.type);
+    if ((!byMime && !byExt) || file.size > 5 * 1024 * 1024) {
       setError('Upload a PDF or DOC/DOCX smaller than 5 MB.');
       return;
     }
@@ -97,6 +102,14 @@ export function ApplyJobPage() {
         title="Put yourself forward."
         subtitle={job ? `Applying to ${job.title}` : 'Add your resume and a short note for the hiring team.'}
       />
+      {jobError ? (
+        <Alert severity="error" action={<Button onClick={refetchJob}>Retry</Button>} sx={{ mb: 2 }}>
+          {String(jobError)}
+        </Alert>
+      ) : null}
+      {jobLoading && !job ? (
+        <LinearProgress color="secondary" sx={{ mb: 2, borderRadius: 1 }} />
+      ) : null}
       <Paper
         component="form"
         onSubmit={(e) => {
@@ -112,6 +125,7 @@ export function ApplyJobPage() {
             component="label"
             variant="outlined"
             startIcon={<CloudUpload />}
+            aria-label="Upload resume PDF or Word document"
             onDragEnter={(e) => {
               e.preventDefault();
               setDragging(true);
@@ -132,7 +146,7 @@ export function ApplyJobPage() {
             }}
           >
             {resume ? resume.name : 'Drop resume here, or choose PDF/DOCX'}
-            <input hidden type="file" accept=".pdf,.doc,.docx" onChange={select} />
+            <input hidden type="file" accept=".pdf,.doc,.docx" aria-label="Resume file" onChange={select} />
           </Button>
           {resume && (
             <Typography variant="body2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -205,7 +219,13 @@ export function MyApplicationsPage() {
                 sx={{ p: 2.5 }}
               >
                 <Stack spacing={0.5}>
-                  <Typography fontWeight={700} fontSize={18}>
+                  <Typography
+                    fontWeight={700}
+                    fontSize={18}
+                    component={Link}
+                    to={`/jobs/${a.job?.id || a.jobId}`}
+                    sx={{ color: 'inherit', textDecoration: 'none', '&:hover': { color: 'secondary.dark' } }}
+                  >
                     {a.jobTitle || a.job?.title || a.jobId?.title || 'Role'}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
@@ -216,7 +236,12 @@ export function MyApplicationsPage() {
                     <LinearProgress color="secondary" sx={{ mt: 1, maxWidth: 220, borderRadius: 1 }} />
                   )}
                 </Stack>
-                <StageChip stage={a.stage} />
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <Button size="small" component={Link} to={`/jobs/${a.job?.id || a.jobId}`} variant="outlined">
+                    View role
+                  </Button>
+                  <StageChip stage={a.stage} />
+                </Stack>
               </Stack>
               {(a.aiAnalysis?.summary || (a.stageHistory || []).length > 0) && (
                 <Accordion disableGutters elevation={0}>

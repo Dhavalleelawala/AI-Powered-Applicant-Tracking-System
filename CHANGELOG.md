@@ -2,11 +2,19 @@
 
 All notable Rolefit changes are listed here. Newest first.
 
-## 2026-08-06
+## 2026-08-06 (demo polish)
 
-### Deploy & resilience
-- `SEED_ON_EMPTY=true` seeds demo users/jobs on first boot when the database has no users (safe for Render/Atlas)
-- Client `ErrorBoundary` recovers from unexpected UI crashes with a home path back
+### Fixes
+- Recruiters no longer get sent to login when viewing Apply on a public job
+- Candidate directory search now filters before pagination; page meta + prev/next wired
+- Auth pages redirect if already signed in; recruiter register links to applicant join
+
+### UX
+- Applications list links back to the public role
+- Candidates show skills/headline, resume + ranking shortcuts
+- Apply accepts files by extension when MIME is empty; leave warning while drafting
+- Pipeline empty state + horizontal scroll on small screens
+- Landing + desktop nav: Join as applicant
 
 ### Interaction UX
 - Already-applied CTAs on job detail; apply flow redirects if a prior application exists
