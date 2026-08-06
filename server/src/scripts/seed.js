@@ -95,19 +95,17 @@ async function clearPreviousSeed(companyId) {
   await Company.deleteOne({ _id: companyId });
 }
 
-async function seed() {
-  await connectDb();
-
-  const existingCompany = await Company.findOne({ name: DEMO.company.name });
-  await clearPreviousSeed(existingCompany?._id);
-
-  // Also remove orphaned demo users from a partial previous run.
-  await User.deleteMany({
-    email: { $in: [DEMO.recruiter.email, DEMO.applicant.email] },
-  });
+/** Insert reproducible demo company, users, jobs, and one application. */
+async function seedDemoData({ reset = true } = {}) {
+  if (reset) {
+    const existingCompany = await Company.findOne({ name: DEMO.company.name });
+    await clearPreviousSeed(existingCompany?._id);
+    await User.deleteMany({
+      email: { $in: [DEMO.recruiter.email, DEMO.applicant.email] },
+    });
+  }
 
   const passwordHash = await bcrypt.hash(DEMO_PASSWORD, 10);
-
   const company = await Company.create(DEMO.company);
 
   const recruiter = await User.create({
@@ -162,19 +160,49 @@ async function seed() {
     Application.syncIndexes(),
   ]);
 
+  return {
+    company,
+    recruiter,
+    applicant,
+    jobs,
+    password: DEMO_PASSWORD,
+  };
+}
+
+/** Seed only when the database has no users (safe for first cloud boot). */
+async function seedIfEmpty() {
+  const userCount = await User.countDocuments();
+  if (userCount > 0) {
+    console.log('SEED_ON_EMPTY: database already has users — skipping seed.');
+    return false;
+  }
+  console.log('SEED_ON_EMPTY: empty database detected — loading demo data…');
+  const result = await seedDemoData({ reset: false });
+  console.log(
+    `SEED_ON_EMPTY: ready. Demo login ${DEMO.recruiter.email} / ${result.password}`
+  );
+  return true;
+}
+
+async function seedCli() {
+  await connectDb();
+  const result = await seedDemoData({ reset: true });
   console.log('Seed complete (reproducible demo data).');
   console.log('');
   console.log('Company:   Demo Corp');
-  console.log(`Recruiter: ${DEMO.recruiter.email} / ${DEMO_PASSWORD}`);
-  console.log(`Applicant: ${DEMO.applicant.email} / ${DEMO_PASSWORD}`);
-  console.log(`Jobs:      ${jobs.length} open (with departments / openings / priority)`);
+  console.log(`Recruiter: ${DEMO.recruiter.email} / ${result.password}`);
+  console.log(`Applicant: ${DEMO.applicant.email} / ${result.password}`);
+  console.log(`Jobs:      ${result.jobs.length} open (with departments / openings / priority)`);
   console.log('Apps:      1 sample application (placeholder S3 key)');
   console.log('');
-
   process.exit(0);
 }
 
-seed().catch((err) => {
-  console.error('Seed failed:', err.message);
-  process.exit(1);
-});
+if (require.main === module) {
+  seedCli().catch((err) => {
+    console.error('Seed failed:', err.message);
+    process.exit(1);
+  });
+}
+
+module.exports = { seedDemoData, seedIfEmpty, DEMO, DEMO_PASSWORD };

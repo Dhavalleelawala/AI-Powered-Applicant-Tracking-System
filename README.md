@@ -105,18 +105,26 @@ Optional: set `OPENAI_API_KEY` for LLM ranking (heuristic fallback works without
    - `MONGODB_URI` — Atlas URI
    - `CLIENT_URL` — your Render URL, e.g. `https://rolefit.onrender.com`
    - `JWT_SECRET` / `FILE_TOKEN_SECRET` — strong random values (Blueprint can generate)
-4. After deploy, open `/api/health`, then seed once:
+   - `SEED_ON_EMPTY=true` — (default in `render.yaml`) loads demo accounts when the DB is empty
+4. After deploy, open `/api/health`. Demo login works immediately when seed ran:
+   - `recruiter@demo.com` / `Password123`
+   - `applicant@demo.com` / `Password123`
+
+To re-seed later from your machine:
 
 ```bash
-# from a machine that can reach Atlas with the same MONGODB_URI
-cd server && npm run seed
+cd server && MONGODB_URI="your-atlas-uri" npm run seed
 ```
 
 The production image serves the React app and API together (`SERVE_CLIENT=true`, `VITE_API_BASE_URL=/api`).
 
+**Note:** Free Render disks are ephemeral — prefer `STORAGE_DRIVER=s3` for durable resume files in production.
+
 ---
 
 ## Docs
+
+See [CHANGELOG.md](./CHANGELOG.md) for shipped milestones. Product/architecture notes live under [`docs/`](./docs/).
 
 - Product / delivery: [`docs/pro/`](./docs/pro/README.md)
 - Implementation: [`docs/`](./docs/README.md)

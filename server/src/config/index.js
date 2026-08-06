@@ -63,6 +63,8 @@ const config = {
     from: process.env.MAIL_FROM || 'Rolefit <noreply@rolefit.local>',
   },
   sendRejectionEmails: process.env.SEND_REJECTION_EMAILS === 'true',
+  /** When true, seed demo data if User collection is empty (first cloud boot). */
+  seedOnEmpty: process.env.SEED_ON_EMPTY === 'true' || process.env.SEED_ON_EMPTY === '1',
 };
 
 module.exports = config;

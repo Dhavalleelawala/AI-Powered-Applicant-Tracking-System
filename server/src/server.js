@@ -6,6 +6,11 @@ async function start() {
   try {
     await connectDb();
 
+    if (config.seedOnEmpty) {
+      const { seedIfEmpty } = require('./scripts/seed');
+      await seedIfEmpty();
+    }
+
     const server = app.listen(config.port, () => {
       console.log(`Rolefit API listening on http://localhost:${config.port}`);
       console.log(`Health: GET http://localhost:${config.port}/api/health`);

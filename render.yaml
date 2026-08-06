@@ -25,6 +25,8 @@ services:
         value: local
       - key: LOCAL_UPLOAD_DIR
         value: uploads
+      - key: SEED_ON_EMPTY
+        value: "true"
       - key: OPENAI_API_KEY
         sync: false
       - key: SMTP_HOST

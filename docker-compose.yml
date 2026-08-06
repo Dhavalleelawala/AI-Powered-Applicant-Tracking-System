@@ -26,6 +26,7 @@ services:
       FILE_TOKEN_SECRET: ${FILE_TOKEN_SECRET:-change-file-token-secret-use-openssl-rand}
       STORAGE_DRIVER: local
       LOCAL_UPLOAD_DIR: uploads
+      SEED_ON_EMPTY: "true"
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       SEND_REJECTION_EMAILS: "false"
     volumes:
