@@ -85,6 +85,15 @@ async function bulkUpdateStage(req, res, next) {
   }
 }
 
+async function updateTags(req, res, next) {
+  try {
+    const data = await applicationService.updateTags(req.params.applicationId, req.body.tags, req.user);
+    return res.json({ success: true, data });
+  } catch (err) {
+    return next(err);
+  }
+}
+
 module.exports = {
   applyToJob,
   listApplicantApplications,
@@ -93,6 +102,7 @@ module.exports = {
   updateStage,
   addNote,
   bulkUpdateStage,
+  updateTags,
   getResumeUrl,
   reanalyzeApplication,
 };

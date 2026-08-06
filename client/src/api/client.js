@@ -79,6 +79,7 @@ export const applicationsApi = {
   forJob: (jobId, params) => api.get(`/jobs/${jobId}/applications`, { params }),
   move: (id, data) => api.patch(`/applications/${id}/status`, data),
   addNote: (id, text) => api.post(`/applications/${id}/notes`, { text }),
+  updateTags: (id, tags) => api.patch(`/applications/${id}/tags`, { tags }),
   bulkMove: (jobId, data) => api.post(`/jobs/${jobId}/applications/bulk-status`, data),
   resumeUrl: (id) => api.get(`/applications/${id}/resume-url`),
   reanalyze: (id) => api.post(`/applications/${id}/reanalyze`),

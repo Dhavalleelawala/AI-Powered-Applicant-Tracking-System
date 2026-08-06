@@ -46,5 +46,11 @@ router.post(
   authorize('recruiter'),
   applicationController.bulkUpdateStage
 );
+router.patch(
+  '/applications/:applicationId/tags',
+  authenticate,
+  authorize('recruiter'),
+  applicationController.updateTags
+);
 
 module.exports = router;

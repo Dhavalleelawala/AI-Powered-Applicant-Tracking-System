@@ -32,6 +32,7 @@ import { CandidateDrawer } from '../../components/recruiter/CandidateDrawer';
 import { AppBreadcrumbs } from '../../components/ui/AppBreadcrumbs';
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { EmptyState, ErrorState, LoadingRows, Page, PageHeader, SectionLabel, StatTile, FunnelBars } from '../../components/ui/Primitives';
+import { REJECTION_PRESETS, TAG_PRESETS, NEXT_STAGE } from '../../constants/hiring';
 import { useToast } from '../../context/ToastContext';
 import { useHiringHotkeys } from '../../hooks/useHiringHotkeys';
 import { useUrlFilters } from '../../hooks/useUrlFilters';
@@ -46,8 +47,9 @@ const ATTENTION_SECTIONS = [
 
 export function DashboardPage() {
   const qc = useQueryClient();
-  const { showToast } = useToast();
+  const { showToast, showError } = useToast();
   const [drawerId, setDrawerId] = useState(null);
+  const [rejectTarget, setRejectTarget] = useState(null);
   const [archiveTarget, setArchiveTarget] = useState(null);
   const [compact, setCompact] = useState(() => {
     try {
@@ -98,6 +100,16 @@ export function DashboardPage() {
       qc.invalidateQueries({ queryKey: ['recruiter-analytics'] });
       showToast('Draft copy created');
     },
+  });
+  const quickMove = useMutation({
+    mutationFn: ({ id, stage, rejectionReason }) => applicationsApi.move(id, { stage, rejectionReason }),
+    onSuccess: () => {
+      setRejectTarget(null);
+      qc.invalidateQueries({ queryKey: ['recruiter-attention'] });
+      qc.invalidateQueries({ queryKey: ['recruiter-analytics'] });
+      showToast('Stage updated');
+    },
+    onError: (err) => showError(err),
   });
   const jobs = jobsData || [];
   const summary = analyticsData?.summary || {};
@@ -201,45 +213,71 @@ export function DashboardPage() {
                     </Typography>
                   </Typography>
                   <Stack spacing={1} className="stagger-in">
-                    {rows.map((item) => (
-                      <Box
-                        key={item.id}
-                        className="attention-row"
-                        onClick={() => setDrawerId(item.id)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' || e.key === ' ') {
-                            e.preventDefault();
-                            setDrawerId(item.id);
-                          }
-                        }}
-                        role="button"
-                        tabIndex={0}
-                      >
-                        <Box sx={{ flex: 1, minWidth: 0 }}>
-                          <Typography fontWeight={700}>{item.applicant?.name || 'Candidate'}</Typography>
-                          <Typography variant="body2" color="text.secondary" noWrap>
-                            {item.job?.title || 'Role'} · {item.reason}
-                          </Typography>
-                        </Box>
-                        <Chip size="small" label={item.stage} sx={{ textTransform: 'capitalize' }} />
-                        <Chip
-                          size="small"
-                          color="secondary"
-                          variant="outlined"
-                          label={item.matchScore != null ? `${item.matchScore}%` : '—'}
-                        />
-                        <Button
-                          size="small"
-                          endIcon={<ArrowForward />}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setDrawerId(item.id);
+                    {rows.map((item) => {
+                      const itemId = item.id || item._id;
+                      const stage = item.stage || 'applied';
+                      const next = NEXT_STAGE[stage];
+                      return (
+                        <Box
+                          key={itemId}
+                          className="attention-row"
+                          onClick={() => setDrawerId(itemId)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              setDrawerId(itemId);
+                            }
                           }}
+                          role="button"
+                          tabIndex={0}
                         >
-                          Review
-                        </Button>
-                      </Box>
-                    ))}
+                          <Box sx={{ flex: 1, minWidth: 0 }}>
+                            <Typography fontWeight={700}>{item.applicant?.name || 'Candidate'}</Typography>
+                            <Typography variant="body2" color="text.secondary" noWrap>
+                              {item.job?.title || 'Role'} · {item.reason}
+                            </Typography>
+                          </Box>
+                          <Chip size="small" label={stage} sx={{ textTransform: 'capitalize' }} />
+                          <Chip
+                            size="small"
+                            color="secondary"
+                            variant="outlined"
+                            label={item.matchScore != null ? `${item.matchScore}%` : '—'}
+                          />
+                          <Stack direction="row" spacing={0.5} onClick={(e) => e.stopPropagation()}>
+                            {next && (
+                              <Button
+                                size="small"
+                                variant="contained"
+                                color="secondary"
+                                disabled={quickMove.isPending}
+                                onClick={() => quickMove.mutate({ id: itemId, stage: next })}
+                              >
+                                {next}
+                              </Button>
+                            )}
+                            {stage !== 'rejected' && (
+                              <Button
+                                size="small"
+                                color="error"
+                                variant="outlined"
+                                disabled={quickMove.isPending}
+                                onClick={() => setRejectTarget(item)}
+                              >
+                                Reject
+                              </Button>
+                            )}
+                            <Button
+                              size="small"
+                              endIcon={<ArrowForward />}
+                              onClick={() => setDrawerId(itemId)}
+                            >
+                              Review
+                            </Button>
+                          </Stack>
+                        </Box>
+                      );
+                    })}
                     {rows.length === 0 && (
                       <Typography variant="body2" color="text.secondary">
                         {empty}
@@ -406,11 +444,34 @@ export function DashboardPage() {
           });
         }}
       />
+      <ConfirmDialog
+        open={Boolean(rejectTarget)}
+        title="Reject this candidate?"
+        description={
+          rejectTarget
+            ? `${rejectTarget.applicant?.name || 'This candidate'} will move to Rejected.`
+            : ''
+        }
+        requireReason
+        reasonLabel="Rejection reason"
+        reasonPresets={REJECTION_PRESETS}
+        confirmLabel="Reject"
+        confirmColor="error"
+        loading={quickMove.isPending}
+        onClose={() => setRejectTarget(null)}
+        onConfirm={(reason) => {
+          quickMove.mutate({
+            id: rejectTarget.id || rejectTarget._id,
+            stage: 'rejected',
+            rejectionReason: reason || undefined,
+          });
+        }}
+      />
       <CandidateDrawer
         applicationId={drawerId}
         open={Boolean(drawerId)}
         onClose={() => setDrawerId(null)}
-        invalidateKeys={[['recruiter-jobs']]}
+        invalidateKeys={[['recruiter-jobs'], ['recruiter-attention']]}
       />
     </Page>
   );
@@ -931,6 +992,14 @@ function PipelineCard({
         <Chip label={score == null ? '—' : `${score}`} color="secondary" size="small" sx={{ height: 22, fontSize: 11 }} />
       </Stack>
 
+      {(a.tags || []).length > 0 && (
+        <Stack direction="row" gap={0.5} flexWrap="wrap" useFlexGap mt={0.75}>
+          {(a.tags || []).slice(0, 4).map((tag) => (
+            <Chip key={tag} size="small" label={tag} variant="outlined" sx={{ height: 20, fontSize: 10 }} />
+          ))}
+        </Stack>
+      )}
+
       <Stack
         className="pipeline-card__actions"
         direction="row"
@@ -1035,6 +1104,8 @@ export function PipelinePage() {
   const [selected, setSelected] = useState([]);
   const [notes, setNotes] = useState({});
   const [rejectTarget, setRejectTarget] = useState(null);
+  const [bulkRejectOpen, setBulkRejectOpen] = useState(false);
+  const [tagFilter, setTagFilter] = useState('');
   const [dropStage, setDropStage] = useState(null);
   const [drawerId, setDrawerId] = useState(null);
   const [flashId, setFlashId] = useState(null);
@@ -1075,15 +1146,29 @@ export function PipelinePage() {
     onError: (err) => showError(err),
   });
   const bulkMove = useMutation({
-    mutationFn: (applicationIds) => applicationsApi.bulkMove(jobId, { applicationIds, stage: 'interview' }),
-    onSuccess: () => {
+    mutationFn: ({ applicationIds, stage, rejectionReason }) =>
+      applicationsApi.bulkMove(jobId, { applicationIds, stage, rejectionReason, note: rejectionReason }),
+    onSuccess: (_data, variables) => {
       setSelected([]);
+      setBulkRejectOpen(false);
       qc.invalidateQueries({ queryKey: ['job-applications', jobId] });
-      showToast('Candidates moved to interview');
+      qc.invalidateQueries({ queryKey: ['recruiter-attention'] });
+      showToast(`Moved ${variables.applicationIds.length} to ${variables.stage}`);
     },
     onError: (err) => showError(err),
   });
-  const apps = data || [];
+  const allApps = data || [];
+  const apps = useMemo(() => {
+    if (!tagFilter) return allApps;
+    return allApps.filter((app) => (app.tags || []).includes(tagFilter));
+  }, [allApps, tagFilter]);
+  const availableTags = useMemo(() => {
+    const set = new Set();
+    for (const app of allApps) {
+      for (const tag of app.tags || []) set.add(tag);
+    }
+    return [...set].sort();
+  }, [allApps]);
   const byStage = useMemo(() => {
     const map = Object.fromEntries(stages.map((s) => [s, []]));
     for (const app of apps) {
@@ -1137,6 +1222,41 @@ export function PipelinePage() {
     requestStageChange(application, stage);
   };
 
+  const bulkBar = selected.length > 0 && (
+    <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} flexWrap="wrap" useFlexGap>
+      <Button
+        variant="contained"
+        color="secondary"
+        disabled={bulkMove.isPending}
+        onClick={() => bulkMove.mutate({ applicationIds: selected, stage: 'interview' })}
+        sx={{ minHeight: { xs: 44, sm: 36 } }}
+      >
+        Interview ({selected.length})
+      </Button>
+      <Button
+        variant="outlined"
+        color="secondary"
+        disabled={bulkMove.isPending}
+        onClick={() => bulkMove.mutate({ applicationIds: selected, stage: 'offered' })}
+        sx={{ minHeight: { xs: 44, sm: 36 } }}
+      >
+        Offer ({selected.length})
+      </Button>
+      <Button
+        variant="outlined"
+        color="error"
+        disabled={bulkMove.isPending}
+        onClick={() => setBulkRejectOpen(true)}
+        sx={{ minHeight: { xs: 44, sm: 36 } }}
+      >
+        Reject ({selected.length})
+      </Button>
+      <Button onClick={() => setSelected([])} sx={{ minHeight: { xs: 44, sm: 36 } }}>
+        Clear
+      </Button>
+    </Stack>
+  );
+
   return (
     <Page maxWidth="xl">
       <AppBreadcrumbs
@@ -1179,16 +1299,29 @@ export function PipelinePage() {
         spacing={1}
         alignItems={{ sm: 'center' }}
         mb={2.5}
+        flexWrap="wrap"
+        useFlexGap
       >
-        <Button
-          variant="contained"
-          color="secondary"
-          disabled={!selected.length || bulkMove.isPending}
-          onClick={() => bulkMove.mutate(selected)}
-          sx={{ minHeight: { xs: 44, sm: 36 }, width: { xs: '100%', sm: 'auto' } }}
+        {bulkBar || (
+          <Typography variant="body2" color="text.secondary">
+            Select candidates to bulk Interview, Offer, or Reject.
+          </Typography>
+        )}
+        <TextField
+          select
+          size="small"
+          label="Tag filter"
+          value={tagFilter}
+          onChange={(e) => setTagFilter(e.target.value)}
+          sx={{ minWidth: 160, ml: { sm: 'auto' } }}
         >
-          Move selected to Interview ({selected.length})
-        </Button>
+          <MenuItem value="">All tags</MenuItem>
+          {[...new Set([...TAG_PRESETS, ...availableTags])].map((tag) => (
+            <MenuItem key={tag} value={tag}>
+              {tag}
+            </MenuItem>
+          ))}
+        </TextField>
         <Typography variant="body2" color="text.secondary">
           {isLoading ? 'Loading…' : `${apps.length} candidate${apps.length === 1 ? '' : 's'}`}
         </Typography>
@@ -1268,19 +1401,7 @@ export function PipelinePage() {
           </Paper>
           {selected.length > 0 && (
             <Stack className="pipeline-mobile-cta apply-wizard__cta" spacing={1}>
-              <Button
-                variant="contained"
-                color="secondary"
-                disabled={bulkMove.isPending}
-                onClick={() => bulkMove.mutate(selected)}
-                fullWidth
-                sx={{ minHeight: 44 }}
-              >
-                Move {selected.length} to Interview
-              </Button>
-              <Button onClick={() => setSelected([])} fullWidth>
-                Clear selection
-              </Button>
+              {bulkBar}
             </Stack>
           )}
         </Box>
@@ -1358,7 +1479,8 @@ export function PipelinePage() {
             : ''
         }
         requireReason
-        reasonLabel="Rejection reason (optional)"
+        reasonLabel="Rejection reason"
+        reasonPresets={REJECTION_PRESETS}
         confirmLabel="Reject"
         confirmColor="error"
         loading={move.isPending}
@@ -1366,6 +1488,25 @@ export function PipelinePage() {
         onConfirm={(reason) => {
           move.mutate({
             id: rejectTarget.id || rejectTarget._id,
+            stage: 'rejected',
+            rejectionReason: reason || undefined,
+          });
+        }}
+      />
+      <ConfirmDialog
+        open={bulkRejectOpen}
+        title={`Reject ${selected.length} candidates?`}
+        description="They will move to Rejected. Pick a shared reason if it applies to everyone."
+        requireReason
+        reasonLabel="Rejection reason"
+        reasonPresets={REJECTION_PRESETS}
+        confirmLabel="Reject selected"
+        confirmColor="error"
+        loading={bulkMove.isPending}
+        onClose={() => setBulkRejectOpen(false)}
+        onConfirm={(reason) => {
+          bulkMove.mutate({
+            applicationIds: selected,
             stage: 'rejected',
             rejectionReason: reason || undefined,
           });
@@ -1384,13 +1525,14 @@ export function PipelinePage() {
 export function CandidatesPage() {
   const { showError } = useToast();
   const [drawerId, setDrawerId] = useState(null);
-  const filterDefaults = useMemo(() => ({ q: '', stage: '', minScore: '', page: '1' }), []);
+  const filterDefaults = useMemo(() => ({ q: '', stage: '', minScore: '', tag: '', page: '1' }), []);
   const { values, setFilter, clearFilters, activeCount } = useUrlFilters(filterDefaults);
   const page = Math.max(1, Number(values.page) || 1);
   const params = {
     q: values.q || undefined,
     stage: values.stage || undefined,
     minScore: values.minScore === '' ? undefined : Number(values.minScore),
+    tag: values.tag || undefined,
     page,
     limit: 20,
   };
@@ -1414,7 +1556,7 @@ export function CandidatesPage() {
       />
       <Paper sx={{ p: 3, mb: 3, bgcolor: 'rgba(255,255,255,0.92)' }}>
         <Grid container spacing={2} alignItems="center">
-          <Grid item xs={12} md={5}>
+          <Grid item xs={12} md={4}>
             <TextField
               fullWidth
               label="Search name, email, skills"
@@ -1425,7 +1567,7 @@ export function CandidatesPage() {
               }}
             />
           </Grid>
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid item xs={12} sm={6} md={2}>
             <TextField
               fullWidth
               select
@@ -1440,6 +1582,25 @@ export function CandidatesPage() {
               {stages.map((stage) => (
                 <MenuItem key={stage} value={stage}>
                   {stage}
+                </MenuItem>
+              ))}
+            </TextField>
+          </Grid>
+          <Grid item xs={12} sm={6} md={2}>
+            <TextField
+              fullWidth
+              select
+              label="Tag"
+              value={values.tag}
+              onChange={(e) => {
+                setFilter('tag', e.target.value);
+                setFilter('page', '1');
+              }}
+            >
+              <MenuItem value="">All tags</MenuItem>
+              {TAG_PRESETS.map((tag) => (
+                <MenuItem key={tag} value={tag}>
+                  {tag}
                 </MenuItem>
               ))}
             </TextField>
@@ -1499,6 +1660,13 @@ export function CandidatesPage() {
                   <Stack direction="row" gap={0.75} flexWrap="wrap" useFlexGap mt={1}>
                     {candidate.applicant.skills.slice(0, 5).map((skill) => (
                       <Chip key={skill} size="small" label={skill} variant="outlined" />
+                    ))}
+                  </Stack>
+                )}
+                {(candidate.tags || []).length > 0 && (
+                  <Stack direction="row" gap={0.75} flexWrap="wrap" useFlexGap mt={1}>
+                    {candidate.tags.slice(0, 4).map((tag) => (
+                      <Chip key={tag} size="small" label={tag} color="secondary" variant="outlined" />
                     ))}
                   </Stack>
                 )}
@@ -1935,7 +2103,8 @@ export function RankingPage() {
             : ''
         }
         requireReason
-        reasonLabel="Rejection reason (optional)"
+        reasonLabel="Rejection reason"
+        reasonPresets={REJECTION_PRESETS}
         confirmLabel="Reject"
         confirmColor="error"
         loading={move.isPending}

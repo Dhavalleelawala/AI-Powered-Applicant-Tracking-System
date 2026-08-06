@@ -3,6 +3,12 @@
 All notable Rolefit changes are listed here. Newest first.
 Epics are tracked in [`docs/EPICS.md`](./docs/EPICS.md) — **one completed epic → one commit**.
 
+## 2026-08-06 (E26 — Decision velocity)
+
+- Pipeline bulk actions: Interview, Offer, or Reject with shared rejection presets
+- Candidate tags on drawer/cards; filter by tag in pipeline and directory
+- Attention queue one-click advance/reject without opening the drawer
+
 ## 2026-08-06 (E25 — Demo narrative polish)
 
 - Ranking empty states clear filters or send recruiters to the public role; publish lands on Ranking

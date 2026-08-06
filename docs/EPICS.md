@@ -193,6 +193,29 @@ Status: `planned` · `in_progress` · `done`
 
 ## Planned (next)
 
+### E26 — Decision velocity
+- **Status:** done
+- **Goal:** Recruiter clears volume without leaving Pipeline / Decisions.
+- **Accept:** Select 3+ candidates → bulk reject with preset; tag “Referral”; dashboard row advances without opening drawer.
+- **Shipped:** 2026-08-06
+- **Notes:** Bulk Interview/Offer/Reject with rejection presets; tags on drawer/cards + pipeline/directory filters; attention queue one-click advance/reject.
+- **Paths:** `RecruiterPages.jsx`, `CandidateDrawer.jsx`, `ConfirmDialog.jsx`, `applicationService.js`, `hiring.js`
+
+### E27 — Structured scorecard
+- **Status:** in_progress
+- **Goal:** Consistent evaluation next to AI score.
+- **Accept:** Recruiter saves scorecard; Ranking shows recommendation chip beside match %.
+
+### E28 — Interview lite
+- **Status:** planned
+- **Goal:** Interview stage carries a real next step.
+- **Accept:** Moving to Interview prompts or allows schedule; candidate card shows when.
+
+### E29 — Hiring analytics depth
+- **Status:** planned
+- **Goal:** Leadership sees velocity, not only counts.
+- **Accept:** Dashboard shows time-in-stage metrics for open roles / company summary.
+
 ### E7b — Live production cutover
 - **Status:** planned
 - **Goal:** Public Render URL with Atlas, health green, demo logins, smoke pass.

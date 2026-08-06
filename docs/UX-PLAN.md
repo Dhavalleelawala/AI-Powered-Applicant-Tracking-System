@@ -56,6 +56,32 @@ Ordered by demo clarity and craft.
 
 ---
 
+## Phase 4 — Recruiter operating system
+
+Grounded in how a TA lead clears volume and proves velocity. E7b stays blocked.
+
+### E26 — Decision velocity
+- **Goal:** Recruiter clears volume without leaving Pipeline / Decisions.
+- **Accept:** Bulk Interview/Offer/Reject with presets; tags on cards/drawer/filter; attention one-click advance/reject.
+- **Status:** done
+
+### E27 — Structured scorecard
+- **Goal:** Consistent evaluation next to AI score.
+- **Accept:** Scorecard saved on application; Ranking shows recommendation chip beside match %.
+- **Status:** in_progress
+
+### E28 — Interview lite
+- **Goal:** Interview stage carries a real next step.
+- **Accept:** Schedule fields on application; pipeline card shows when; ICS/mailto optional.
+- **Status:** planned
+
+### E29 — Hiring analytics depth
+- **Goal:** Leadership sees velocity, not only counts.
+- **Accept:** Dashboard shows time-in-stage / time-to-offer metrics.
+- **Status:** planned
+
+---
+
 ## Design rules (non-negotiable)
 
 1. **One job per screen** — if two headlines, split.

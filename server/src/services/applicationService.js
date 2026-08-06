@@ -179,6 +179,9 @@ async function listJobApplications(jobId, query, user) {
   if (query.minExperience !== undefined) {
     filter['aiAnalysis.experienceYearsEstimated'] = { $gte: Number(query.minExperience) || 0 };
   }
+  if (query.tag) {
+    filter.tags = String(query.tag).trim().toLowerCase();
+  }
   const sortOptions = {
     newest: { createdAt: -1 },
     oldest: { createdAt: 1 },
@@ -267,7 +270,7 @@ async function addRecruiterNote(applicationId, text, user) {
   return toApplicationPayload(application.toObject());
 }
 
-async function bulkUpdateStage(jobId, { applicationIds, stage, note }, user) {
+async function bulkUpdateStage(jobId, { applicationIds, stage, note, rejectionReason }, user) {
   const allowedStages = new Set(['applied', 'interview', 'offered', 'rejected']);
   if (!allowedStages.has(stage)) {
     throw new AppError('Invalid application stage', { status: 400, code: 'VALIDATION_ERROR' });
@@ -287,6 +290,7 @@ async function bulkUpdateStage(jobId, { applicationIds, stage, note }, user) {
     companyId: user.companyId,
   });
 
+  const reason = String(rejectionReason || note || '').trim();
   let updated = 0;
   for (const application of applications) {
     if (application.stage === stage) continue;
@@ -296,13 +300,26 @@ async function bulkUpdateStage(jobId, { applicationIds, stage, note }, user) {
       from: previousStage,
       to: stage,
       changedBy: user.id,
-      note: String(note || 'Bulk update').trim(),
+      note: String(note || (stage === 'rejected' ? reason : 'Bulk update')).trim(),
     });
+    if (stage === 'rejected' && reason) {
+      application.rejectionReason = reason.slice(0, 500);
+    }
     await application.save();
     updated += 1;
   }
 
   return { updated, stage };
+}
+
+async function updateTags(applicationId, tags, user) {
+  const application = await Application.findOne({ _id: applicationId, companyId: user.companyId });
+  if (!application) {
+    throw new AppError('Application not found', { status: 404, code: 'NOT_FOUND' });
+  }
+  application.tags = Array.isArray(tags) ? tags : [];
+  await application.save();
+  return toApplicationPayload(application.toObject());
 }
 
 async function getResumeUrl(applicationId, user) {
@@ -380,6 +397,7 @@ module.exports = {
   updateStage,
   addRecruiterNote,
   bulkUpdateStage,
+  updateTags,
   getResumeUrl,
   reanalyzeApplication,
 };

@@ -1,7 +1,6 @@
 import { ErrorState } from '../ui/Primitives';
 import { Close, Description, Refresh } from '@mui/icons-material';
 import {
-  Alert,
   Box,
   Button,
   Chip,
@@ -17,10 +16,9 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useId, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { applicationsApi } from '../../api/client';
+import { NEXT_STAGE, REJECTION_PRESETS, TAG_PRESETS } from '../../constants/hiring';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { useToast } from '../../context/ToastContext';
-
-const NEXT_STAGE = { applied: 'interview', interview: 'offered', offered: null, rejected: null };
 
 async function openResume(applicationId) {
   const res = await applicationsApi.resumeUrl(applicationId);
@@ -39,6 +37,7 @@ export function CandidateDrawer({ applicationId, open, onClose, invalidateKeys =
   const qc = useQueryClient();
   const { showToast, showError } = useToast();
   const [note, setNote] = useState('');
+  const [customTag, setCustomTag] = useState('');
   const [rejectOpen, setRejectOpen] = useState(false);
   const titleId = useId();
   const closeRef = useRef(null);
@@ -52,6 +51,7 @@ export function CandidateDrawer({ applicationId, open, onClose, invalidateKeys =
   useEffect(() => {
     if (!open) {
       setNote('');
+      setCustomTag('');
       setRejectOpen(false);
       return undefined;
     }
@@ -89,6 +89,15 @@ export function CandidateDrawer({ applicationId, open, onClose, invalidateKeys =
     onError: (err) => showError(err),
   });
 
+  const saveTags = useMutation({
+    mutationFn: (tags) => applicationsApi.updateTags(applicationId, tags),
+    onSuccess: () => {
+      bust();
+      showToast('Tags updated');
+    },
+    onError: (err) => showError(err),
+  });
+
   const reanalyze = useMutation({
     mutationFn: () => applicationsApi.reanalyze(applicationId),
     onSuccess: () => {
@@ -105,6 +114,19 @@ export function CandidateDrawer({ applicationId, open, onClose, invalidateKeys =
   const matched = app?.aiAnalysis?.skillsMatched || app?.aiAnalysis?.matchedSkills || [];
   const missing = app?.aiAnalysis?.skillsMissing || app?.aiAnalysis?.gaps || [];
   const jobId = app?.job?.id || app?.jobId;
+  const tags = app?.tags || [];
+
+  const toggleTag = (tag) => {
+    const nextTags = tags.includes(tag) ? tags.filter((t) => t !== tag) : [...tags, tag];
+    saveTags.mutate(nextTags);
+  };
+
+  const addCustomTag = () => {
+    const value = customTag.trim().toLowerCase();
+    if (!value || tags.includes(value)) return;
+    saveTags.mutate([...tags, value]);
+    setCustomTag('');
+  };
 
   return (
     <>
@@ -172,6 +194,44 @@ export function CandidateDrawer({ applicationId, open, onClose, invalidateKeys =
                 <Chip label={score != null ? `${score}% match` : 'Score pending'} variant="outlined" />
                 {app.aiStatus && <Chip size="small" label={`AI: ${app.aiStatus}`} variant="outlined" />}
               </Stack>
+
+              <Box>
+                <Typography variant="body2" fontWeight={700} mb={1}>
+                  Tags
+                </Typography>
+                <Stack direction="row" gap={0.75} flexWrap="wrap" useFlexGap mb={1}>
+                  {[...new Set([...TAG_PRESETS, ...tags])].map((tag) => (
+                    <Chip
+                      key={tag}
+                      size="small"
+                      label={tag}
+                      color={tags.includes(tag) ? 'secondary' : 'default'}
+                      variant={tags.includes(tag) ? 'filled' : 'outlined'}
+                      onClick={() => toggleTag(tag)}
+                      disabled={saveTags.isPending}
+                      clickable
+                    />
+                  ))}
+                </Stack>
+                <Stack direction="row" spacing={1}>
+                  <TextField
+                    size="small"
+                    fullWidth
+                    placeholder="Add custom tag"
+                    value={customTag}
+                    onChange={(e) => setCustomTag(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        addCustomTag();
+                      }
+                    }}
+                  />
+                  <Button size="small" variant="outlined" disabled={!customTag.trim() || saveTags.isPending} onClick={addCustomTag}>
+                    Add
+                  </Button>
+                </Stack>
+              </Box>
 
               {app.aiAnalysis?.summary && (
                 <Box>
@@ -329,6 +389,7 @@ export function CandidateDrawer({ applicationId, open, onClose, invalidateKeys =
         confirmColor="error"
         requireReason
         reasonLabel="Reason (shared internally)"
+        reasonPresets={REJECTION_PRESETS}
         loading={move.isPending}
         onClose={() => setRejectOpen(false)}
         onConfirm={(reason) => move.mutate({ stage: 'rejected', rejectionReason: reason || undefined })}
