@@ -18,7 +18,17 @@ async function searchCandidates(req, res, next) {
   }
 }
 
+async function attention(req, res, next) {
+  try {
+    const data = await hiringService.getAttentionQueue(req.user.companyId);
+    return res.json({ success: true, data });
+  } catch (err) {
+    return next(err);
+  }
+}
+
 module.exports = {
   analytics,
   searchCandidates,
+  attention,
 };

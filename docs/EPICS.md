@@ -93,13 +93,21 @@ Status: `planned` · `in_progress` · `done`
 - **Notes:** Shared ApplicantJourney stepper; apply Ready→Resume→Submit wizard; journey footers; post-submit celebration.
 - **Paths:** `client/src/components/applicant/ApplicantJourney.jsx`, applicant pages, `styles.css`
 
+### E14 — Recruiter decision cockpit
+- **Status:** done
+- **Goal:** Dashboard “needs attention” queue + candidate drawer for faster hiring decisions.
+- **Accept:** Attention queue on dashboard; open candidate detail without leaving context; quick stage actions.
+- **Shipped:** 2026-08-06
+- **Notes:** `GET /recruiter/attention`; CandidateDrawer with AI brief/advance/reject/notes; wired from dashboard, directory, pipeline.
+- **Paths:** `hiringService.js`, `CandidateDrawer.jsx`, `RecruiterPages.jsx`
+
 ---
 
 ## Planned (next)
 
-### E14 — Recruiter decision cockpit
+### E15 — System feedback kit
 - **Status:** planned
-- **Goal:** Dashboard “needs attention” queue + candidate drawer.
+- **Goal:** Unified empty/loading/error/success patterns across surfaces.
 
 ### E7b — Live production cutover
 - **Status:** planned

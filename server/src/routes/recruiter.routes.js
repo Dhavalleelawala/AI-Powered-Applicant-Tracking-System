@@ -7,6 +7,7 @@ const router = express.Router();
 
 router.get('/jobs', authenticate, authorize('recruiter'), jobController.listRecruiterJobs);
 router.get('/analytics', authenticate, authorize('recruiter'), hiringController.analytics);
+router.get('/attention', authenticate, authorize('recruiter'), hiringController.attention);
 router.get('/candidates', authenticate, authorize('recruiter'), hiringController.searchCandidates);
 
 module.exports = router;

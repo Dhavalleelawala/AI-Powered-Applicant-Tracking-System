@@ -35,6 +35,7 @@ export const jobsApi = {
 
 export const hiringApi = {
   analytics: () => api.get('/recruiter/analytics'),
+  attention: () => api.get('/recruiter/attention'),
   candidates: (params) => api.get('/recruiter/candidates', { params }),
 };
 
@@ -44,6 +45,7 @@ export const applicationsApi = {
       headers: { 'Content-Type': 'multipart/form-data' },
     }),
   mine: () => api.get('/applicant/applications'),
+  get: (id) => api.get(`/applications/${id}`),
   forJob: (jobId, params) => api.get(`/jobs/${jobId}/applications`, { params }),
   move: (id, data) => api.patch(`/applications/${id}/status`, data),
   addNote: (id, text) => api.post(`/applications/${id}/notes`, { text }),

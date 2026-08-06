@@ -47,6 +47,8 @@ function toApplicationPayload(application) {
           location: job.location,
           employmentType: job.employmentType,
           status: job.status,
+          requiredSkills: job.requiredSkills || [],
+          description: job.description,
         }
       : undefined,
     applicant: applicant
@@ -56,6 +58,9 @@ function toApplicationPayload(application) {
           email: applicant.email,
           phone: applicant.phone,
           headline: applicant.headline,
+          skills: applicant.skills || [],
+          location: applicant.location,
+          experienceYears: applicant.experienceYears,
         }
       : undefined,
     resume,
@@ -200,8 +205,8 @@ async function listJobApplications(jobId, query, user) {
 
 async function getApplication(applicationId, user) {
   const application = await Application.findById(applicationId)
-    .populate('jobId', 'title description location employmentType')
-    .populate('applicantId', 'name email phone headline')
+    .populate('jobId', 'title description location employmentType requiredSkills')
+    .populate('applicantId', 'name email phone headline skills location experienceYears')
     .lean();
   if (!application || !canAccess(application, user)) {
     throw new AppError('Application not found', { status: 404, code: 'NOT_FOUND' });

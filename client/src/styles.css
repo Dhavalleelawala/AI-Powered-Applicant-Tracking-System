@@ -463,6 +463,33 @@ a { color: inherit; }
   color: #0f8a5f;
 }
 
+.attention-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--rf-line);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.88);
+  cursor: pointer;
+  transition: border-color 0.18s ease, background-color 0.18s ease;
+}
+
+.attention-row:hover {
+  border-color: var(--rf-ember);
+  background: #fff;
+}
+
+.attention-row:focus-visible {
+  outline: 2px solid var(--rf-ember);
+  outline-offset: 2px;
+}
+
+.candidate-drawer {
+  background: #f7f8fb !important;
+}
+
 .auth-panel {
   background:
     radial-gradient(ellipse 70% 60% at 20% 20%, rgba(255,92,53,0.22), transparent 60%),

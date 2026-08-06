@@ -29,6 +29,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { applicationsApi, hiringApi, jobsApi } from '../../api/client';
+import { CandidateDrawer } from '../../components/recruiter/CandidateDrawer';
 import { AppBreadcrumbs } from '../../components/ui/AppBreadcrumbs';
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { EmptyState, LoadingRows, Page, PageHeader, SectionLabel, StatTile, FunnelBars } from '../../components/ui/Primitives';
@@ -36,9 +37,18 @@ import { useToast } from '../../context/ToastContext';
 import { useUrlFilters } from '../../hooks/useUrlFilters';
 import { useBeforeUnloadWarning, useLeaveConfirm } from '../../hooks/useUnsavedWarning';
 
+const ATTENTION_SECTIONS = [
+  { key: 'reviewReady', title: 'Ready to advance', empty: 'No high-match applicants waiting in Applied.' },
+  { key: 'aging', title: 'Aging in Applied', empty: 'No applications older than 7 days.' },
+  { key: 'interviewFollowUp', title: 'Interview follow-up', empty: 'No active interviews needing a nudge.' },
+  { key: 'awaitingAi', title: 'AI still scoring', empty: 'All resumes are scored.' },
+];
+
 export function DashboardPage() {
   const qc = useQueryClient();
   const { showToast } = useToast();
+  const [drawerId, setDrawerId] = useState(null);
+  const [archiveTarget, setArchiveTarget] = useState(null);
   const { data: jobsData, isLoading: jobsLoading, error: jobsError, refetch: refetchJobs } = useQuery({
     queryKey: ['recruiter-jobs'],
     queryFn: () => jobsApi.mine().then((r) => r.data),
@@ -46,6 +56,16 @@ export function DashboardPage() {
   const { data: analyticsData, isLoading: analyticsLoading, error: analyticsError, refetch: refetchAnalytics } = useQuery({
     queryKey: ['recruiter-analytics'],
     queryFn: () => hiringApi.analytics().then((r) => r.data),
+  });
+  const {
+    data: attention,
+    isLoading: attentionLoading,
+    error: attentionError,
+    refetch: refetchAttention,
+  } = useQuery({
+    queryKey: ['recruiter-attention'],
+    queryFn: () => hiringApi.attention().then((r) => r.data),
+    refetchInterval: 12000,
   });
   const archive = useMutation({
     mutationFn: jobsApi.archive,
@@ -68,34 +88,132 @@ export function DashboardPage() {
   const vacancies = analyticsData?.vacancies || [];
   const isLoading = jobsLoading || analyticsLoading;
   const error = jobsError || analyticsError;
-  const [archiveTarget, setArchiveTarget] = useState(null);
+  const attentionTotal =
+    (attention?.totals?.reviewReady || 0) +
+    (attention?.totals?.aging || 0) +
+    (attention?.totals?.interviewFollowUp || 0) +
+    (attention?.totals?.awaitingAi || 0);
 
   return (
     <Page maxWidth="xl">
       <PageHeader
         eyebrow="RECRUITER"
-        title="Your hiring field."
-        subtitle="Keep every decision moving with context."
+        title="What needs a decision."
+        subtitle="Start with the queue — then open pipelines for deeper work."
         actions={
-          <Button component={Link} to="/recruiter/jobs/new" variant="contained" color="secondary" startIcon={<Add />}>
-            Create a job
-          </Button>
+          <Stack direction="row" spacing={1}>
+            <Button component={Link} to="/recruiter/candidates" variant="outlined">
+              Directory
+            </Button>
+            <Button component={Link} to="/recruiter/jobs/new" variant="contained" color="secondary" startIcon={<Add />}>
+              Create a job
+            </Button>
+          </Stack>
         }
       />
 
       <Grid container spacing={2}>
         {[
+          ['Needs attention', attentionLoading ? '—' : attentionTotal],
           ['Open vacancies', summary.openVacancies],
           ['Total applications', summary.totalApplications],
           ['Aging over 7 days', summary.agingApplications],
-          ['Openings to fill', summary.openingsToFill],
           ['Fill progress', `${summary.fillProgressPercent ?? 0}%`],
         ].map(([label, n]) => (
           <Grid item xs={12} sm={6} md={4} lg key={label}>
-            <StatTile label={label} value={isLoading ? '—' : n} />
+            <StatTile label={label} value={isLoading && label !== 'Needs attention' ? '—' : n} />
           </Grid>
         ))}
       </Grid>
+
+      <Paper sx={{ p: { xs: 2.5, md: 3.25 }, mt: 2.5, bgcolor: 'rgba(255,255,255,0.96)' }}>
+        <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ sm: 'center' }} mb={2} gap={1}>
+          <Box>
+            <SectionLabel>Needs attention</SectionLabel>
+            <Typography variant="body2" color="text.secondary">
+              Candidates waiting on your next move — open a brief without leaving the dashboard.
+            </Typography>
+          </Box>
+          {attentionError && (
+            <Button size="small" onClick={refetchAttention}>
+              Retry queue
+            </Button>
+          )}
+        </Stack>
+        {attentionLoading && !attention ? (
+          <Stack spacing={1}>
+            <Skeleton height={64} />
+            <Skeleton height={64} />
+          </Stack>
+        ) : attentionError ? (
+          <Alert severity="error">{String(attentionError)}</Alert>
+        ) : attentionTotal === 0 ? (
+          <Typography color="text.secondary">Queue is clear. New applicants will land here first.</Typography>
+        ) : (
+          <Stack spacing={2.5}>
+            {ATTENTION_SECTIONS.map(({ key, title, empty }) => {
+              const rows = attention?.[key] || [];
+              if (!rows.length) return null;
+              return (
+                <Box key={key}>
+                  <Typography fontWeight={700} mb={1}>
+                    {title}
+                    <Typography component="span" color="text.secondary" fontWeight={600} ml={1}>
+                      {attention?.totals?.[key] ?? rows.length}
+                    </Typography>
+                  </Typography>
+                  <Stack spacing={1}>
+                    {rows.map((item) => (
+                      <Box
+                        key={item.id}
+                        className="attention-row"
+                        onClick={() => setDrawerId(item.id)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            setDrawerId(item.id);
+                          }
+                        }}
+                        role="button"
+                        tabIndex={0}
+                      >
+                        <Box sx={{ flex: 1, minWidth: 0 }}>
+                          <Typography fontWeight={700}>{item.applicant?.name || 'Candidate'}</Typography>
+                          <Typography variant="body2" color="text.secondary" noWrap>
+                            {item.job?.title || 'Role'} · {item.reason}
+                          </Typography>
+                        </Box>
+                        <Chip size="small" label={item.stage} sx={{ textTransform: 'capitalize' }} />
+                        <Chip
+                          size="small"
+                          color="secondary"
+                          variant="outlined"
+                          label={item.matchScore != null ? `${item.matchScore}%` : '—'}
+                        />
+                        <Button
+                          size="small"
+                          endIcon={<ArrowForward />}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setDrawerId(item.id);
+                          }}
+                        >
+                          Review
+                        </Button>
+                      </Box>
+                    ))}
+                    {rows.length === 0 && (
+                      <Typography variant="body2" color="text.secondary">
+                        {empty}
+                      </Typography>
+                    )}
+                  </Stack>
+                </Box>
+              );
+            })}
+          </Stack>
+        )}
+      </Paper>
 
       <Paper sx={{ p: { xs: 2.5, md: 3.25 }, mt: 2.5, bgcolor: 'rgba(255,255,255,0.92)' }}>
         <SectionLabel>Hiring funnel</SectionLabel>
@@ -253,6 +371,12 @@ export function DashboardPage() {
             onSettled: () => setArchiveTarget(null),
           });
         }}
+      />
+      <CandidateDrawer
+        applicationId={drawerId}
+        open={Boolean(drawerId)}
+        onClose={() => setDrawerId(null)}
+        invalidateKeys={[['recruiter-jobs']]}
       />
     </Page>
   );
@@ -447,6 +571,7 @@ function PipelineCard({
   notePending,
   movePending,
   onResume,
+  onOpen,
 }) {
   const id = a.id || a._id;
   const [openNotes, setOpenNotes] = useState(false);
@@ -479,7 +604,14 @@ function PipelineCard({
           sx={{ p: 0.25, mt: -0.25 }}
         />
         <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Typography fontWeight={700} fontSize={14} noWrap title={name}>
+          <Typography
+            fontWeight={700}
+            fontSize={14}
+            noWrap
+            title={name}
+            onClick={onOpen}
+            sx={{ cursor: onOpen ? 'pointer' : 'default', '&:hover': onOpen ? { color: 'secondary.dark' } : undefined }}
+          >
             {name}
           </Typography>
           <Typography variant="caption" color="text.secondary" sx={{ wordBreak: 'break-all', display: 'block' }}>
@@ -585,6 +717,7 @@ export function PipelinePage() {
   const [notes, setNotes] = useState({});
   const [rejectTarget, setRejectTarget] = useState(null);
   const [dropStage, setDropStage] = useState(null);
+  const [drawerId, setDrawerId] = useState(null);
   const { data: job } = useQuery({
     queryKey: ['job', jobId],
     queryFn: () => jobsApi.get(jobId).then((r) => r.data),
@@ -603,6 +736,7 @@ export function PipelinePage() {
       setSelected([]);
       setRejectTarget(null);
       qc.invalidateQueries({ queryKey: ['job-applications', jobId] });
+      qc.invalidateQueries({ queryKey: ['recruiter-attention'] });
       showToast('Candidate stage updated');
     },
     onError: (err) => showError(err),
@@ -753,6 +887,7 @@ export function PipelinePage() {
                           notePending={addNote.isPending}
                           movePending={move.isPending}
                           onResume={(cardId) => openResume(cardId).catch((err) => showError(err.message || err))}
+                          onOpen={() => setDrawerId(id)}
                         />
                       );
                     })
@@ -785,12 +920,19 @@ export function PipelinePage() {
           });
         }}
       />
+      <CandidateDrawer
+        applicationId={drawerId}
+        open={Boolean(drawerId)}
+        onClose={() => setDrawerId(null)}
+        invalidateKeys={[['job-applications', jobId], ['recruiter-attention']]}
+      />
     </Page>
   );
 }
 
 export function CandidatesPage() {
   const { showError } = useToast();
+  const [drawerId, setDrawerId] = useState(null);
   const filterDefaults = useMemo(() => ({ q: '', stage: '', minScore: '', page: '1' }), []);
   const { values, setFilter, clearFilters, activeCount } = useUrlFilters(filterDefaults);
   const page = Math.max(1, Number(values.page) || 1);
@@ -891,7 +1033,10 @@ export function CandidatesPage() {
               className="surface-hover"
               sx={{ p: 2.5, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 2, bgcolor: 'rgba(255,255,255,0.92)' }}
             >
-              <Box sx={{ flex: 1, minWidth: 220 }}>
+              <Box
+                sx={{ flex: 1, minWidth: 220, cursor: 'pointer' }}
+                onClick={() => setDrawerId(candidate.id)}
+              >
                 <Typography fontWeight={700}>{candidate.applicant?.name || 'Unknown candidate'}</Typography>
                 <Typography variant="body2" color="text.secondary">
                   {candidate.applicant?.email || '—'} · {candidate.job?.title || 'Role unavailable'}
@@ -915,6 +1060,9 @@ export function CandidatesPage() {
                 <Chip size="small" label={`AI: ${candidate.aiStatus}`} variant="outlined" />
               )}
               <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                <Button size="small" variant="contained" color="secondary" onClick={() => setDrawerId(candidate.id)}>
+                  Review
+                </Button>
                 <Button
                   size="small"
                   startIcon={<Description />}
@@ -955,6 +1103,12 @@ export function CandidatesPage() {
           onAction={activeCount ? clearFilters : undefined}
         />
       )}
+      <CandidateDrawer
+        applicationId={drawerId}
+        open={Boolean(drawerId)}
+        onClose={() => setDrawerId(null)}
+        invalidateKeys={[['company-candidates'], ['recruiter-attention']]}
+      />
     </Page>
   );
 }

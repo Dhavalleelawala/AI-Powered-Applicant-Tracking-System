@@ -3,6 +3,12 @@
 All notable Rolefit changes are listed here. Newest first.
 Epics are tracked in [`docs/EPICS.md`](./docs/EPICS.md) — **one completed epic → one commit**.
 
+## 2026-08-06 (E14 — Recruiter decision cockpit)
+
+- Dashboard “Needs attention” queue: ready-to-advance, aging, interview follow-up, AI scoring
+- Candidate drawer with AI brief, advance/reject, notes, resume, re-score
+- Drawer opens from dashboard, candidate directory, and pipeline cards
+
 ## 2026-08-06 (E13 — Applicant journey polish)
 
 - Shared Ready → Profile → Resume → Apply journey stepper across applicant surfaces

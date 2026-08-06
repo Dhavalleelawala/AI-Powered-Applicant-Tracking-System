@@ -131,6 +131,7 @@ async function searchCandidates(companyId, query) {
       stage: app.stage,
       aiStatus: app.aiStatus,
       matchScore: app.aiAnalysis?.matchScore ?? null,
+      summary: app.aiAnalysis?.summary || '',
       tags: app.tags || [],
       job: app.jobId
         ? { id: String(app.jobId._id), title: app.jobId.title, department: app.jobId.department }
@@ -145,13 +146,103 @@ async function searchCandidates(companyId, query) {
             skills: app.applicantId.skills || [],
           }
         : null,
+      createdAt: app.createdAt,
       updatedAt: app.updatedAt,
     })),
     meta: { page, limit, total, totalPages: Math.ceil(total / limit) || 1 },
   };
 }
 
+function toAttentionItem(app) {
+  return {
+    id: String(app._id),
+    stage: app.stage,
+    aiStatus: app.aiStatus,
+    matchScore: app.aiAnalysis?.matchScore ?? null,
+    summary: app.aiAnalysis?.summary || '',
+    reason: '',
+    job: app.jobId
+      ? { id: String(app.jobId._id), title: app.jobId.title, department: app.jobId.department }
+      : null,
+    applicant: app.applicantId
+      ? {
+          id: String(app.applicantId._id),
+          name: app.applicantId.name,
+          email: app.applicantId.email,
+          headline: app.applicantId.headline,
+        }
+      : null,
+    createdAt: app.createdAt,
+    updatedAt: app.updatedAt,
+  };
+}
+
+/** Decision queue for recruiter dashboard — who needs action now. */
+async function getAttentionQueue(companyId) {
+  const companyObjectId =
+    typeof companyId === 'string' ? new mongoose.Types.ObjectId(companyId) : companyId;
+
+  const applications = await Application.find({
+    companyId: companyObjectId,
+    stage: { $ne: 'rejected' },
+  })
+    .populate('applicantId', 'name email headline')
+    .populate('jobId', 'title department')
+    .sort({ updatedAt: -1 })
+    .limit(100)
+    .lean();
+
+  const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+  const buckets = {
+    reviewReady: [],
+    awaitingAi: [],
+    aging: [],
+    interviewFollowUp: [],
+  };
+
+  for (const app of applications) {
+    const item = toAttentionItem(app);
+    const score = item.matchScore ?? 0;
+    const ageMs = Date.now() - new Date(app.createdAt).getTime();
+
+    if (['pending', 'processing'].includes(app.aiStatus)) {
+      item.reason = 'AI scoring in progress';
+      buckets.awaitingAi.push(item);
+      continue;
+    }
+    if (app.stage === 'applied' && app.aiStatus === 'completed' && score >= 70) {
+      item.reason = `${score}% match — ready to interview?`;
+      buckets.reviewReady.push(item);
+      continue;
+    }
+    if (app.stage === 'applied' && new Date(app.createdAt).getTime() < sevenDaysAgo) {
+      item.reason = `Waiting ${Math.floor(ageMs / 86400000)} days in Applied`;
+      buckets.aging.push(item);
+      continue;
+    }
+    if (app.stage === 'interview') {
+      item.reason = 'In interview — keep momentum';
+      buckets.interviewFollowUp.push(item);
+    }
+  }
+
+  const cap = (rows) => rows.slice(0, 8);
+  return {
+    reviewReady: cap(buckets.reviewReady.sort((a, b) => (b.matchScore || 0) - (a.matchScore || 0))),
+    awaitingAi: cap(buckets.awaitingAi),
+    aging: cap(buckets.aging),
+    interviewFollowUp: cap(buckets.interviewFollowUp),
+    totals: {
+      reviewReady: buckets.reviewReady.length,
+      awaitingAi: buckets.awaitingAi.length,
+      aging: buckets.aging.length,
+      interviewFollowUp: buckets.interviewFollowUp.length,
+    },
+  };
+}
+
 module.exports = {
   getHiringAnalytics,
   searchCandidates,
+  getAttentionQueue,
 };
