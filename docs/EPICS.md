@@ -149,13 +149,17 @@ Status: `planned` · `in_progress` · `done`
 - **Notes:** A/R/Enter/Esc/? hotkeys on pipeline + ranking; skip-to-content focuses main; drawer dialog focus; ember focus rings; secondary text contrast bump.
 - **Paths:** `useHiringHotkeys.js`, `CandidateDrawer.jsx`, `AppShell.jsx`, `RecruiterPages.jsx`, `theme/index.js`, `styles.css`
 
+### E21 — Mobile applicant polish
+- **Status:** done
+- **Goal:** Apply + readiness one-thumb friendly on small screens.
+- **Accept:** Journey stepper wraps cleanly; apply wizard sticky primary CTA; profile sections collapse on mobile.
+- **Shipped:** 2026-08-06
+- **Notes:** 2×2 journey grid on xs; sticky apply/profile CTAs with safe-area; profile Basics/Links/Preferences accordions (Links & Preferences collapsed on phone).
+- **Paths:** `ApplicantPages.jsx`, `ApplicantJourney.jsx`, `AppBreadcrumbs.jsx`, `styles.css`
+
 ---
 
 ## Planned (next)
-
-### E21 — Mobile applicant polish
-- **Status:** planned
-- **Goal:** Apply + readiness one-thumb friendly on small screens.
 
 ### E7b — Live production cutover
 - **Status:** planned

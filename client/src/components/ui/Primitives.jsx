@@ -41,7 +41,11 @@ export function PageHeader({ eyebrow, title, subtitle, actions }) {
           {title}
         </Typography>
         {subtitle && (
-          <Typography color="text.secondary" mt={1.5} sx={{ maxWidth: 540, lineHeight: 1.65, fontSize: { xs: '0.95rem', md: '1.05rem' } }}>
+          <Typography
+            color="text.secondary"
+            mt={1.5}
+            sx={{ maxWidth: 540, lineHeight: 1.7, fontSize: { xs: '1rem', md: '1.08rem' }, fontWeight: 500 }}
+          >
             {subtitle}
           </Typography>
         )}
@@ -61,7 +65,7 @@ export function EmptyState({ title, text, actionLabel, actionTo, onAction }) {
       <Typography variant="h3" fontSize={{ xs: 24, md: 30 }}>
         {title}
       </Typography>
-      <Typography color="text.secondary" mt={1.25} mx="auto" maxWidth={420} sx={{ lineHeight: 1.65 }}>
+      <Typography color="text.secondary" mt={1.25} mx="auto" maxWidth={420} sx={{ lineHeight: 1.7, fontWeight: 500, fontSize: '1rem' }}>
         {text}
       </Typography>
       {actionLabel && (actionTo || onAction) && (
@@ -194,8 +198,14 @@ export function SectionLabel({ children }) {
   return (
     <Typography
       variant="overline"
-      color="text.secondary"
-      sx={{ display: 'block', mb: 1.75, letterSpacing: '0.14em', fontSize: 11 }}
+      sx={{
+        display: 'block',
+        mb: 1.75,
+        letterSpacing: '0.12em',
+        fontSize: 11,
+        color: 'text.secondary',
+        fontWeight: 700,
+      }}
     >
       {children}
     </Typography>

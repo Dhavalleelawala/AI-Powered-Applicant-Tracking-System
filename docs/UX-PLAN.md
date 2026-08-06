@@ -49,7 +49,7 @@ Ordered by demo impact and trust.
 - **Goal:** Apply + readiness work one-thumb on small screens.
 - **Accept:** Journey stepper wraps cleanly; apply wizard sticky primary CTA; profile sections collapse on mobile.
 - **Why:** Candidates often apply on phones.
-- **Status:** planned
+- **Status:** done
 
 ---
 

@@ -5,7 +5,16 @@ import { Link } from 'react-router-dom';
 export function AppBreadcrumbs({ items = [] }) {
   if (!items.length) return null;
   return (
-    <Breadcrumbs separator={<NavigateNext fontSize="small" />} sx={{ mb: 2.5 }} aria-label="Breadcrumb">
+    <Breadcrumbs
+      separator={<NavigateNext fontSize="small" />}
+      sx={{
+        mb: 2.5,
+        flexWrap: 'wrap',
+        rowGap: 0.5,
+        '& .MuiBreadcrumbs-ol': { flexWrap: 'wrap', rowGap: 0.5 },
+      }}
+      aria-label="Breadcrumb"
+    >
       {items.map((item, index) => {
         const last = index === items.length - 1;
         if (last || !item.to) {

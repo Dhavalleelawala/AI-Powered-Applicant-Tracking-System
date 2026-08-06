@@ -3,6 +3,13 @@
 All notable Rolefit changes are listed here. Newest first.
 Epics are tracked in [`docs/EPICS.md`](./docs/EPICS.md) — **one completed epic → one commit**.
 
+## 2026-08-06 (E21 — Mobile applicant polish)
+
+- Journey stepper uses a 2×2 grid on phones; apply step labels tighten for narrow widths
+- Apply wizard and profile save use a sticky thumb-friendly primary CTA (safe-area aware)
+- Profile Basics / Links / Preferences collapse into accordions on mobile (Basics open by default)
+- Role workspace text contrast and weight improved for readability
+
 ## 2026-08-06 (E20 — Accessibility & keyboard hiring)
 
 - Pipeline and ranking: focus a card, then A advance / R reject / Enter open / Esc close / ? tip

@@ -1,15 +1,15 @@
 import { createTheme } from '@mui/material/styles';
 
-/** Rolefit "Ember Ledger" — cool ink + ember accent (replaces forest/teal). */
+/** Rolefit "Ember Ledger" — cool ink + ember accent; tuned for role-workspace readability. */
 const ink = '#12151C';
 const inkSoft = '#1C2230';
 const ember = '#FF5C35';
 const emberDeep = '#E04828';
 const paper = '#EEF1F6';
 const mist = '#F7F8FB';
-const line = '#D5DBE5';
-const textPrimary = '#171A22';
-const textSecondary = '#556074';
+const line = '#C8D0DC';
+const textPrimary = '#0F1218';
+const textSecondary = '#3F4A5C';
 
 const display = '"Outfit", sans-serif';
 const body = '"Manrope", sans-serif';
@@ -21,21 +21,25 @@ export const theme = createTheme({
     secondary: { main: ember, light: '#FF7A58', dark: emberDeep, contrastText: '#FFFFFF' },
     background: { default: paper, paper: '#FFFFFF' },
     text: { primary: textPrimary, secondary: textSecondary },
-    error: { main: '#D64545' },
-    warning: { main: '#D97706' },
-    success: { main: '#0F8A5F' },
-    info: { main: '#3E6B8A' },
+    error: { main: '#C62828' },
+    warning: { main: '#B45309' },
+    success: { main: '#0B7A54' },
+    info: { main: '#2F5F7A' },
     divider: line,
   },
   typography: {
     fontFamily: body,
     htmlFontSize: 16,
+    fontWeightRegular: 500,
+    fontWeightMedium: 600,
+    fontWeightBold: 700,
     h1: {
       fontFamily: display,
       fontWeight: 700,
       letterSpacing: '-0.045em',
       lineHeight: 0.98,
       fontSize: 'clamp(2.75rem, 6vw, 5.5rem)',
+      color: textPrimary,
     },
     h2: {
       fontFamily: display,
@@ -43,6 +47,7 @@ export const theme = createTheme({
       letterSpacing: '-0.035em',
       lineHeight: 1.08,
       fontSize: 'clamp(1.85rem, 3.2vw, 2.85rem)',
+      color: textPrimary,
     },
     h3: {
       fontFamily: display,
@@ -50,26 +55,43 @@ export const theme = createTheme({
       letterSpacing: '-0.025em',
       lineHeight: 1.2,
       fontSize: 'clamp(1.25rem, 1.8vw, 1.55rem)',
+      color: textPrimary,
     },
     h4: {
       fontFamily: display,
       fontWeight: 650,
       letterSpacing: '-0.02em',
       fontSize: '1.25rem',
+      color: textPrimary,
     },
     h5: {
       fontFamily: display,
       fontWeight: 650,
       fontSize: '1.1rem',
+      color: textPrimary,
     },
     h6: {
       fontFamily: display,
       fontWeight: 650,
       fontSize: '1rem',
+      color: textPrimary,
     },
-    subtitle1: { fontSize: '1.05rem', lineHeight: 1.55, fontWeight: 500 },
-    body1: { fontSize: '1rem', lineHeight: 1.65 },
-    body2: { fontSize: '0.925rem', lineHeight: 1.55 },
+    subtitle1: { fontSize: '1.05rem', lineHeight: 1.55, fontWeight: 600, color: textPrimary },
+    subtitle2: { fontSize: '0.95rem', lineHeight: 1.5, fontWeight: 600, color: textSecondary },
+    body1: {
+      fontSize: '1.02rem',
+      lineHeight: 1.7,
+      fontWeight: 500,
+      color: textPrimary,
+      letterSpacing: '-0.005em',
+    },
+    body2: {
+      fontSize: '0.95rem',
+      lineHeight: 1.6,
+      fontWeight: 500,
+      color: textSecondary,
+      letterSpacing: '-0.005em',
+    },
     button: {
       fontFamily: body,
       fontWeight: 700,
@@ -77,12 +99,13 @@ export const theme = createTheme({
       letterSpacing: '-0.01em',
       fontSize: '0.95rem',
     },
-    caption: { fontSize: '0.8rem', lineHeight: 1.45, color: textSecondary },
+    caption: { fontSize: '0.84rem', lineHeight: 1.5, fontWeight: 500, color: textSecondary },
     overline: {
       fontFamily: display,
       fontWeight: 700,
-      letterSpacing: '0.14em',
-      fontSize: '0.7rem',
+      letterSpacing: '0.12em',
+      fontSize: '0.72rem',
+      color: emberDeep,
     },
   },
   shape: { borderRadius: 12 },
@@ -91,6 +114,7 @@ export const theme = createTheme({
       styleOverrides: {
         body: {
           backgroundColor: paper,
+          color: textPrimary,
           backgroundImage:
             'radial-gradient(ellipse 85% 50% at 0% -12%, rgba(255,92,53,0.08), transparent 55%), radial-gradient(ellipse 55% 45% at 100% 0%, rgba(18,21,28,0.05), transparent 52%)',
           backgroundAttachment: 'fixed',
@@ -120,9 +144,11 @@ export const theme = createTheme({
         },
         outlined: {
           borderColor: line,
+          color: textPrimary,
           '&:hover': { borderColor: ember, backgroundColor: 'rgba(255,92,53,0.06)' },
         },
         text: {
+          color: textPrimary,
           '&:hover': { backgroundColor: 'rgba(255,92,53,0.08)' },
         },
       },
@@ -133,13 +159,30 @@ export const theme = createTheme({
           border: `1px solid ${line}`,
           boxShadow: 'none',
           backgroundImage: 'none',
+          color: textPrimary,
         },
       },
     },
     MuiChip: {
       styleOverrides: {
-        root: { borderRadius: 8, fontWeight: 600, fontFamily: body },
+        root: { borderRadius: 8, fontWeight: 650, fontFamily: body },
         sizeSmall: { height: 26 },
+        outlined: { borderColor: line, color: textPrimary },
+        label: { fontWeight: 650 },
+      },
+    },
+    MuiInputLabel: {
+      styleOverrides: {
+        root: {
+          color: textSecondary,
+          fontWeight: 600,
+          '&.Mui-focused': { color: emberDeep },
+        },
+      },
+    },
+    MuiFormHelperText: {
+      styleOverrides: {
+        root: { color: textSecondary, fontWeight: 500, fontSize: '0.8rem' },
       },
     },
     MuiOutlinedInput: {
@@ -147,8 +190,10 @@ export const theme = createTheme({
         root: {
           backgroundColor: '#fff',
           borderRadius: 12,
+          color: textPrimary,
           '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: ember, borderWidth: 2 },
         },
+        input: { fontWeight: 500 },
       },
     },
     MuiTextField: {
@@ -158,12 +203,12 @@ export const theme = createTheme({
       styleOverrides: {
         head: {
           fontWeight: 700,
-          color: textSecondary,
+          color: textPrimary,
           borderBottomColor: line,
-          backgroundColor: 'rgba(238,241,246,0.9)',
+          backgroundColor: 'rgba(238,241,246,0.95)',
           fontFamily: body,
         },
-        body: { borderBottomColor: line },
+        body: { borderBottomColor: line, color: textPrimary, fontWeight: 500 },
       },
     },
     MuiTableRow: {
@@ -176,7 +221,8 @@ export const theme = createTheme({
     },
     MuiAlert: {
       styleOverrides: {
-        root: { borderRadius: 12, border: `1px solid ${line}` },
+        root: { borderRadius: 12, border: `1px solid ${line}`, color: textPrimary },
+        message: { fontWeight: 500, lineHeight: 1.55 },
       },
     },
     MuiAccordion: {
@@ -188,14 +234,24 @@ export const theme = createTheme({
         },
       },
     },
+    MuiAccordionSummary: {
+      styleOverrides: {
+        content: { fontWeight: 650, color: textPrimary },
+      },
+    },
     MuiDrawer: {
       styleOverrides: {
-        paper: { backgroundColor: mist, borderLeft: `1px solid ${line}` },
+        paper: { backgroundColor: mist, borderLeft: `1px solid ${line}`, color: textPrimary },
       },
     },
     MuiDialog: {
       styleOverrides: {
-        paper: { borderRadius: 16, border: `1px solid ${line}` },
+        paper: { borderRadius: 16, border: `1px solid ${line}`, color: textPrimary },
+      },
+    },
+    MuiMenuItem: {
+      styleOverrides: {
+        root: { fontWeight: 500, color: textPrimary },
       },
     },
     MuiSkeleton: {
@@ -212,4 +268,4 @@ export const theme = createTheme({
   },
 });
 
-export const brand = { ink, ember, paper, mist, line, display, body };
+export const brand = { ink, ember, paper, mist, line, display, body, textPrimary, textSecondary };

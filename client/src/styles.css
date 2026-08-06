@@ -4,9 +4,9 @@
   --rf-ember-deep: #E04828;
   --rf-paper: #EEF1F6;
   --rf-mist: #F7F8FB;
-  --rf-line: #D5DBE5;
-  --rf-text: #171A22;
-  --rf-muted: #556074;
+  --rf-line: #C8D0DC;
+  --rf-text: #0F1218;
+  --rf-muted: #3F4A5C;
   --rf-display: "Outfit", sans-serif;
   --rf-body: "Manrope", sans-serif;
   --rf-page-py: 4.5rem;
@@ -44,7 +44,33 @@ body {
   min-height: 100vh;
   color: var(--rf-text);
   font-family: var(--rf-body);
+  font-weight: 500;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.shell-main {
+  color: var(--rf-text);
+  font-family: var(--rf-body);
+  font-weight: 500;
+}
+
+.shell-main .MuiTypography-root {
+  letter-spacing: -0.005em;
+}
+
+.shell-main .MuiTypography-colorTextSecondary {
+  color: var(--rf-muted) !important;
+}
+
+.shell-main .MuiTypography-h1,
+.shell-main .MuiTypography-h2,
+.shell-main .MuiTypography-h3,
+.shell-main .MuiTypography-h4,
+.shell-main .MuiTypography-h5,
+.shell-main .MuiTypography-h6 {
+  color: var(--rf-text);
+  font-family: var(--rf-display);
 }
 a { color: inherit; }
 ::selection { background: rgba(255, 92, 53, 0.22); }
@@ -518,8 +544,8 @@ a { color: inherit; }
 }
 
 .applicant-journey__label {
-  font-size: 13px !important;
-  font-weight: 650 !important;
+  font-size: 13.5px !important;
+  font-weight: 700 !important;
   color: var(--rf-muted);
 }
 
@@ -540,8 +566,8 @@ a { color: inherit; }
   padding: 10px 8px;
   border-radius: 10px;
   border: 1px solid var(--rf-line);
-  background: rgba(255, 255, 255, 0.7);
-  font-size: 12px;
+  background: rgba(255, 255, 255, 0.92);
+  font-size: 13px;
   font-weight: 700;
   font-family: var(--rf-display);
   color: var(--rf-muted);
@@ -555,7 +581,98 @@ a { color: inherit; }
 
 .apply-stepper__item.is-done {
   border-color: rgba(15, 138, 95, 0.45);
-  color: #0f8a5f;
+  color: #0b7a54;
+}
+
+.apply-wizard__cta,
+.journey-footer-cta {
+  position: sticky;
+  bottom: 0;
+  z-index: 8;
+  margin-top: 1.25rem;
+  padding: 12px 14px;
+  padding-bottom: max(12px, env(safe-area-inset-bottom));
+  background: rgba(247, 248, 251, 0.94);
+  border: 1px solid var(--rf-line);
+  border-radius: 14px 14px 0 0;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 -8px 24px rgba(18, 21, 28, 0.06);
+}
+
+.apply-wizard__cta .MuiButton-containedSecondary,
+.journey-footer-cta .MuiButton-containedSecondary {
+  min-height: 44px;
+}
+
+@media (max-width: 599px) {
+  .applicant-journey {
+    padding: 0.85rem 0.9rem;
+  }
+
+  .applicant-journey__track {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .applicant-journey__step {
+    min-width: 0;
+  }
+
+  .applicant-journey__line {
+    display: none;
+  }
+
+  .applicant-journey__dot-wrap {
+    flex-direction: column;
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+    padding: 10px 6px;
+    gap: 6px;
+  }
+
+  .applicant-journey__label {
+    font-size: 12px !important;
+  }
+
+  .apply-stepper {
+    gap: 6px;
+  }
+
+  .apply-stepper__item {
+    font-size: 11px;
+    padding: 8px 4px;
+    letter-spacing: -0.01em;
+  }
+
+  .apply-stepper__num {
+    display: none;
+  }
+
+  .apply-wizard__cta,
+  .journey-footer-cta {
+    margin-left: -4px;
+    margin-right: -4px;
+    border-radius: 12px 12px 0 0;
+  }
+
+  .apply-wizard__cta.MuiStack-root,
+  .journey-footer-cta.MuiStack-root {
+    flex-direction: column-reverse !important;
+    align-items: stretch !important;
+  }
+
+  .apply-wizard__cta .MuiButton-root,
+  .journey-footer-cta .MuiButton-root {
+    width: 100%;
+  }
+
+  html[data-density='applicant'] {
+    --rf-page-py: 2.75rem;
+    --rf-page-py-md: 3.5rem;
+  }
 }
 
 .rf-feedback--empty {
@@ -631,14 +748,14 @@ a { color: inherit; }
 }
 
 .workspace-chip--recruiter {
-  background: rgba(255, 92, 53, 0.18);
-  color: #ff8a6a;
+  background: rgba(255, 92, 53, 0.22);
+  color: #ffb39a;
 }
 
 .workspace-chip--applicant {
-  background: rgba(255, 92, 53, 0.1);
+  background: rgba(255, 92, 53, 0.12);
   color: var(--rf-ember-deep);
-  border: 1px solid rgba(255, 92, 53, 0.25);
+  border: 1px solid rgba(255, 92, 53, 0.3);
 }
 
 .app-shell--recruiter .shell-bar .nav-link::after {

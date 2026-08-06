@@ -209,15 +209,15 @@ export function AppShell({ children }) {
                   end={to === '/recruiter' || to === '/applicant' || to === '/'}
                   sx={{
                     color: 'inherit',
-                    opacity: 0.78,
+                    opacity: 0.92,
                     textDecoration: 'none',
-                    fontSize: role === 'recruiter' ? 13 : 14,
-                    fontWeight: 500,
+                    fontSize: role === 'recruiter' ? 13.5 : 14.5,
+                    fontWeight: 600,
                     letterSpacing: role === 'recruiter' ? '0.01em' : 0,
                     '&.active': {
                       opacity: 1,
                       fontWeight: 700,
-                      color: lightChrome ? '#FF9A7A' : 'secondary.main',
+                      color: lightChrome ? '#FFB39A' : 'secondary.dark',
                     },
                     '&:focus-visible': {
                       opacity: 1,
@@ -275,7 +275,7 @@ export function AppShell({ children }) {
                       <Typography variant="body2" fontWeight={700} lineHeight={1.15} noWrap>
                         {user.name}
                       </Typography>
-                      <Typography variant="caption" sx={{ opacity: 0.65 }}>
+                      <Typography variant="caption" sx={{ opacity: lightChrome ? 0.85 : 0.75, fontWeight: 600 }}>
                         {role === 'recruiter' ? 'Hiring workspace' : 'Career workspace'}
                       </Typography>
                     </Box>
@@ -398,7 +398,7 @@ export function AppShell({ children }) {
         id="main-content"
         tabIndex={-1}
         className={`shell-main density-${density}`}
-        sx={{ flex: 1, outline: 'none' }}
+        sx={{ flex: 1, outline: 'none', color: 'text.primary', bgcolor: 'transparent' }}
       >
         {children}
       </Box>

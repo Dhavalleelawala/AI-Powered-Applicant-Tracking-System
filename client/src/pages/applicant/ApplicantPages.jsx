@@ -16,6 +16,8 @@ import {
   Stack,
   TextField,
   Typography,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useState } from 'react';
@@ -145,7 +147,8 @@ export function ApplyJobPage() {
             role="listitem"
             className={`apply-stepper__item${index === step ? ' is-active' : ''}${index < step ? ' is-done' : ''}`}
           >
-            {index + 1}. {label}
+            <span className="apply-stepper__num">{index + 1}. </span>
+            {label}
           </Box>
         ))}
       </Box>
@@ -153,43 +156,146 @@ export function ApplyJobPage() {
       {jobError ? <ErrorState error={jobError} onRetry={refetchJob} title="Couldn’t load this role" sx={{ mb: 2 }} /> : null}
       {jobLoading && !job ? <LinearProgress color="secondary" sx={{ mb: 2, borderRadius: 1 }} /> : null}
 
-      <Paper sx={{ p: { xs: 3, md: 4 }, bgcolor: 'rgba(255,255,255,0.92)' }}>
-        {apply.isPending && <LinearProgress color="secondary" sx={{ mb: 2, borderRadius: 1 }} />}
+      <Box
+        component={step === 2 ? 'form' : 'div'}
+        onSubmit={
+          step === 2
+            ? (e) => {
+                e.preventDefault();
+                if (!readiness.readyToApply) {
+                  setError('Finish required profile and resume details before submitting.');
+                  setStep(0);
+                  return;
+                }
+                if (!resume) {
+                  setError('A resume is required.');
+                  setStep(1);
+                  return;
+                }
+                apply.mutate();
+              }
+            : undefined
+        }
+      >
+        <Paper sx={{ p: { xs: 2.5, md: 4 }, bgcolor: 'rgba(255,255,255,0.92)', mb: 0 }}>
+          {apply.isPending && <LinearProgress color="secondary" sx={{ mb: 2, borderRadius: 1 }} />}
 
-        {step === 0 && (
-          <Stack spacing={2.5}>
-            <Typography variant="h3">Confirm you’re ready</Typography>
-            <Typography color="text.secondary">
-              Recruiters see your profile and resume together. Finish required details before you attach a file.
-            </Typography>
-            <Stack spacing={1}>
-              <Alert severity={readiness.profile.complete ? 'success' : 'warning'}>
-                Profile {readiness.profile.percent}%
-                {!readiness.profile.complete && (
-                  <>
-                    {' '}
-                    — missing {readiness.profile.missingRequired.map((i) => i.label).join(', ')}.{' '}
-                    <Button component={Link} to="/applicant/profile" size="small" color="inherit">
-                      Fix profile
-                    </Button>
-                  </>
-                )}
-              </Alert>
-              <Alert severity={readiness.resume.complete ? 'success' : 'warning'}>
-                Resume {readiness.resume.percent}%
-                {!readiness.resume.complete && (
-                  <>
-                    {' '}
-                    — missing {readiness.resume.missingRequired.map((i) => i.label).join(', ')}.{' '}
-                    <Button component={Link} to="/applicant/resume" size="small" color="inherit">
-                      Fix resume
-                    </Button>
-                  </>
-                )}
-              </Alert>
+          {step === 0 && (
+            <Stack spacing={2.5}>
+              <Typography variant="h3">Confirm you’re ready</Typography>
+              <Typography color="text.secondary">
+                Recruiters see your profile and resume together. Finish required details before you attach a file.
+              </Typography>
+              <Stack spacing={1}>
+                <Alert severity={readiness.profile.complete ? 'success' : 'warning'}>
+                  Profile {readiness.profile.percent}%
+                  {!readiness.profile.complete && (
+                    <>
+                      {' '}
+                      — missing {readiness.profile.missingRequired.map((i) => i.label).join(', ')}.{' '}
+                      <Button component={Link} to="/applicant/profile" size="small" color="inherit">
+                        Fix profile
+                      </Button>
+                    </>
+                  )}
+                </Alert>
+                <Alert severity={readiness.resume.complete ? 'success' : 'warning'}>
+                  Resume {readiness.resume.percent}%
+                  {!readiness.resume.complete && (
+                    <>
+                      {' '}
+                      — missing {readiness.resume.missingRequired.map((i) => i.label).join(', ')}.{' '}
+                      <Button component={Link} to="/applicant/resume" size="small" color="inherit">
+                        Fix resume
+                      </Button>
+                    </>
+                  )}
+                </Alert>
+              </Stack>
             </Stack>
-            <Stack direction="row" spacing={1.25} justifyContent="flex-end">
-              <Button component={Link} to={`/jobs/${jobId}`}>
+          )}
+
+          {step === 1 && (
+            <Stack spacing={2.5}>
+              <Typography variant="h3">Attach your resume</Typography>
+              <Button
+                component="label"
+                variant="outlined"
+                startIcon={<CloudUpload />}
+                aria-label="Upload resume PDF or Word document"
+                onDragEnter={(e) => {
+                  e.preventDefault();
+                  setDragging(true);
+                }}
+                onDragOver={(e) => e.preventDefault()}
+                onDragLeave={() => setDragging(false)}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  setDragging(false);
+                  acceptFile(e.dataTransfer.files?.[0]);
+                }}
+                sx={{
+                  py: 3,
+                  borderStyle: 'dashed',
+                  justifyContent: 'flex-start',
+                  bgcolor: dragging || resume ? 'rgba(255,92,53,0.08)' : 'transparent',
+                  borderColor: dragging ? 'secondary.main' : undefined,
+                }}
+              >
+                {resume ? resume.name : 'Drop resume here, or choose PDF/DOCX'}
+                <input hidden type="file" accept=".pdf,.doc,.docx" aria-label="Resume file" onChange={select} />
+              </Button>
+              {resume && (
+                <Typography variant="body2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <AttachFile fontSize="small" /> {resume.name} · {(resume.size / 1024).toFixed(0)} KB
+                  <Button size="small" onClick={() => setResume(null)} sx={{ ml: 1 }}>
+                    Remove
+                  </Button>
+                </Typography>
+              )}
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
+                <Button variant="outlined" onClick={useBuiltResume} disabled={loadingBuilt || apply.isPending}>
+                  {loadingBuilt ? 'Loading resume…' : 'Use Rolefit resume'}
+                </Button>
+                <Button component={Link} to="/applicant/resume" size="small">
+                  Edit Rolefit resume
+                </Button>
+              </Stack>
+              {error && <Alert severity="error">{error}</Alert>}
+            </Stack>
+          )}
+
+          {step === 2 && (
+            <Stack spacing={2.5}>
+              <Typography variant="h3">Add a short note</Typography>
+              <Alert severity="info">
+                Submitting to <strong>{job?.title || 'this role'}</strong>
+                {resume ? ` with ${resume.name}` : ''}.
+              </Alert>
+              <TextField
+                label="Cover letter (optional)"
+                multiline
+                rows={6}
+                value={coverLetter}
+                onChange={(e) => setCoverLetter(e.target.value)}
+                placeholder="A short note on why this role fits your craft."
+                helperText={`${coverLetter.length} characters`}
+              />
+              {error && <Alert severity="error">{error}</Alert>}
+            </Stack>
+          )}
+        </Paper>
+
+        <Stack
+          className="apply-wizard__cta"
+          direction={{ xs: 'column-reverse', sm: 'row' }}
+          spacing={1.25}
+          justifyContent="space-between"
+          alignItems={{ sm: 'center' }}
+        >
+          {step === 0 && (
+            <>
+              <Button component={Link} to={`/jobs/${jobId}`} sx={{ width: { xs: '100%', sm: 'auto' } }}>
                 Back to role
               </Button>
               <Button
@@ -197,62 +303,17 @@ export function ApplyJobPage() {
                 color="secondary"
                 disabled={!readiness.readyToApply}
                 onClick={() => setStep(1)}
+                sx={{ width: { xs: '100%', sm: 'auto' } }}
               >
                 {readiness.readyToApply ? 'Continue to resume' : 'Complete details first'}
               </Button>
-            </Stack>
-          </Stack>
-        )}
-
-        {step === 1 && (
-          <Stack spacing={2.5}>
-            <Typography variant="h3">Attach your resume</Typography>
-            <Button
-              component="label"
-              variant="outlined"
-              startIcon={<CloudUpload />}
-              aria-label="Upload resume PDF or Word document"
-              onDragEnter={(e) => {
-                e.preventDefault();
-                setDragging(true);
-              }}
-              onDragOver={(e) => e.preventDefault()}
-              onDragLeave={() => setDragging(false)}
-              onDrop={(e) => {
-                e.preventDefault();
-                setDragging(false);
-                acceptFile(e.dataTransfer.files?.[0]);
-              }}
-              sx={{
-                py: 3,
-                borderStyle: 'dashed',
-                justifyContent: 'flex-start',
-                bgcolor: dragging || resume ? 'rgba(255,92,53,0.08)' : 'transparent',
-                borderColor: dragging ? 'secondary.main' : undefined,
-              }}
-            >
-              {resume ? resume.name : 'Drop resume here, or choose PDF/DOCX'}
-              <input hidden type="file" accept=".pdf,.doc,.docx" aria-label="Resume file" onChange={select} />
-            </Button>
-            {resume && (
-              <Typography variant="body2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <AttachFile fontSize="small" /> {resume.name} · {(resume.size / 1024).toFixed(0)} KB
-                <Button size="small" onClick={() => setResume(null)} sx={{ ml: 1 }}>
-                  Remove
-                </Button>
-              </Typography>
-            )}
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
-              <Button variant="outlined" onClick={useBuiltResume} disabled={loadingBuilt || apply.isPending}>
-                {loadingBuilt ? 'Loading resume…' : 'Use Rolefit resume'}
+            </>
+          )}
+          {step === 1 && (
+            <>
+              <Button onClick={() => setStep(0)} sx={{ width: { xs: '100%', sm: 'auto' } }}>
+                Back
               </Button>
-              <Button component={Link} to="/applicant/resume" size="small">
-                Edit Rolefit resume
-              </Button>
-            </Stack>
-            {error && <Alert severity="error">{error}</Alert>}
-            <Stack direction="row" spacing={1.25} justifyContent="space-between">
-              <Button onClick={() => setStep(0)}>Back</Button>
               <Button
                 variant="contained"
                 color="secondary"
@@ -261,58 +322,31 @@ export function ApplyJobPage() {
                   setError('');
                   setStep(2);
                 }}
+                sx={{ width: { xs: '100%', sm: 'auto' } }}
               >
                 Continue to note
               </Button>
-            </Stack>
-          </Stack>
-        )}
-
-        {step === 2 && (
-          <Stack
-            component="form"
-            spacing={2.5}
-            onSubmit={(e) => {
-              e.preventDefault();
-              if (!readiness.readyToApply) {
-                setError('Finish required profile and resume details before submitting.');
-                setStep(0);
-                return;
-              }
-              if (!resume) {
-                setError('A resume is required.');
-                setStep(1);
-                return;
-              }
-              apply.mutate();
-            }}
-          >
-            <Typography variant="h3">Add a short note</Typography>
-            <Alert severity="info">
-              Submitting to <strong>{job?.title || 'this role'}</strong>
-              {resume ? ` with ${resume.name}` : ''}.
-            </Alert>
-            <TextField
-              label="Cover letter (optional)"
-              multiline
-              rows={6}
-              value={coverLetter}
-              onChange={(e) => setCoverLetter(e.target.value)}
-              placeholder="A short note on why this role fits your craft."
-              helperText={`${coverLetter.length} characters`}
-            />
-            {error && <Alert severity="error">{error}</Alert>}
-            <Stack direction="row" spacing={1.25} justifyContent="space-between">
-              <Button onClick={() => setStep(1)} disabled={apply.isPending}>
+            </>
+          )}
+          {step === 2 && (
+            <>
+              <Button onClick={() => setStep(1)} disabled={apply.isPending} sx={{ width: { xs: '100%', sm: 'auto' } }}>
                 Back
               </Button>
-              <Button type="submit" variant="contained" color="secondary" size="large" disabled={apply.isPending}>
+              <Button
+                type="submit"
+                variant="contained"
+                color="secondary"
+                size="large"
+                disabled={apply.isPending}
+                sx={{ width: { xs: '100%', sm: 'auto' } }}
+              >
                 {apply.isPending ? 'Submitting…' : 'Submit application'}
               </Button>
-            </Stack>
-          </Stack>
-        )}
-      </Paper>
+            </>
+          )}
+        </Stack>
+      </Box>
     </Page>
   );
 }
@@ -594,9 +628,12 @@ export function MyApplicationsPage() {
 }
 
 export function ProfilePage() {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { user, token, login } = useAuth();
   const { showToast, showError } = useToast();
   const [dirty, setDirty] = useState(false);
+  const [sections, setSections] = useState({ basics: true, links: true, preferences: true });
   const { requestLeave, dialog: leaveDialog } = useLeaveConfirm();
   useBeforeUnloadWarning(dirty);
   const [form, setForm] = useState(() => ({
@@ -617,6 +654,18 @@ export function ProfilePage() {
     about: user?.about || '',
   }));
   const readiness = profileChecklist({ ...user, ...form, skills: form.skills.split(',').map((s) => s.trim()).filter(Boolean) });
+
+  useEffect(() => {
+    setSections(
+      isMobile
+        ? { basics: true, links: false, preferences: false }
+        : { basics: true, links: true, preferences: true },
+    );
+  }, [isMobile]);
+
+  const toggleSection = (key) => (_event, expanded) => {
+    setSections((current) => ({ ...current, [key]: expanded }));
+  };
 
   const update = useMutation({
     mutationFn: (body) => authApi.updateProfile(body),
@@ -724,121 +773,167 @@ export function ProfilePage() {
           });
         }}
       >
-        <Stack spacing={3}>
-          <Box>
-            <Typography variant="h3" mb={2}>
-              Basics
-            </Typography>
-            <Stack spacing={2}>
-              <TextField label="Full name" required value={form.name} onChange={set('name')} />
-              <TextField label="Email" value={user?.email || ''} disabled helperText="Managed by your account login." />
-              <TextField label="Phone" required value={form.phone} onChange={set('phone')} placeholder="+91 …" />
-              <TextField label="Professional headline" required value={form.headline} onChange={set('headline')} placeholder="Full-stack engineer" />
-              <TextField label="Location" required value={form.location} onChange={set('location')} placeholder="Bengaluru / Remote" />
-              <TextField
-                label="Years of experience"
-                type="number"
-                required
-                inputProps={{ min: 0 }}
-                value={form.experienceYears}
-                onChange={set('experienceYears')}
-              />
-              <TextField
-                label="Skills"
-                required
-                helperText="At least 3 skills, separated by commas."
-                value={form.skills}
-                onChange={set('skills')}
-              />
-              <TextField
-                label="About you"
-                multiline
-                minRows={3}
-                value={form.about}
-                onChange={set('about')}
-                helperText="Optional short bio for recruiters."
-              />
-            </Stack>
-          </Box>
+        <Stack spacing={1.5}>
+          <Accordion
+            className="profile-section"
+            disableGutters
+            elevation={0}
+            expanded={sections.basics}
+            onChange={toggleSection('basics')}
+            sx={{ border: '1px solid', borderColor: 'divider', borderRadius: '12px !important', '&:before': { display: 'none' } }}
+          >
+            <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="profile-basics" id="profile-basics-header">
+              <Typography variant="h3" fontSize="1.15rem">
+                Basics
+              </Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              <Stack spacing={2}>
+                <TextField label="Full name" required value={form.name} onChange={set('name')} />
+                <TextField label="Email" value={user?.email || ''} disabled helperText="Managed by your account login." />
+                <TextField label="Phone" required value={form.phone} onChange={set('phone')} placeholder="+91 …" />
+                <TextField label="Professional headline" required value={form.headline} onChange={set('headline')} placeholder="Full-stack engineer" />
+                <TextField label="Location" required value={form.location} onChange={set('location')} placeholder="Bengaluru / Remote" />
+                <TextField
+                  label="Years of experience"
+                  type="number"
+                  required
+                  inputProps={{ min: 0 }}
+                  value={form.experienceYears}
+                  onChange={set('experienceYears')}
+                />
+                <TextField
+                  label="Skills"
+                  required
+                  helperText="At least 3 skills, separated by commas."
+                  value={form.skills}
+                  onChange={set('skills')}
+                />
+                <TextField
+                  label="About you"
+                  multiline
+                  minRows={3}
+                  value={form.about}
+                  onChange={set('about')}
+                  helperText="Optional short bio for recruiters."
+                />
+              </Stack>
+            </AccordionDetails>
+          </Accordion>
 
-          <Box>
-            <Typography variant="h3" mb={2}>
-              Links
-            </Typography>
-            <Stack spacing={2}>
-              <TextField label="LinkedIn URL" value={form.linkedInUrl} onChange={set('linkedInUrl')} placeholder="https://linkedin.com/in/…" />
-              <TextField label="Portfolio / GitHub URL" value={form.portfolioUrl} onChange={set('portfolioUrl')} placeholder="https://…" />
-            </Stack>
-          </Box>
+          <Accordion
+            className="profile-section"
+            disableGutters
+            elevation={0}
+            expanded={sections.links}
+            onChange={toggleSection('links')}
+            sx={{ border: '1px solid', borderColor: 'divider', borderRadius: '12px !important', '&:before': { display: 'none' } }}
+          >
+            <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="profile-links" id="profile-links-header">
+              <Typography variant="h3" fontSize="1.15rem">
+                Links
+              </Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              <Stack spacing={2}>
+                <TextField label="LinkedIn URL" value={form.linkedInUrl} onChange={set('linkedInUrl')} placeholder="https://linkedin.com/in/…" />
+                <TextField label="Portfolio / GitHub URL" value={form.portfolioUrl} onChange={set('portfolioUrl')} placeholder="https://…" />
+              </Stack>
+            </AccordionDetails>
+          </Accordion>
 
-          <Box>
-            <Typography variant="h3" mb={2}>
-              Preferences
-            </Typography>
-            <Stack spacing={2}>
-              <TextField
-                select
-                label="Preferred employment type"
-                value={form.preferredEmploymentType}
-                onChange={set('preferredEmploymentType')}
-              >
-                {[
-                  ['any', 'Any'],
-                  ['full-time', 'Full-time'],
-                  ['part-time', 'Part-time'],
-                  ['contract', 'Contract'],
-                  ['internship', 'Internship'],
-                ].map(([value, label]) => (
-                  <MenuItem key={value} value={value}>
-                    {label}
-                  </MenuItem>
-                ))}
-              </TextField>
-              <TextField select label="Availability" required value={form.availability} onChange={set('availability')}>
-                <MenuItem value="">Select availability</MenuItem>
-                {[
-                  ['immediate', 'Immediate'],
-                  ['2-weeks', 'In about 2 weeks'],
-                  ['1-month', 'In about 1 month'],
-                  ['3-months', 'In about 3 months'],
-                  ['flexible', 'Flexible'],
-                ].map(([value, label]) => (
-                  <MenuItem key={value} value={value}>
-                    {label}
-                  </MenuItem>
-                ))}
-              </TextField>
-              <TextField
-                label="Notice period (days)"
-                type="number"
-                inputProps={{ min: 0 }}
-                value={form.noticePeriodDays}
-                onChange={set('noticePeriodDays')}
-              />
-              <TextField
-                label="Work authorization"
-                value={form.workAuthorization}
-                onChange={set('workAuthorization')}
-                placeholder="e.g. Authorized to work in India"
-              />
-              <FormControlLabel
-                control={<Checkbox checked={Boolean(form.openToRemote)} onChange={set('openToRemote')} />}
-                label="Open to remote roles"
-              />
-              <FormControlLabel
-                control={<Checkbox checked={Boolean(form.openToRelocate)} onChange={set('openToRelocate')} />}
-                label="Open to relocating"
-              />
-            </Stack>
-          </Box>
+          <Accordion
+            className="profile-section"
+            disableGutters
+            elevation={0}
+            expanded={sections.preferences}
+            onChange={toggleSection('preferences')}
+            sx={{ border: '1px solid', borderColor: 'divider', borderRadius: '12px !important', '&:before': { display: 'none' } }}
+          >
+            <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="profile-prefs" id="profile-prefs-header">
+              <Typography variant="h3" fontSize="1.15rem">
+                Preferences
+              </Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              <Stack spacing={2}>
+                <TextField
+                  select
+                  label="Preferred employment type"
+                  value={form.preferredEmploymentType}
+                  onChange={set('preferredEmploymentType')}
+                >
+                  {[
+                    ['any', 'Any'],
+                    ['full-time', 'Full-time'],
+                    ['part-time', 'Part-time'],
+                    ['contract', 'Contract'],
+                    ['internship', 'Internship'],
+                  ].map(([value, label]) => (
+                    <MenuItem key={value} value={value}>
+                      {label}
+                    </MenuItem>
+                  ))}
+                </TextField>
+                <TextField select label="Availability" required value={form.availability} onChange={set('availability')}>
+                  <MenuItem value="">Select availability</MenuItem>
+                  {[
+                    ['immediate', 'Immediate'],
+                    ['2-weeks', 'In about 2 weeks'],
+                    ['1-month', 'In about 1 month'],
+                    ['3-months', 'In about 3 months'],
+                    ['flexible', 'Flexible'],
+                  ].map(([value, label]) => (
+                    <MenuItem key={value} value={value}>
+                      {label}
+                    </MenuItem>
+                  ))}
+                </TextField>
+                <TextField
+                  label="Notice period (days)"
+                  type="number"
+                  inputProps={{ min: 0 }}
+                  value={form.noticePeriodDays}
+                  onChange={set('noticePeriodDays')}
+                />
+                <TextField
+                  label="Work authorization"
+                  value={form.workAuthorization}
+                  onChange={set('workAuthorization')}
+                  placeholder="e.g. Authorized to work in India"
+                />
+                <FormControlLabel
+                  control={<Checkbox checked={Boolean(form.openToRemote)} onChange={set('openToRemote')} />}
+                  label="Open to remote roles"
+                />
+                <FormControlLabel
+                  control={<Checkbox checked={Boolean(form.openToRelocate)} onChange={set('openToRelocate')} />}
+                  label="Open to relocating"
+                />
+              </Stack>
+            </AccordionDetails>
+          </Accordion>
 
           {update.error && <Alert severity="error">{String(update.error)}</Alert>}
-          <Stack direction="row" spacing={1.5} alignItems="center">
-            <Button type="submit" variant="contained" color="secondary" size="large" disabled={update.isPending || !dirty}>
+          <Stack
+            className="apply-wizard__cta"
+            direction={{ xs: 'column-reverse', sm: 'row' }}
+            spacing={1.5}
+            alignItems={{ sm: 'center' }}
+          >
+            <Button
+              type="submit"
+              variant="contained"
+              color="secondary"
+              size="large"
+              disabled={update.isPending || !dirty}
+              sx={{ width: { xs: '100%', sm: 'auto' } }}
+            >
               {update.isPending ? 'Saving…' : dirty ? 'Save profile' : 'Saved'}
             </Button>
             {dirty && (
               <Button
+                sx={{ width: { xs: '100%', sm: 'auto' } }}
                 onClick={() =>
                   requestLeave(() => {
                     resetForm();

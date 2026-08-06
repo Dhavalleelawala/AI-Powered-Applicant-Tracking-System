@@ -102,24 +102,29 @@ export function ApplicantJourney({ current = 'home', nextHint }) {
 export function JourneyFooter({ backTo, backLabel, nextTo, nextLabel, nextDisabled }) {
   return (
     <Stack
-      direction={{ xs: 'column', sm: 'row' }}
+      className="journey-footer-cta"
+      direction={{ xs: 'column-reverse', sm: 'row' }}
       spacing={1.25}
       justifyContent="space-between"
       alignItems={{ sm: 'center' }}
       mt={3}
-      pt={2.5}
-      borderTop="1px solid"
-      borderColor="divider"
     >
       {backTo ? (
-        <Button component={Link} to={backTo}>
+        <Button component={Link} to={backTo} sx={{ width: { xs: '100%', sm: 'auto' } }}>
           {backLabel || 'Back'}
         </Button>
       ) : (
         <span />
       )}
       {nextTo && (
-        <Button component={Link} to={nextTo} variant="contained" color="secondary" disabled={nextDisabled}>
+        <Button
+          component={Link}
+          to={nextTo}
+          variant="contained"
+          color="secondary"
+          disabled={nextDisabled}
+          sx={{ width: { xs: '100%', sm: 'auto' } }}
+        >
           {nextLabel || 'Continue'}
         </Button>
       )}
