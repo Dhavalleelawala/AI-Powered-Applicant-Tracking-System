@@ -8,6 +8,7 @@
     "dev": "nodemon src/server.js",
     "start": "node src/server.js",
     "seed": "node src/scripts/seed.js",
+    "preflight": "node src/scripts/preflight.js",
     "smoke": "node src/scripts/smoke.js",
     "test": "node src/scripts/run-unit.js",
     "lint": "eslint src --ext .js"

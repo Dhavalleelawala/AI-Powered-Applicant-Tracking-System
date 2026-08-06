@@ -57,15 +57,21 @@ Status: `planned` · `in_progress` · `done`
 - **Notes:** New palette (ink + ember), Outfit headings + Manrope body, clamped type scale, CSS variables across surfaces.
 - **Paths:** `client/src/theme/`, `client/index.html`, `client/src/styles.css`, shell/landing/auth/primitives
 
+### E7 — Cloud deploy kit
+- **Status:** done
+- **Shipped:** 2026-08-06
+- **Notes:** Atlas+Render checklist, `npm run preflight`, richer `/api/health`, Blueprint `render.yaml` service name. Live URL still needs your Atlas URI + Render login.
+- **Paths:** `docs/16-deploy-checklist.md`, `server/src/scripts/preflight.js`, `render.yaml`, `server/src/controllers/healthController.js`
+
 ---
 
 ## Planned (next)
 
-### E7 — Live cloud deploy
+### E7b — Live production cutover
 - **Status:** planned
-- **Goal:** Atlas + Render (or equivalent) live URL with seeded demos.
-- **Accept:** `/api/health` green; demo logins work; public jobs load.
-- **Blocked on:** User Atlas URI + Render account.
+- **Goal:** Public Render URL with Atlas, health green, demo logins, smoke pass.
+- **Accept:** Shareable `https://….onrender.com` works for recruiter + applicant demos.
+- **Blocked on:** User Atlas connection string + Render Blueprint deploy (paste URL when ready).
 
 ---
 

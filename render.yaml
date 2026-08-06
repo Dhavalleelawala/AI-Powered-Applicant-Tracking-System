@@ -1,6 +1,6 @@
 services:
-  rolefit:
-    type: web
+  - type: web
+    name: rolefit
     runtime: docker
     plan: free
     dockerfilePath: ./Dockerfile

@@ -5,6 +5,7 @@
 | Doc | Purpose |
 |-----|---------|
 | **[EPICS.md](./EPICS.md)** | Living epic tracker — complete epic → update docs → one commit |
+| [16 Deploy checklist](./16-deploy-checklist.md) | Atlas + Render cutover steps |
 | [../CHANGELOG.md](../CHANGELOG.md) | Shipped milestones |
 
 ## Choose Your Path

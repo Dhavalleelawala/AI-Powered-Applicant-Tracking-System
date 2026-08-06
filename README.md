@@ -99,6 +99,8 @@ Optional: set `OPENAI_API_KEY` for LLM ranking (heuristic fallback works without
 
 ## Deploy on Render
 
+Full checklist: [`docs/16-deploy-checklist.md`](./docs/16-deploy-checklist.md)
+
 1. Create a free **MongoDB Atlas** cluster and copy the connection string.
 2. In Render, create a new **Blueprint** from this repo (`render.yaml`), or a Docker web service using the root `Dockerfile`.
 3. Set env vars:
@@ -106,7 +108,8 @@ Optional: set `OPENAI_API_KEY` for LLM ranking (heuristic fallback works without
    - `CLIENT_URL` — your Render URL, e.g. `https://rolefit.onrender.com`
    - `JWT_SECRET` / `FILE_TOKEN_SECRET` — strong random values (Blueprint can generate)
    - `SEED_ON_EMPTY=true` — (default in `render.yaml`) loads demo accounts when the DB is empty
-4. After deploy, open `/api/health`. Demo login works immediately when seed ran:
+4. Validate secrets locally (optional): `cd server && npm run preflight`
+5. After deploy, open `/api/health`. Demo login works immediately when seed ran:
    - `recruiter@demo.com` / `Password123`
    - `applicant@demo.com` / `Password123`
 

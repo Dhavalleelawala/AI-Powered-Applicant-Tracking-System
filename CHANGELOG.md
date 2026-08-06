@@ -3,6 +3,12 @@
 All notable Rolefit changes are listed here. Newest first.
 Epics are tracked in [`docs/EPICS.md`](./docs/EPICS.md) — **one completed epic → one commit**.
 
+## 2026-08-06 (E7 — Cloud deploy kit)
+
+- Added Atlas + Render checklist (`docs/16-deploy-checklist.md`)
+- `npm run preflight` validates secrets + Mongo reachability
+- Health payload includes env, serveClient, version; Blueprint service named `rolefit`
+
 ## 2026-08-06 (E8 — Ember Ledger theme)
 
 - New palette: cool ink `#12151C` + ember accent `#FF5C35` on mist paper
