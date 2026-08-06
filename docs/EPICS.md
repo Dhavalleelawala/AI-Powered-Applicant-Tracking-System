@@ -133,13 +133,17 @@ Status: `planned` · `in_progress` · `done`
 - **Notes:** Visible AI brief; why-fit / gaps chips; Advance / Review / Reject; CandidateDrawer from ranking.
 - **Paths:** `client/src/pages/recruiter/RecruiterPages.jsx` RankingPage
 
+### E19 — Recruiter job authoring flow
+- **Status:** done
+- **Goal:** Guided job form with sectioned steps and public-card preview.
+- **Accept:** Basics → skills → prefs → review; live preview of how the role appears on the board.
+- **Shipped:** 2026-08-06
+- **Notes:** Four-step authoring wizard; sticky board preview matching editorial jobs list; draft vs publish.
+- **Paths:** `RecruiterPages.jsx` JobFormPage
+
 ---
 
 ## Planned (next)
-
-### E19 — Recruiter job authoring flow
-- **Status:** planned
-- **Goal:** Guided job form with sectioned steps and public-card preview.
 
 ### E20 — Accessibility & keyboard hiring
 - **Status:** planned

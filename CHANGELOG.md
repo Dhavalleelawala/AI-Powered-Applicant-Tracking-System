@@ -3,6 +3,12 @@
 All notable Rolefit changes are listed here. Newest first.
 Epics are tracked in [`docs/EPICS.md`](./docs/EPICS.md) — **one completed epic → one commit**.
 
+## 2026-08-06 (E19 — Recruiter job authoring flow)
+
+- Job create/edit is a four-step flow: Basics → Skills → Hiring → Review
+- Sticky board preview mirrors the public editorial jobs list while you write
+- Draft vs open publish choice on the final step
+
 ## 2026-08-06 (E18 — Ranking explainability)
 
 - Ranking cards show score + AI brief without an accordion

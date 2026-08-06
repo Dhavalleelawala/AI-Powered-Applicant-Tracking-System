@@ -37,7 +37,7 @@ Ordered by demo impact and trust.
 - **Goal:** Posting a role feels guided, not admin CRUD.
 - **Accept:** Sectioned job form (basics → skills → hiring prefs → publish); live preview of public card.
 - **Why:** First recruiter action after signup.
-- **Status:** planned
+- **Status:** done
 
 ### E20 — Accessibility & keyboard hiring
 - **Goal:** Pipeline and drawer usable without a mouse; focus rings consistent.

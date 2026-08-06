@@ -1,9 +1,6 @@
 import { Add, Archive, Description, Refresh, ArrowForward } from '@mui/icons-material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import {
-  Accordion,
-  AccordionDetails,
-  AccordionSummary,
   Alert,
   Box,
   Button,
@@ -404,6 +401,7 @@ export function JobFormPage() {
   const { showToast, showError } = useToast();
   const editing = Boolean(jobId);
   const [dirty, setDirty] = useState(false);
+  const [step, setStep] = useState(0);
   const { requestLeave, dialog: leaveDialog } = useLeaveConfirm();
   useBeforeUnloadWarning(dirty);
   const [form, setForm] = useState({
@@ -449,7 +447,7 @@ export function JobFormPage() {
     mutationFn: (body) => (editing ? jobsApi.update(jobId, body) : jobsApi.create(body)),
     onSuccess: () => {
       setDirty(false);
-      showToast(editing ? 'Role updated' : 'Role published');
+      showToast(editing ? 'Role updated' : form.status === 'draft' ? 'Draft saved' : 'Role published');
       nav('/recruiter');
     },
     onError: (err) => showError(err),
@@ -458,18 +456,54 @@ export function JobFormPage() {
     setDirty(true);
     setForm({ ...form, [key]: e.target.value });
   };
+
+  const skills = form.requiredSkills
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  const steps = ['Basics', 'Skills', 'Hiring', 'Review'];
+
+  const validateStep = (index) => {
+    if (index === 0) {
+      if (!form.title.trim()) return 'Job title is required';
+      if (!form.location.trim()) return 'Location is required';
+      if (String(form.description || '').trim().length < 50) {
+        return 'Description needs at least 50 characters for quality AI matching.';
+      }
+    }
+    if (index === 1 && skills.length < 1) return 'Add at least one required skill';
+    if (index === 2) {
+      const min = Number(form.experienceYearsMin);
+      const max = Number(form.experienceYearsMax);
+      if (max < min) return 'Maximum years must be at least the minimum';
+      if (Number(form.openings) < 1) return 'Openings must be at least 1';
+    }
+    return '';
+  };
+
+  const goNext = () => {
+    const problem = validateStep(step);
+    if (problem) {
+      showError(problem);
+      return;
+    }
+    setStep((current) => Math.min(current + 1, steps.length - 1));
+  };
+
   const submit = (e) => {
     e.preventDefault();
-    if (String(form.description || '').trim().length < 50) {
-      showError('Description needs at least 50 characters for quality AI matching.');
-      return;
+    for (let i = 0; i < steps.length - 1; i += 1) {
+      const problem = validateStep(i);
+      if (problem) {
+        showError(problem);
+        setStep(i);
+        return;
+      }
     }
     save.mutate({
       ...form,
-      requiredSkills: form.requiredSkills
-        .split(',')
-        .map((s) => s.trim())
-        .filter(Boolean),
+      requiredSkills: skills,
       experienceYearsMin: Number(form.experienceYearsMin),
       experienceYearsMax: Number(form.experienceYearsMax),
       openings: Number(form.openings),
@@ -483,7 +517,7 @@ export function JobFormPage() {
   };
 
   return (
-    <Page narrow>
+    <Page>
       <AppBreadcrumbs
         items={[
           { label: 'Dashboard', to: '/recruiter' },
@@ -493,66 +527,286 @@ export function JobFormPage() {
       <PageHeader
         eyebrow={editing ? 'EDIT ROLE' : 'NEW ROLE'}
         title={editing ? 'Refine the role.' : 'Open a new role.'}
-        subtitle="Clear requirements help AI ranking and candidates alike."
+        subtitle="Guided steps — see how candidates will read it on the board."
       />
-      <Paper component="form" onSubmit={submit} sx={{ p: { xs: 2.5, md: 4 }, bgcolor: 'rgba(255,255,255,0.92)' }}>
-        <Stack spacing={2.5}>
-          <TextField label="Job title" required value={form.title} onChange={set('title')} />
-          <TextField label="Location" required value={form.location} onChange={set('location')} />
-          <TextField label="Department" value={form.department} onChange={set('department')} />
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-            <TextField label="Openings" type="number" inputProps={{ min: 1 }} value={form.openings} onChange={set('openings')} fullWidth />
-            <TextField label="Priority" select value={form.priority} onChange={set('priority')} fullWidth>
-              {['low', 'medium', 'high', 'critical'].map((priority) => (
-                <MenuItem key={priority} value={priority}>
-                  {priority}
-                </MenuItem>
-              ))}
-            </TextField>
-            <TextField label="Closes at" type="date" value={form.closesAt} onChange={set('closesAt')} InputLabelProps={{ shrink: true }} fullWidth />
-          </Stack>
-          <TextField label="Employment type" select value={form.employmentType} onChange={set('employmentType')}>
-            {['full-time', 'part-time', 'contract', 'internship'].map((x) => (
-              <MenuItem value={x} key={x}>
-                {x}
-              </MenuItem>
-            ))}
-          </TextField>
-          <TextField
-            label="Required skills"
-            helperText="Separate skills with commas."
-            value={form.requiredSkills}
-            onChange={set('requiredSkills')}
-          />
-          <Stack direction="row" spacing={2}>
-            <TextField label="Minimum years" type="number" value={form.experienceYearsMin} onChange={set('experienceYearsMin')} fullWidth />
-            <TextField label="Maximum years" type="number" value={form.experienceYearsMax} onChange={set('experienceYearsMax')} fullWidth />
-          </Stack>
-          <TextField
-            label="Job description"
-            multiline
-            minRows={8}
-            required
-            value={form.description}
-            onChange={set('description')}
-            helperText={`${String(form.description || '').trim().length}/50+ characters for AI matching.`}
-          />
-          <TextField label="Status" select value={form.status} onChange={set('status')}>
-            {['draft', 'open'].map((x) => (
-              <MenuItem value={x} key={x}>
-                {x}
-              </MenuItem>
-            ))}
-          </TextField>
-          {save.error && <Alert severity="error">{String(save.error)}</Alert>}
-          <Stack direction="row" spacing={1.5}>
-            <Button type="submit" color="secondary" variant="contained" size="large" disabled={save.isPending}>
-              {save.isPending ? 'Saving…' : editing ? 'Save changes' : 'Publish role'}
+
+      <Box className="apply-stepper" role="list" aria-label="Job authoring steps" sx={{ mb: 2.5, maxWidth: 820 }}>
+        {steps.map((label, index) => (
+          <Box
+            key={label}
+            role="listitem"
+            className={`apply-stepper__item${index === step ? ' is-active' : ''}${index < step ? ' is-done' : ''}`}
+            onClick={() => {
+              if (index < step) setStep(index);
+            }}
+            sx={{ cursor: index < step ? 'pointer' : 'default' }}
+          >
+            {index + 1}. {label}
+          </Box>
+        ))}
+      </Box>
+
+      <Stack direction={{ xs: 'column', lg: 'row' }} spacing={3} alignItems="flex-start">
+        <Paper
+          component="form"
+          onSubmit={submit}
+          sx={{ p: { xs: 2.5, md: 3.5 }, bgcolor: 'rgba(255,255,255,0.96)', flex: 1, minWidth: 0, maxWidth: 720 }}
+        >
+          {step === 0 && (
+            <Stack spacing={2.5}>
+              <Typography variant="h3">Basics</Typography>
+              <Typography variant="body2" color="text.secondary">
+                Title and story first — this is what candidates see before they apply.
+              </Typography>
+              <TextField label="Job title" required value={form.title} onChange={set('title')} placeholder="Senior frontend engineer" />
+              <TextField label="Location" required value={form.location} onChange={set('location')} placeholder="Bengaluru / Remote" />
+              <TextField label="Department" value={form.department} onChange={set('department')} placeholder="Engineering" />
+              <TextField
+                label="Job description"
+                multiline
+                minRows={8}
+                required
+                value={form.description}
+                onChange={set('description')}
+                helperText={`${String(form.description || '').trim().length}/50+ characters for AI matching.`}
+              />
+            </Stack>
+          )}
+
+          {step === 1 && (
+            <Stack spacing={2.5}>
+              <Typography variant="h3">Skills & experience</Typography>
+              <Typography variant="body2" color="text.secondary">
+                These skills power ranking — be specific, not exhaustive.
+              </Typography>
+              <TextField
+                label="Required skills"
+                required
+                helperText="Comma-separated. Shown on the public board and used for AI match."
+                value={form.requiredSkills}
+                onChange={set('requiredSkills')}
+                placeholder="react, typescript, system design"
+              />
+              {skills.length > 0 && (
+                <Stack direction="row" gap={0.75} flexWrap="wrap" useFlexGap>
+                  {skills.map((skill) => (
+                    <Chip key={skill} size="small" label={skill} color="secondary" variant="outlined" />
+                  ))}
+                </Stack>
+              )}
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                <TextField
+                  label="Minimum years"
+                  type="number"
+                  inputProps={{ min: 0 }}
+                  value={form.experienceYearsMin}
+                  onChange={set('experienceYearsMin')}
+                  fullWidth
+                />
+                <TextField
+                  label="Maximum years"
+                  type="number"
+                  inputProps={{ min: 0 }}
+                  value={form.experienceYearsMax}
+                  onChange={set('experienceYearsMax')}
+                  fullWidth
+                />
+              </Stack>
+            </Stack>
+          )}
+
+          {step === 2 && (
+            <Stack spacing={2.5}>
+              <Typography variant="h3">Hiring preferences</Typography>
+              <Typography variant="body2" color="text.secondary">
+                Urgency and openings help your team prioritize this role.
+              </Typography>
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                <TextField
+                  label="Openings"
+                  type="number"
+                  inputProps={{ min: 1 }}
+                  value={form.openings}
+                  onChange={set('openings')}
+                  fullWidth
+                />
+                <TextField label="Priority" select value={form.priority} onChange={set('priority')} fullWidth>
+                  {['low', 'medium', 'high', 'critical'].map((priority) => (
+                    <MenuItem key={priority} value={priority}>
+                      {priority}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              </Stack>
+              <TextField label="Employment type" select value={form.employmentType} onChange={set('employmentType')}>
+                {['full-time', 'part-time', 'contract', 'internship'].map((x) => (
+                  <MenuItem value={x} key={x}>
+                    {x}
+                  </MenuItem>
+                ))}
+              </TextField>
+              <TextField
+                label="Closes at"
+                type="date"
+                value={form.closesAt}
+                onChange={set('closesAt')}
+                InputLabelProps={{ shrink: true }}
+              />
+              <TextField label="Status" select value={form.status} onChange={set('status')}>
+                {['draft', 'open'].map((x) => (
+                  <MenuItem value={x} key={x}>
+                    {x === 'open' ? 'Open (public)' : 'Draft (private)'}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Stack>
+          )}
+
+          {step === 3 && (
+            <Stack spacing={2.5}>
+              <Typography variant="h3">Review & publish</Typography>
+              <Typography variant="body2" color="text.secondary">
+                Confirm the preview on the right, then save. You can edit anytime from the dashboard.
+              </Typography>
+              <Alert severity="info">
+                <strong>{form.title || 'Untitled role'}</strong> will be saved as{' '}
+                <strong>{form.status === 'open' ? 'open on the public board' : 'a private draft'}</strong>
+                {skills.length ? ` · ${skills.length} skill${skills.length === 1 ? '' : 's'}` : ''}.
+              </Alert>
+              <Stack spacing={0.75}>
+                {[
+                  ['Location', form.location || '—'],
+                  ['Department', form.department || '—'],
+                  ['Type', form.employmentType],
+                  ['Experience', `${form.experienceYearsMin}–${form.experienceYearsMax} years`],
+                  ['Openings', form.openings],
+                  ['Priority', form.priority],
+                ].map(([label, value]) => (
+                  <Stack key={label} direction="row" justifyContent="space-between" gap={2}>
+                    <Typography variant="body2" color="text.secondary">
+                      {label}
+                    </Typography>
+                    <Typography variant="body2" fontWeight={600} textAlign="right">
+                      {value}
+                    </Typography>
+                  </Stack>
+                ))}
+              </Stack>
+            </Stack>
+          )}
+
+          {save.error && <ErrorState error={save.error} title="Couldn’t save role" sx={{ mt: 2 }} />}
+
+          <Stack direction="row" spacing={1.5} justifyContent="space-between" mt={3.5} pt={2.5} borderTop="1px solid" borderColor="divider">
+            <Button
+              onClick={() => {
+                if (step === 0) goBack();
+                else setStep((current) => current - 1);
+              }}
+            >
+              {step === 0 ? 'Cancel' : 'Back'}
             </Button>
-            <Button onClick={goBack}>Cancel</Button>
+            {step < steps.length - 1 ? (
+              <Button variant="contained" color="secondary" onClick={goNext}>
+                Continue
+              </Button>
+            ) : (
+              <Button type="submit" color="secondary" variant="contained" size="large" disabled={save.isPending}>
+                {save.isPending
+                  ? 'Saving…'
+                  : editing
+                    ? 'Save changes'
+                    : form.status === 'draft'
+                      ? 'Save draft'
+                      : 'Publish role'}
+              </Button>
+            )}
           </Stack>
-        </Stack>
-      </Paper>
+        </Paper>
+
+        <Box
+          component="aside"
+          aria-label="Public board preview"
+          sx={{
+            width: { lg: 340 },
+            flexShrink: 0,
+            position: { lg: 'sticky' },
+            top: { lg: 88 },
+            alignSelf: 'stretch',
+          }}
+        >
+          <Typography variant="body2" color="text.secondary" fontWeight={700} mb={1.25}>
+            Board preview
+          </Typography>
+          <Paper className="job-author-preview" sx={{ p: 2.5, bgcolor: 'rgba(255,255,255,0.96)' }}>
+            <Typography
+              sx={{
+                fontFamily: 'Outfit',
+                fontWeight: 700,
+                letterSpacing: '-0.03em',
+                fontSize: '1.2rem',
+                lineHeight: 1.2,
+              }}
+            >
+              {form.title.trim() || 'Role title'}
+            </Typography>
+            <Typography color="text.secondary" mt={0.75} sx={{ fontSize: 14 }}>
+              Your company
+              <Box component="span" sx={{ mx: 0.85, opacity: 0.45 }}>
+                ·
+              </Box>
+              {form.location.trim() || 'Location'}
+              <Box component="span" sx={{ mx: 0.85, opacity: 0.45 }}>
+                ·
+              </Box>
+              {form.employmentType || 'full-time'}
+              {form.department ? (
+                <>
+                  <Box component="span" sx={{ mx: 0.85, opacity: 0.45 }}>
+                    ·
+                  </Box>
+                  {form.department}
+                </>
+              ) : null}
+            </Typography>
+            {(skills.length > 0 || (form.priority && form.priority !== 'medium')) && (
+              <Stack direction="row" gap={0.75} mt={1.5} flexWrap="wrap" useFlexGap>
+                {form.priority && form.priority !== 'medium' && (
+                  <Chip
+                    size="small"
+                    color={form.priority === 'critical' ? 'error' : form.priority === 'high' ? 'warning' : 'default'}
+                    label={form.priority}
+                  />
+                )}
+                {skills.slice(0, 5).map((skill) => (
+                  <Chip key={skill} size="small" label={skill} variant="outlined" />
+                ))}
+              </Stack>
+            )}
+            <Typography variant="body2" color="text.secondary" mt={1.75} sx={{ lineHeight: 1.6 }}>
+              {form.description.trim()
+                ? `${form.description.trim().slice(0, 140)}${form.description.trim().length > 140 ? '…' : ''}`
+                : 'Description preview appears here as you write.'}
+            </Typography>
+            <Typography
+              sx={{
+                mt: 2,
+                color: 'secondary.dark',
+                fontWeight: 700,
+                fontSize: 14,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 0.5,
+              }}
+            >
+              View role <ArrowForward sx={{ fontSize: 16 }} />
+            </Typography>
+          </Paper>
+          <Typography variant="caption" color="text.secondary" display="block" mt={1.25}>
+            Matches the editorial list on /jobs — not a separate card style.
+          </Typography>
+        </Box>
+      </Stack>
       {leaveDialog}
     </Page>
   );

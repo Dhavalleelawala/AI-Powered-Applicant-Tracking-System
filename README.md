@@ -128,6 +128,7 @@ The production image serves the React app and API together (`SERVE_CLIENT=true`,
 ## Docs
 
 - **Epics (active work):** [`docs/EPICS.md`](./docs/EPICS.md) — one completed epic → one commit
+- **UX plan:** [`docs/UX-PLAN.md`](./docs/UX-PLAN.md) — Phase 1 done; Phase 2 roadmap
 - **Changelog:** [CHANGELOG.md](./CHANGELOG.md)
 - Product / delivery: [`docs/pro/`](./docs/pro/README.md)
 - Implementation: [`docs/`](./docs/README.md)

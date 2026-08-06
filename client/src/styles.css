@@ -607,6 +607,10 @@ a { color: inherit; }
   box-shadow: none;
 }
 
+.job-author-preview {
+  border: 1px solid var(--rf-line);
+}
+
 .auth-panel {
   background:
     radial-gradient(ellipse 70% 60% at 20% 20%, rgba(255,92,53,0.22), transparent 60%),
