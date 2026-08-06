@@ -15,6 +15,7 @@ import {
 import { useState } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { OfflineBanner } from './OfflineBanner';
 
 export function AppShell({ children }) {
   const { user, logout } = useAuth();
@@ -179,6 +180,8 @@ export function AppShell({ children }) {
           </Toolbar>
         </Container>
       </AppBar>
+
+      <OfflineBanner />
 
       <Drawer open={open} onClose={() => setOpen(false)} anchor="right">
         <Box sx={{ width: 290, p: 3, height: '100%', display: 'flex', flexDirection: 'column' }}>

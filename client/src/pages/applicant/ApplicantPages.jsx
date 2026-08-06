@@ -13,13 +13,14 @@ import {
   Typography,
 } from '@mui/material';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { applicationsApi, authApi, jobsApi } from '../../api/client';
 import { EmptyState, LoadingRows, Page, PageHeader, StageChip } from '../../components/ui/Primitives';
 import { AppBreadcrumbs } from '../../components/ui/AppBreadcrumbs';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
+import { useBeforeUnloadWarning, useLeaveConfirm } from '../../hooks/useUnsavedWarning';
 
 export function ApplyJobPage() {
   const { jobId } = useParams();
@@ -33,6 +34,20 @@ export function ApplyJobPage() {
     queryKey: ['job', jobId],
     queryFn: () => jobsApi.get(jobId).then((r) => r.data),
   });
+  const { data: myApps } = useQuery({
+    queryKey: ['applicant-applications'],
+    queryFn: () => applicationsApi.mine().then((r) => r.data),
+  });
+  const alreadyApplied = (myApps || []).some(
+    (app) => String(app.jobId) === String(jobId) || String(app.job?.id) === String(jobId)
+  );
+
+  useEffect(() => {
+    if (alreadyApplied) {
+      showToast('You already applied to this role');
+      nav('/applicant/applications', { replace: true });
+    }
+  }, [alreadyApplied, nav, showToast]);
 
   const apply = useMutation({
     mutationFn: () => {
@@ -253,7 +268,10 @@ export function MyApplicationsPage() {
 
 export function ProfilePage() {
   const { user, token, login } = useAuth();
-  const { showToast } = useToast();
+  const { showToast, showError } = useToast();
+  const [dirty, setDirty] = useState(false);
+  const { requestLeave, dialog: leaveDialog } = useLeaveConfirm();
+  useBeforeUnloadWarning(dirty);
   const [form, setForm] = useState(() => ({
     name: user?.name || '',
     phone: user?.phone || '',
@@ -267,10 +285,15 @@ export function ProfilePage() {
     onSuccess: (response) => {
       const updatedUser = response.data?.user || response.data;
       login({ token, user: updatedUser });
+      setDirty(false);
       showToast('Profile saved');
     },
+    onError: (err) => showError(err),
   });
-  const set = (key) => (event) => setForm({ ...form, [key]: event.target.value });
+  const set = (key) => (event) => {
+    setDirty(true);
+    setForm({ ...form, [key]: event.target.value });
+  };
 
   return (
     <Page narrow>
@@ -280,6 +303,10 @@ export function ProfilePage() {
         sx={{ p: { xs: 2.5, md: 4 }, bgcolor: 'rgba(255,255,255,0.92)' }}
         onSubmit={(event) => {
           event.preventDefault();
+          if (!form.name.trim()) {
+            showError('Name is required');
+            return;
+          }
           update.mutate({
             ...form,
             experienceYears: Number(form.experienceYears),
@@ -304,11 +331,33 @@ export function ProfilePage() {
           />
           <TextField label="Skills" helperText="Separate skills with commas." value={form.skills} onChange={set('skills')} />
           {update.error && <Alert severity="error">{String(update.error)}</Alert>}
-          <Button type="submit" variant="contained" color="secondary" size="large" disabled={update.isPending}>
-            {update.isPending ? 'Saving…' : 'Save profile'}
-          </Button>
+          <Stack direction="row" spacing={1.5} alignItems="center">
+            <Button type="submit" variant="contained" color="secondary" size="large" disabled={update.isPending || !dirty}>
+              {update.isPending ? 'Saving…' : dirty ? 'Save profile' : 'Saved'}
+            </Button>
+            {dirty && (
+              <Button
+                onClick={() =>
+                  requestLeave(() => {
+                    setForm({
+                      name: user?.name || '',
+                      phone: user?.phone || '',
+                      headline: user?.headline || '',
+                      location: user?.location || '',
+                      experienceYears: user?.experienceYears ?? 0,
+                      skills: (user?.skills || []).join(', '),
+                    });
+                    setDirty(false);
+                  })
+                }
+              >
+                Reset
+              </Button>
+            )}
+          </Stack>
         </Stack>
       </Paper>
+      {leaveDialog}
     </Page>
   );
 }

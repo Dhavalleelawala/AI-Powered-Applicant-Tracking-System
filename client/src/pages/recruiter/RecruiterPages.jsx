@@ -443,6 +443,10 @@ export function PipelinePage() {
   const [selected, setSelected] = useState([]);
   const [notes, setNotes] = useState({});
   const [rejectTarget, setRejectTarget] = useState(null);
+  const { data: job } = useQuery({
+    queryKey: ['job', jobId],
+    queryFn: () => jobsApi.get(jobId).then((r) => r.data),
+  });
   const { data, isLoading, error } = useQuery({
     queryKey: ['job-applications', jobId],
     queryFn: () => applicationsApi.forJob(jobId).then((r) => r.data),
@@ -496,12 +500,13 @@ export function PipelinePage() {
       <AppBreadcrumbs
         items={[
           { label: 'Dashboard', to: '/recruiter' },
+          { label: job?.title || 'Role' },
           { label: 'Pipeline' },
         ]}
       />
       <PageHeader
         eyebrow="PIPELINE"
-        title="Candidate pipeline"
+        title={job?.title ? `${job.title} pipeline` : 'Candidate pipeline'}
         subtitle="Move each conversation forward with intent."
         actions={
           <Button component={Link} to={`/recruiter/jobs/${jobId}/ranking`} variant="outlined">
@@ -536,6 +541,10 @@ export function PipelinePage() {
                 {isLoading ? (
                   <Typography variant="body2" color="text.secondary">
                     Loading…
+                  </Typography>
+                ) : apps.filter((a) => a.stage === stage).length === 0 ? (
+                  <Typography variant="body2" color="text.secondary" sx={{ py: 2, px: 0.5 }}>
+                    No candidates in {stage}.
                   </Typography>
                 ) : (
                   apps
@@ -745,6 +754,10 @@ export function RankingPage() {
     sort: values.sort || 'score_desc',
   };
   const [actionError, setActionError] = useState('');
+  const { data: job } = useQuery({
+    queryKey: ['job', jobId],
+    queryFn: () => jobsApi.get(jobId).then((r) => r.data),
+  });
   const { data, isLoading, error } = useQuery({
     queryKey: ['job-applications', jobId, filters],
     queryFn: () =>
@@ -778,13 +791,13 @@ export function RankingPage() {
       <AppBreadcrumbs
         items={[
           { label: 'Dashboard', to: '/recruiter' },
-          { label: 'Pipeline', to: `/recruiter/jobs/${jobId}/applications` },
+          { label: job?.title || 'Role', to: `/recruiter/jobs/${jobId}/applications` },
           { label: 'Ranking' },
         ]}
       />
       <PageHeader
         eyebrow="RANKING"
-        title="Shortlist with signal."
+        title={job?.title ? `Shortlist · ${job.title}` : 'Shortlist with signal.'}
         subtitle="Filter by score, skills, and experience — then open evidence."
         actions={
           <Stack direction="row" spacing={1}>

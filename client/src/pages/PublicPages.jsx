@@ -17,7 +17,7 @@ import {
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useDeferredValue, useMemo } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { authApi, jobsApi } from '../api/client';
+import { authApi, jobsApi, applicationsApi } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { EmptyState, Page, PageHeader } from '../components/ui/Primitives';
@@ -271,6 +271,14 @@ export function JobDetailPage() {
     queryKey: ['job', jobId],
     queryFn: () => jobsApi.get(jobId).then((r) => r.data),
   });
+  const { data: myApps } = useQuery({
+    queryKey: ['applicant-applications'],
+    enabled: user?.role === 'applicant',
+    queryFn: () => applicationsApi.mine().then((r) => r.data),
+  });
+  const existingApp = (myApps || []).find(
+    (app) => String(app.jobId) === String(jobId) || String(app.job?.id) === String(jobId)
+  );
   const toggleSaved = useMutation({
     mutationFn: () => authApi.toggleSavedJob(jobId),
     onSuccess: (response) => {
@@ -325,19 +333,32 @@ export function JobDetailPage() {
           <Chip key={s} label={s} color="secondary" variant="outlined" />
         ))}
       </Stack>
+      {existingApp && (
+        <Alert severity="info" sx={{ mt: 3 }}>
+          You already applied on {new Date(existingApp.createdAt).toLocaleDateString()} · Stage:{' '}
+          <strong style={{ textTransform: 'capitalize' }}>{existingApp.stage}</strong>
+          {existingApp.aiAnalysis?.matchScore != null ? ` · ${existingApp.aiAnalysis.matchScore}% match` : ''}
+        </Alert>
+      )}
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.25} mt={4}>
-        <Button
-          variant="contained"
-          color="secondary"
-          size="large"
-          onClick={() =>
-            user?.role === 'applicant'
-              ? nav(applyPath)
-              : nav('/login', { state: { from: applyPath } })
-          }
-        >
-          Apply for this role
-        </Button>
+        {existingApp ? (
+          <Button variant="contained" color="secondary" size="large" component={Link} to="/applicant/applications">
+            View my application
+          </Button>
+        ) : (
+          <Button
+            variant="contained"
+            color="secondary"
+            size="large"
+            onClick={() =>
+              user?.role === 'applicant'
+                ? nav(applyPath)
+                : nav('/login', { state: { from: applyPath } })
+            }
+          >
+            Apply for this role
+          </Button>
+        )}
         {user?.role === 'applicant' && (
           <Button
             variant="outlined"
