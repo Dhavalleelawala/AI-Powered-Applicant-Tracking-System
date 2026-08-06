@@ -581,6 +581,25 @@ a { color: inherit; }
   transition: transform 0.28s var(--rf-ease) !important;
 }
 
+.workspace-chip--recruiter {
+  background: rgba(255, 92, 53, 0.18);
+  color: #ff8a6a;
+}
+
+.workspace-chip--applicant {
+  background: rgba(255, 92, 53, 0.1);
+  color: var(--rf-ember-deep);
+  border: 1px solid rgba(255, 92, 53, 0.25);
+}
+
+.app-shell--recruiter .shell-bar .nav-link::after {
+  bottom: -5px;
+}
+
+.app-shell--applicant .shell-bar {
+  box-shadow: none;
+}
+
 .auth-panel {
   background:
     radial-gradient(ellipse 70% 60% at 20% 20%, rgba(255,92,53,0.22), transparent 60%),

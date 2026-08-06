@@ -117,9 +117,33 @@ Status: `planned` · `in_progress` · `done`
 - **Notes:** Role density via `data-density`; recruiter Compact toggle; stagger-in lists; stage-flash on move; page padding tokens.
 - **Paths:** `AppShell.jsx`, `styles.css`, `Primitives.jsx`, recruiter/applicant/public pages
 
+### E17 — Dual workspace shell
+- **Status:** done
+- **Goal:** Recruiter and applicant chrome feel like different products that share Rolefit.
+- **Accept:** Distinct nav density, header treatment, and home CTA language per role; public shell stays light.
+- **Shipped:** 2026-08-06
+- **Notes:** Hiring ink bar vs Career mist bar; workspace chips; role nav labels; primary CTA in header; footer copy per role. UX plan in `docs/UX-PLAN.md`.
+- **Paths:** `AppShell.jsx`, `styles.css`, `docs/UX-PLAN.md`
+
 ---
 
 ## Planned (next)
+
+### E18 — Ranking explainability
+- **Status:** planned
+- **Goal:** Score always pairs with “why” and one-click pipeline move from ranking.
+
+### E19 — Recruiter job authoring flow
+- **Status:** planned
+- **Goal:** Guided job form with sectioned steps and public-card preview.
+
+### E20 — Accessibility & keyboard hiring
+- **Status:** planned
+- **Goal:** Pipeline/drawer keyboard operable; consistent focus; contrast check.
+
+### E21 — Mobile applicant polish
+- **Status:** planned
+- **Goal:** Apply + readiness one-thumb friendly on small screens.
 
 ### E7b — Live production cutover
 - **Status:** planned

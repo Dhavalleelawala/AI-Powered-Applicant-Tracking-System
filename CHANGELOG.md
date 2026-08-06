@@ -3,6 +3,13 @@
 All notable Rolefit changes are listed here. Newest first.
 Epics are tracked in [`docs/EPICS.md`](./docs/EPICS.md) — **one completed epic → one commit**.
 
+## 2026-08-06 (E17 — Dual workspace shell)
+
+- Phase 2 UX plan published (`docs/UX-PLAN.md`)
+- Recruiter gets ink hiring bar + denser nav (Decisions / Directory / Board)
+- Applicant gets mist career bar + journey nav (Ready / Roles / Pipeline…)
+- Header primary CTA + workspace chip + role-specific footer copy
+
 ## 2026-08-06 (E16 — Motion & density)
 
 - Role-based density (`applicant` spacious vs `recruiter` tighter page padding)
