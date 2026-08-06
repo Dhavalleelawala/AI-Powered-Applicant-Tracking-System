@@ -3,6 +3,12 @@
 All notable Rolefit changes are listed here. Newest first.
 Epics are tracked in [`docs/EPICS.md`](./docs/EPICS.md) — **one completed epic → one commit**.
 
+## 2026-08-06 (E25 — Demo narrative polish)
+
+- Ranking empty states clear filters or send recruiters to the public role; publish lands on Ranking
+- Dashboard / vacancy / directory empties point at Ranking or Create a job — Ranking before Pipeline in role actions
+- Apply, saved roles, and resume review CTAs never dead-end; seed applicant is Ready→Apply with clean demo copy
+
 ## 2026-08-06 (E24 — Applicant apply trust)
 
 - Apply Ready step shows the live profile + resume required checklist with per-item Fix links

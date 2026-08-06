@@ -30,7 +30,7 @@ Living product-design plan. Epics in [`EPICS.md`](./EPICS.md) execute this plan 
 
 ---
 
-## Phase 3 — Craft & trust (next)
+## Phase 3 — Craft & trust (done)
 
 Ordered by demo clarity and craft.
 
@@ -52,7 +52,7 @@ Ordered by demo clarity and craft.
 ### E25 — Demo narrative polish
 - **Goal:** Recruiter Decisions → Ranking → Pipeline and Applicant Ready → Apply tell one story without dead ends.
 - **Accept:** Empty states + CTAs point to the next demo beat; seed/demo copy still works.
-- **Status:** planned
+- **Status:** done
 
 ---
 

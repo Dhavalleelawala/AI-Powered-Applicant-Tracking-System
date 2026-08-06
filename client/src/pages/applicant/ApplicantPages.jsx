@@ -371,15 +371,26 @@ export function ApplyJobPage() {
               <Button component={Link} to={`/jobs/${jobId}`} sx={{ width: { xs: '100%', sm: 'auto' } }}>
                 Back to role
               </Button>
-              <Button
-                variant="contained"
-                color="secondary"
-                disabled={!readiness.readyToApply}
-                onClick={() => setStep(1)}
-                sx={{ width: { xs: '100%', sm: 'auto' } }}
-              >
-                {readiness.readyToApply ? 'Continue to resume' : 'Complete details first'}
-              </Button>
+              {readiness.readyToApply ? (
+                <Button
+                  variant="contained"
+                  color="secondary"
+                  onClick={() => setStep(1)}
+                  sx={{ width: { xs: '100%', sm: 'auto' } }}
+                >
+                  Continue to resume
+                </Button>
+              ) : (
+                <Button
+                  component={Link}
+                  to={readiness.profile.complete ? '/applicant/resume' : '/applicant/profile'}
+                  variant="contained"
+                  color="secondary"
+                  sx={{ width: { xs: '100%', sm: 'auto' } }}
+                >
+                  Complete details first
+                </Button>
+              )}
             </>
           )}
           {step === 1 && (
@@ -1145,15 +1156,20 @@ export function SavedJobsPage() {
                     <Button component={Link} to={`/jobs/${id}`} variant="outlined">
                       View role
                     </Button>
-                    <Button
-                      component={Link}
-                      to={`/applicant/jobs/${id}/apply`}
-                      variant="contained"
-                      color="secondary"
-                      disabled={!readiness.readyToApply}
-                    >
-                      {readiness.readyToApply ? 'Apply' : 'Complete profile'}
-                    </Button>
+                    {readiness.readyToApply ? (
+                      <Button component={Link} to={`/applicant/jobs/${id}/apply`} variant="contained" color="secondary">
+                        Apply
+                      </Button>
+                    ) : (
+                      <Button
+                        component={Link}
+                        to={readiness.profile.complete ? '/applicant/resume' : '/applicant'}
+                        variant="contained"
+                        color="secondary"
+                      >
+                        Get ready to apply
+                      </Button>
+                    )}
                     <Button color="error" disabled={toggleSaved.isPending} onClick={() => toggleSaved.mutate(id)}>
                       Unsave
                     </Button>

@@ -3,7 +3,6 @@ const { connectDb } = require('../config/db');
 const { Company, User, Job, Application } = require('../models');
 
 const DEMO_PASSWORD = 'Password123';
-const SEED_TAG = '[seed]';
 
 const DEMO = {
   company: {
@@ -19,10 +18,40 @@ const DEMO = {
     name: 'Leela Applicant',
     email: 'applicant@demo.com',
     role: 'applicant',
+    phone: '+91 98765 43210',
     headline: 'Full-stack engineer',
     location: 'Remote',
     experienceYears: 3,
     skills: ['react', 'nodejs', 'mongodb'],
+    availability: '2-weeks',
+    openToRemote: true,
+    resumeDraft: {
+      summary:
+        'Full-stack engineer shipping React and Node hiring products. Comfortable owning APIs, data models, and recruiter-facing UI.',
+      skills: ['react', 'nodejs', 'mongodb', 'express'],
+      experience: [
+        {
+          title: 'Software Engineer',
+          company: 'Northwind Labs',
+          location: 'Remote',
+          employmentType: 'Full-time',
+          startDate: '2022-01',
+          endDate: '',
+          current: true,
+          description: 'Built React dashboards and Node APIs for internal hiring workflows.',
+        },
+      ],
+      education: [
+        {
+          school: 'State University',
+          degree: "Bachelor's degree",
+          field: 'Computer Science',
+          startDate: '2016-08',
+          endDate: '2020-05',
+        },
+      ],
+      updatedAt: new Date(),
+    },
   },
   jobs: [
     {
@@ -30,7 +59,7 @@ const DEMO = {
       department: 'Engineering',
       openings: 3,
       priority: 'high',
-      description: `${SEED_TAG} Build and ship React + Node features for our hiring platform.
+      description: `Build and ship React + Node features for our hiring platform.
 You will own API design, MongoDB data modeling, and recruiter-facing UI.
 Strong JavaScript fundamentals and production experience with REST APIs required.
 Nice to have: AWS S3, JWT auth, and AI/LLM integration awareness.`,
@@ -47,7 +76,8 @@ Nice to have: AWS S3, JWT auth, and AI/LLM integration awareness.`,
       department: 'Engineering',
       openings: 2,
       priority: 'medium',
-      description: `${SEED_TAG} Design polished hiring experiences with React, React Query, and MUI.
+      description: `Design polished hiring experiences with React, React Query, and MUI.
+You will craft applicant and recruiter flows that feel fast, clear, and trustworthy.
 Focus on dashboards, Kanban pipelines, forms, and accessible UX.
 You collaborate closely with backend on job board and ranking screens.
 Nice to have: Vite, role-based route guards, and performance-minded list UIs.`,
@@ -64,7 +94,7 @@ Nice to have: Vite, role-based route guards, and performance-minded list UIs.`,
       department: 'People / HR',
       openings: 1,
       priority: 'critical',
-      description: `${SEED_TAG} Own end-to-end hiring for a 400+ person company with 10–40 open vacancies.
+      description: `Own end-to-end hiring for a growing product company with many open vacancies.
 Run Rolefit pipelines, partner with hiring managers, and keep time-to-shortlist low.
 Experience with ATS tools, stakeholder management, and structured interviews required.`,
       requiredSkills: ['recruiting', 'ats', 'sourcing', 'stakeholder-management'],
@@ -132,7 +162,7 @@ async function seedDemoData({ reset = true } = {}) {
     jobId: sampleJob._id,
     applicantId: applicant._id,
     companyId: company._id,
-    coverLetter: `${SEED_TAG} Excited to apply — sample seed application for local UI testing.`,
+    coverLetter: 'Excited to apply — I build the kind of React and Node hiring UX this role describes.',
     stage: 'applied',
     aiStatus: 'pending',
     stageHistory: [
@@ -143,12 +173,13 @@ async function seedDemoData({ reset = true } = {}) {
       },
     ],
     resume: {
-      originalFileName: 'leela-resume-seed.pdf',
+      originalFileName: 'Leela Applicant.pdf',
       mimeType: 'application/pdf',
       sizeBytes: 1024,
-      s3Key: `seed/${company._id}/${sampleJob._id}/${applicant._id}/leela-resume-seed.pdf`,
+      s3Key: `seed/${company._id}/${sampleJob._id}/${applicant._id}/Leela-Applicant.pdf`,
       s3Bucket: 'ats-resumes-dev',
-      extractedText: `${SEED_TAG} Sample resume text for Full Stack Developer. Skills: React, Node.js, MongoDB.`,
+      extractedText:
+        'Leela Applicant. Full-stack engineer. Skills: React, Node.js, MongoDB, Express. Experience building hiring dashboards and APIs.',
       uploadedAt: new Date(),
     },
   });

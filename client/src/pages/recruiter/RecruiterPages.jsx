@@ -109,6 +109,8 @@ export function DashboardPage() {
     (attention?.totals?.aging || 0) +
     (attention?.totals?.interviewFollowUp || 0) +
     (attention?.totals?.awaitingAi || 0);
+  const firstOpenJob = jobs.find((j) => j.status === 'open') || jobs[0];
+  const firstOpenJobId = firstOpenJob ? firstOpenJob.id || firstOpenJob._id : null;
 
   return (
     <Page maxWidth="xl">
@@ -171,7 +173,20 @@ export function DashboardPage() {
         ) : attentionError ? (
           <ErrorState error={attentionError} onRetry={refetchAttention} title="Couldn’t load attention queue" />
         ) : attentionTotal === 0 ? (
-          <Typography color="text.secondary">Queue is clear. New applicants will land here first.</Typography>
+          <Stack spacing={1.5}>
+            <Typography color="text.secondary">Queue is clear. New applicants will land here first.</Typography>
+            {firstOpenJobId && (
+              <Button
+                component={Link}
+                to={`/recruiter/jobs/${firstOpenJobId}/ranking`}
+                variant="outlined"
+                size="small"
+                sx={{ alignSelf: 'flex-start' }}
+              >
+                Open ranking
+              </Button>
+            )}
+          </Stack>
         ) : (
           <Stack spacing={2.5}>
             {ATTENTION_SECTIONS.map(({ key, title, empty }) => {
@@ -280,9 +295,12 @@ export function DashboardPage() {
                 {vacancies.length === 0 && !isLoading && (
                   <TableRow>
                     <TableCell colSpan={8}>
-                      <Typography color="text.secondary" py={2}>
-                        No open vacancies yet.
-                      </Typography>
+                      <Stack direction={{ xs: 'column', sm: 'row' }} alignItems={{ sm: 'center' }} spacing={1.5} py={2}>
+                        <Typography color="text.secondary">No open vacancies yet.</Typography>
+                        <Button component={Link} to="/recruiter/jobs/new" size="small" variant="outlined">
+                          Create a job
+                        </Button>
+                      </Stack>
                     </TableCell>
                   </TableRow>
                 )}
@@ -303,11 +321,11 @@ export function DashboardPage() {
                     <TableCell align="right">{vacancy.ageDays}d</TableCell>
                     <TableCell>
                       <Stack direction="row" spacing={0.5}>
-                        <Button size="small" component={Link} to={`/recruiter/jobs/${vacancy.id}/applications`}>
-                          Pipeline
-                        </Button>
                         <Button size="small" component={Link} to={`/recruiter/jobs/${vacancy.id}/ranking`}>
                           Ranking
+                        </Button>
+                        <Button size="small" component={Link} to={`/recruiter/jobs/${vacancy.id}/applications`}>
+                          Pipeline
                         </Button>
                         <Button size="small" component={Link} to={`/recruiter/jobs/${vacancy.id}/edit`}>
                           Edit
@@ -343,11 +361,11 @@ export function DashboardPage() {
                   <Button component={Link} to={`/recruiter/jobs/${j.id || j._id}/edit`}>
                     Edit
                   </Button>
-                  <Button component={Link} to={`/recruiter/jobs/${j.id || j._id}/applications`}>
-                    Pipeline
-                  </Button>
                   <Button component={Link} to={`/recruiter/jobs/${j.id || j._id}/ranking`}>
                     Ranking
+                  </Button>
+                  <Button component={Link} to={`/recruiter/jobs/${j.id || j._id}/applications`}>
+                    Pipeline
                   </Button>
                   <Button disabled={duplicate.isPending} onClick={() => duplicate.mutate(j.id || j._id)}>
                     Duplicate
@@ -448,10 +466,14 @@ export function JobFormPage() {
 
   const save = useMutation({
     mutationFn: (body) => (editing ? jobsApi.update(jobId, body) : jobsApi.create(body)),
-    onSuccess: () => {
+    onSuccess: (res) => {
       setDirty(false);
-      showToast(editing ? 'Role updated' : form.status === 'draft' ? 'Draft saved' : 'Role published');
-      nav('/recruiter');
+      const saved = res?.data;
+      const id = saved?.id || saved?._id || jobId;
+      const published = (saved?.status || form.status) !== 'draft';
+      showToast(editing ? 'Role updated' : published ? 'Role published' : 'Draft saved');
+      if (published && id) nav(`/recruiter/jobs/${id}/ranking`);
+      else nav('/recruiter');
     },
     onError: (err) => showError(err),
   });
@@ -1499,11 +1521,11 @@ export function CandidatesPage() {
                 </Button>
                 {candidate.job && (
                   <>
-                    <Button component={Link} to={`/recruiter/jobs/${candidate.job.id}/applications`} variant="outlined" size="small">
-                      Pipeline
-                    </Button>
                     <Button component={Link} to={`/recruiter/jobs/${candidate.job.id}/ranking`} variant="outlined" size="small">
                       Ranking
+                    </Button>
+                    <Button component={Link} to={`/recruiter/jobs/${candidate.job.id}/applications`} variant="outlined" size="small">
+                      Pipeline
                     </Button>
                   </>
                 )}
@@ -1525,8 +1547,8 @@ export function CandidatesPage() {
         <EmptyState
           title="No candidates match these filters."
           text={activeCount ? 'Try broadening your search or score threshold.' : 'Share an open role to start receiving applications.'}
-          actionLabel={activeCount ? 'Clear filters' : 'Open dashboard'}
-          actionTo={activeCount ? undefined : '/recruiter'}
+          actionLabel={activeCount ? 'Clear filters' : 'Create a job'}
+          actionTo={activeCount ? undefined : '/recruiter/jobs/new'}
           onAction={activeCount ? clearFilters : undefined}
         />
       )}
@@ -1884,7 +1906,17 @@ export function RankingPage() {
             );
           })
         ) : (
-          <EmptyState title="No candidates meet these filters." text="Widen the score threshold or skill filter." />
+          <EmptyState
+            title={activeCount ? 'No candidates meet these filters.' : 'No applications to rank yet.'}
+            text={
+              activeCount
+                ? 'Widen the score threshold or skill filter, then shortlist again.'
+                : 'Share this role on the public board — new applicants will show up here with scores.'
+            }
+            actionLabel={activeCount ? 'Clear filters' : 'View public role'}
+            actionTo={activeCount ? undefined : `/jobs/${jobId}`}
+            onAction={activeCount ? clearFilters : undefined}
+          />
         )}
       </Stack>
 

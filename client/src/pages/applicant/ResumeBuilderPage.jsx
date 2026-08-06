@@ -753,15 +753,27 @@ export function ResumeBuilderPage() {
                 >
                   Download PDF
                 </Button>
-                <Button
-                  variant="contained"
-                  color="secondary"
-                  disabled={save.isPending || (!dirty && liveChecklist.complete)}
-                  onClick={trySave}
-                  sx={{ width: { xs: '100%', sm: 'auto' } }}
-                >
-                  {save.isPending ? 'Saving…' : dirty ? 'Save resume' : liveChecklist.complete ? 'Saved' : 'Save resume'}
-                </Button>
+                {!dirty && liveChecklist.complete ? (
+                  <Button
+                    component={Link}
+                    to="/jobs"
+                    variant="contained"
+                    color="secondary"
+                    sx={{ width: { xs: '100%', sm: 'auto' } }}
+                  >
+                    Browse roles to apply
+                  </Button>
+                ) : (
+                  <Button
+                    variant="contained"
+                    color="secondary"
+                    disabled={save.isPending}
+                    onClick={trySave}
+                    sx={{ width: { xs: '100%', sm: 'auto' } }}
+                  >
+                    {save.isPending ? 'Saving…' : 'Save resume'}
+                  </Button>
+                )}
               </Stack>
             )}
           </Stack>

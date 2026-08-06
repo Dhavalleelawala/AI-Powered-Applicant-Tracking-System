@@ -173,10 +173,6 @@ Status: `planned` · `in_progress` · `done`
 - **Notes:** Mobile stage tabs (2×2) replace horizontal kanban; full-width stage list; sticky bulk Interview CTA; ranking actions thumb-sized on xs.
 - **Paths:** `RecruiterPages.jsx` PipelinePage/RankingPage, `styles.css`
 
----
-
-## Planned (next)
-
 ### E24 — Applicant apply trust
 - **Status:** done
 - **Goal:** Apply wizard shows readiness + resume preview confidence before submit.
@@ -186,9 +182,16 @@ Status: `planned` · `in_progress` · `done`
 - **Paths:** `ApplicantPages.jsx` ApplyJobPage/MyApplicationsPage, `styles.css`
 
 ### E25 — Demo narrative polish
-- **Status:** planned
+- **Status:** done
 - **Goal:** Recruiter Decisions → Ranking → Pipeline and Applicant Ready → Apply tell one story without dead ends.
 - **Accept:** Empty states + CTAs point to the next demo beat; seed/demo copy still works.
+- **Shipped:** 2026-08-06
+- **Notes:** Ranking/directory/vacancy empties + publish redirect land on Ranking; apply/saved/resume CTAs never dead-end; seed applicant is Ready→Apply complete with clean demo copy.
+- **Paths:** `RecruiterPages.jsx`, `ApplicantPages.jsx`, `ResumeBuilderPage.jsx`, `PublicPages.jsx`, `seed.js`
+
+---
+
+## Planned (next)
 
 ### E7b — Live production cutover
 - **Status:** planned

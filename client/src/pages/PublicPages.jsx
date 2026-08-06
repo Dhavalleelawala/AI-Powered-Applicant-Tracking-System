@@ -234,8 +234,12 @@ export function JobsPage() {
             }
             empty={
               <EmptyState
-                title="No roles match that search."
-                text="Try a different title, skill, or clear filters to see everything open."
+                title={activeCount ? 'No roles match that search.' : 'No open roles yet.'}
+                text={
+                  activeCount
+                    ? 'Try a different title, skill, or clear filters to see everything open.'
+                    : 'Recruiters publish openings here — check back soon, or sign in if you already have an account.'
+                }
                 actionLabel={activeCount ? 'Clear filters' : undefined}
                 onAction={activeCount ? clearFilters : undefined}
               />
