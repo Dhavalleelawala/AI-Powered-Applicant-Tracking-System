@@ -52,5 +52,11 @@ router.patch(
   authorize('recruiter'),
   applicationController.updateTags
 );
+router.patch(
+  '/applications/:applicationId/scorecard',
+  authenticate,
+  authorize('recruiter'),
+  applicationController.updateScorecard
+);
 
 module.exports = router;

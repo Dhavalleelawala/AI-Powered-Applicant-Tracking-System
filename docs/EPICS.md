@@ -202,9 +202,12 @@ Status: `planned` · `in_progress` · `done`
 - **Paths:** `RecruiterPages.jsx`, `CandidateDrawer.jsx`, `ConfirmDialog.jsx`, `applicationService.js`, `hiring.js`
 
 ### E27 — Structured scorecard
-- **Status:** in_progress
+- **Status:** done
 - **Goal:** Consistent evaluation next to AI score.
 - **Accept:** Recruiter saves scorecard; Ranking shows recommendation chip beside match %.
+- **Shipped:** 2026-08-06
+- **Notes:** Application.scorecard with Skills/Experience/Communication/Culture (1–5) + recommendation; drawer editor; ranking recommendation chip.
+- **Paths:** `Application.js`, `applicationService.js`, `CandidateDrawer.jsx`, `RecruiterPages.jsx` RankingPage, `hiring.js`
 
 ### E28 — Interview lite
 - **Status:** planned

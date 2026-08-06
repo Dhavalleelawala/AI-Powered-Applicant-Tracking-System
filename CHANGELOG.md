@@ -3,6 +3,12 @@
 All notable Rolefit changes are listed here. Newest first.
 Epics are tracked in [`docs/EPICS.md`](./docs/EPICS.md) — **one completed epic → one commit**.
 
+## 2026-08-06 (E27 — Structured scorecard)
+
+- Candidate drawer scorecard: Skills / Experience / Communication / Culture (1–5) + recommendation + note
+- Ranking cards show recommendation chip beside AI match %
+- `PATCH /applications/:id/scorecard` persists evaluation on the application
+
 ## 2026-08-06 (E26 — Decision velocity)
 
 - Pipeline bulk actions: Interview, Offer, or Reject with shared rejection presets

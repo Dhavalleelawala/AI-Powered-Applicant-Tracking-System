@@ -7,6 +7,7 @@ import {
   Divider,
   Drawer,
   IconButton,
+  MenuItem,
   Skeleton,
   Stack,
   TextField,
@@ -16,7 +17,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useId, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { applicationsApi } from '../../api/client';
-import { NEXT_STAGE, REJECTION_PRESETS, TAG_PRESETS } from '../../constants/hiring';
+import { NEXT_STAGE, REJECTION_PRESETS, TAG_PRESETS, SCORECARD_CRITERIA, SCORECARD_RECOMMENDATIONS, emptyScorecard, recommendationLabel } from '../../constants/hiring';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { useToast } from '../../context/ToastContext';
 
@@ -38,6 +39,7 @@ export function CandidateDrawer({ applicationId, open, onClose, invalidateKeys =
   const { showToast, showError } = useToast();
   const [note, setNote] = useState('');
   const [customTag, setCustomTag] = useState('');
+  const [scorecard, setScorecard] = useState(emptyScorecard);
   const [rejectOpen, setRejectOpen] = useState(false);
   const titleId = useId();
   const closeRef = useRef(null);
@@ -52,12 +54,25 @@ export function CandidateDrawer({ applicationId, open, onClose, invalidateKeys =
     if (!open) {
       setNote('');
       setCustomTag('');
+      setScorecard(emptyScorecard());
       setRejectOpen(false);
       return undefined;
     }
     const timer = window.setTimeout(() => closeRef.current?.focus(), 50);
     return () => window.clearTimeout(timer);
   }, [open, applicationId]);
+
+  useEffect(() => {
+    if (!data) return;
+    const incoming = data.scorecard || {};
+    const byLabel = Object.fromEntries((incoming.criteria || []).map((row) => [row.label, row.score]));
+    setScorecard({
+      criteria: SCORECARD_CRITERIA.map((label) => ({ label, score: Number(byLabel[label]) || 0 })),
+      recommendation: incoming.recommendation || '',
+      note: incoming.note || '',
+      updatedAt: incoming.updatedAt || null,
+    });
+  }, [data]);
 
   const bust = () => {
     qc.invalidateQueries({ queryKey: ['application', applicationId] });
@@ -94,6 +109,15 @@ export function CandidateDrawer({ applicationId, open, onClose, invalidateKeys =
     onSuccess: () => {
       bust();
       showToast('Tags updated');
+    },
+    onError: (err) => showError(err),
+  });
+
+  const saveScorecard = useMutation({
+    mutationFn: (payload) => applicationsApi.updateScorecard(applicationId, payload),
+    onSuccess: () => {
+      bust();
+      showToast('Scorecard saved');
     },
     onError: (err) => showError(err),
   });
@@ -230,6 +254,85 @@ export function CandidateDrawer({ applicationId, open, onClose, invalidateKeys =
                   <Button size="small" variant="outlined" disabled={!customTag.trim() || saveTags.isPending} onClick={addCustomTag}>
                     Add
                   </Button>
+                </Stack>
+              </Box>
+
+              <Box>
+                <Typography variant="body2" fontWeight={700} mb={1}>
+                  Scorecard
+                </Typography>
+                <Stack spacing={1.25}>
+                  {scorecard.criteria.map((row, index) => (
+                    <Stack key={row.label} direction="row" alignItems="center" spacing={1}>
+                      <Typography variant="body2" sx={{ width: 120, flexShrink: 0 }}>
+                        {row.label}
+                      </Typography>
+                      <TextField
+                        select
+                        size="small"
+                        fullWidth
+                        value={row.score}
+                        onChange={(e) => {
+                          const score = Number(e.target.value);
+                          setScorecard((current) => ({
+                            ...current,
+                            criteria: current.criteria.map((item, i) => (i === index ? { ...item, score } : item)),
+                          }));
+                        }}
+                        inputProps={{ 'aria-label': `${row.label} score` }}
+                      >
+                        {[0, 1, 2, 3, 4, 5].map((n) => (
+                          <MenuItem key={n} value={n}>
+                            {n === 0 ? 'Not scored' : `${n} / 5`}
+                          </MenuItem>
+                        ))}
+                      </TextField>
+                    </Stack>
+                  ))}
+                  <TextField
+                    select
+                    size="small"
+                    fullWidth
+                    label="Recommendation"
+                    value={scorecard.recommendation}
+                    onChange={(e) => setScorecard((current) => ({ ...current, recommendation: e.target.value }))}
+                  >
+                    {SCORECARD_RECOMMENDATIONS.map((row) => (
+                      <MenuItem key={row.value || 'none'} value={row.value}>
+                        {row.label}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                  <TextField
+                    size="small"
+                    fullWidth
+                    multiline
+                    minRows={2}
+                    label="Scorecard note"
+                    value={scorecard.note}
+                    onChange={(e) => setScorecard((current) => ({ ...current, note: e.target.value }))}
+                  />
+                  <Button
+                    size="small"
+                    variant="contained"
+                    color="secondary"
+                    disabled={saveScorecard.isPending}
+                    onClick={() =>
+                      saveScorecard.mutate({
+                        criteria: scorecard.criteria,
+                        recommendation: scorecard.recommendation,
+                        note: scorecard.note,
+                      })
+                    }
+                  >
+                    {saveScorecard.isPending ? 'Saving…' : 'Save scorecard'}
+                  </Button>
+                  {scorecard.updatedAt && (
+                    <Typography variant="caption" color="text.secondary">
+                      Last saved {new Date(scorecard.updatedAt).toLocaleString()}
+                      {scorecard.recommendation ? ` · ${recommendationLabel(scorecard.recommendation)}` : ''}
+                    </Typography>
+                  )}
                 </Stack>
               </Box>
 

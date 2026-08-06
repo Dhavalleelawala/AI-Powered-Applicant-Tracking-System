@@ -80,6 +80,7 @@ export const applicationsApi = {
   move: (id, data) => api.patch(`/applications/${id}/status`, data),
   addNote: (id, text) => api.post(`/applications/${id}/notes`, { text }),
   updateTags: (id, tags) => api.patch(`/applications/${id}/tags`, { tags }),
+  updateScorecard: (id, data) => api.patch(`/applications/${id}/scorecard`, data),
   bulkMove: (jobId, data) => api.post(`/jobs/${jobId}/applications/bulk-status`, data),
   resumeUrl: (id) => api.get(`/applications/${id}/resume-url`),
   reanalyze: (id) => api.post(`/applications/${id}/reanalyze`),

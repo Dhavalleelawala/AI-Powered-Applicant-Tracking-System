@@ -53,6 +53,29 @@ const recruiterNoteSchema = new mongoose.Schema(
   { _id: true }
 );
 
+const scorecardCriterionSchema = new mongoose.Schema(
+  {
+    label: { type: String, required: true, trim: true, maxlength: 80 },
+    score: { type: Number, min: 0, max: 5, default: 0 },
+  },
+  { _id: false }
+);
+
+const scorecardSchema = new mongoose.Schema(
+  {
+    criteria: { type: [scorecardCriterionSchema], default: [] },
+    recommendation: {
+      type: String,
+      enum: ['', 'strong_yes', 'yes', 'maybe', 'no'],
+      default: '',
+    },
+    note: { type: String, default: '', trim: true, maxlength: 2000 },
+    updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    updatedAt: { type: Date },
+  },
+  { _id: false }
+);
+
 // Wired for apply + pipeline + HR collaboration.
 const applicationSchema = new mongoose.Schema(
   {
@@ -80,6 +103,7 @@ const applicationSchema = new mongoose.Schema(
       set: (tags) =>
         [...new Set((tags || []).map((t) => String(t).trim().toLowerCase()).filter(Boolean))].slice(0, 20),
     },
+    scorecard: { type: scorecardSchema, default: () => ({}) },
     recruiterNotes: { type: [recruiterNoteSchema], default: [] },
     resume: { type: resumeSchema },
     aiAnalysis: { type: aiAnalysisSchema },

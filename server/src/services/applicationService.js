@@ -322,6 +322,34 @@ async function updateTags(applicationId, tags, user) {
   return toApplicationPayload(application.toObject());
 }
 
+async function updateScorecard(applicationId, body, user) {
+  const application = await Application.findOne({ _id: applicationId, companyId: user.companyId });
+  if (!application) {
+    throw new AppError('Application not found', { status: 404, code: 'NOT_FOUND' });
+  }
+  const allowed = new Set(['', 'strong_yes', 'yes', 'maybe', 'no']);
+  const recommendation = String(body.recommendation || '').trim();
+  if (!allowed.has(recommendation)) {
+    throw new AppError('Invalid recommendation', { status: 400, code: 'VALIDATION_ERROR' });
+  }
+  const defaults = ['Skills', 'Experience', 'Communication', 'Culture'];
+  const incoming = Array.isArray(body.criteria) ? body.criteria : [];
+  const criteria = defaults.map((label) => {
+    const found = incoming.find((row) => String(row.label || '').trim() === label);
+    const score = Math.max(0, Math.min(5, Number(found?.score) || 0));
+    return { label, score };
+  });
+  application.scorecard = {
+    criteria,
+    recommendation,
+    note: String(body.note || '').trim().slice(0, 2000),
+    updatedBy: user.id,
+    updatedAt: new Date(),
+  };
+  await application.save();
+  return toApplicationPayload(application.toObject());
+}
+
 async function getResumeUrl(applicationId, user) {
   const application = await Application.findById(applicationId).select('applicantId companyId resume');
   if (!application || !canAccess(application, user) || !application.resume?.s3Key) {
@@ -398,6 +426,7 @@ module.exports = {
   addRecruiterNote,
   bulkUpdateStage,
   updateTags,
+  updateScorecard,
   getResumeUrl,
   reanalyzeApplication,
 };

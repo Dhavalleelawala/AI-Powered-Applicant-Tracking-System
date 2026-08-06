@@ -94,6 +94,15 @@ async function updateTags(req, res, next) {
   }
 }
 
+async function updateScorecard(req, res, next) {
+  try {
+    const data = await applicationService.updateScorecard(req.params.applicationId, req.body, req.user);
+    return res.json({ success: true, data });
+  } catch (err) {
+    return next(err);
+  }
+}
+
 module.exports = {
   applyToJob,
   listApplicantApplications,
@@ -103,6 +112,7 @@ module.exports = {
   addNote,
   bulkUpdateStage,
   updateTags,
+  updateScorecard,
   getResumeUrl,
   reanalyzeApplication,
 };

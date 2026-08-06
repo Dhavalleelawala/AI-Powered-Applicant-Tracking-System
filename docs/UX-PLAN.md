@@ -68,7 +68,7 @@ Grounded in how a TA lead clears volume and proves velocity. E7b stays blocked.
 ### E27 — Structured scorecard
 - **Goal:** Consistent evaluation next to AI score.
 - **Accept:** Scorecard saved on application; Ranking shows recommendation chip beside match %.
-- **Status:** in_progress
+- **Status:** done
 
 ### E28 — Interview lite
 - **Goal:** Interview stage carries a real next step.

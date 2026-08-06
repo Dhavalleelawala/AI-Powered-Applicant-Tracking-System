@@ -32,7 +32,7 @@ import { CandidateDrawer } from '../../components/recruiter/CandidateDrawer';
 import { AppBreadcrumbs } from '../../components/ui/AppBreadcrumbs';
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { EmptyState, ErrorState, LoadingRows, Page, PageHeader, SectionLabel, StatTile, FunnelBars } from '../../components/ui/Primitives';
-import { REJECTION_PRESETS, TAG_PRESETS, NEXT_STAGE } from '../../constants/hiring';
+import { REJECTION_PRESETS, TAG_PRESETS, NEXT_STAGE, recommendationLabel } from '../../constants/hiring';
 import { useToast } from '../../context/ToastContext';
 import { useHiringHotkeys } from '../../hooks/useHiringHotkeys';
 import { useUrlFilters } from '../../hooks/useUrlFilters';
@@ -1906,6 +1906,8 @@ export function RankingPage() {
             const email = a.applicant?.email || a.applicantEmail || a.applicantId?.email || '';
             const summary = a.aiAnalysis?.summary;
             const reviewing = ['pending', 'processing'].includes(a.aiStatus);
+            const rec = a.scorecard?.recommendation;
+            const recLabel = recommendationLabel(rec);
 
             return (
               <Paper
@@ -1917,7 +1919,7 @@ export function RankingPage() {
                 data-next-stage={nextStageOf[stage] || ''}
                 role="article"
                 tabIndex={0}
-                aria-label={`${name}, ${score != null ? `${score}% match` : 'score pending'}, ${stage}`}
+                aria-label={`${name}, ${score != null ? `${score}% match` : 'score pending'}, ${stage}${recLabel ? `, ${recLabel}` : ''}`}
                 sx={{ p: { xs: 2.25, md: 2.75 }, bgcolor: 'rgba(255,255,255,0.96)' }}
               >
                 <Stack direction={{ xs: 'column', md: 'row' }} spacing={2.5} alignItems={{ md: 'flex-start' }}>
@@ -1942,6 +1944,14 @@ export function RankingPage() {
                     <Typography variant="caption" color="text.secondary" display="block" mt={0.5}>
                       #{index + 1} · AI {a.aiStatus || 'pending'}
                     </Typography>
+                    {recLabel ? (
+                      <Chip
+                        size="small"
+                        color={rec === 'no' ? 'error' : rec === 'maybe' ? 'warning' : 'success'}
+                        label={recLabel}
+                        sx={{ mt: 1, fontWeight: 600 }}
+                      />
+                    ) : null}
                   </Box>
 
                   <Box sx={{ flex: 1, minWidth: 0 }}>
