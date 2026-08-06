@@ -84,8 +84,13 @@ async function updateResumeDraft(req, res, next) {
 async function downloadResumePdf(req, res, next) {
   try {
     const { buffer, filename } = await authService.getResumePdf(req.user.id);
+    const asciiName = filename.replace(/[^\x20-\x7E]/g, '_');
     res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="${asciiName}"; filename*=UTF-8''${encodeURIComponent(filename)}`,
+    );
+    res.setHeader('X-Resume-Filename', filename);
     return res.send(buffer);
   } catch (err) {
     return next(err);

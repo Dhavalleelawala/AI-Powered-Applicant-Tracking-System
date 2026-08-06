@@ -29,21 +29,66 @@ function stepStatus(stepId, current, readiness) {
   return 'todo';
 }
 
+function JourneyActionButton({ action }) {
+  if (!action) return null;
+  const sx = { alignSelf: { xs: 'stretch', sm: 'center' }, flexShrink: 0 };
+
+  if (typeof action.onClick === 'function') {
+    return (
+      <Button variant="contained" color="secondary" size="small" onClick={action.onClick} disabled={action.disabled} sx={sx}>
+        {action.label}
+      </Button>
+    );
+  }
+
+  if (action.href) {
+    return (
+      <Button
+        variant="contained"
+        color="secondary"
+        size="small"
+        href={action.href}
+        onClick={(event) => {
+          if (!action.href.startsWith('#')) return;
+          const target = document.querySelector(action.href);
+          if (!target) return;
+          event.preventDefault();
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }}
+        sx={sx}
+      >
+        {action.label}
+      </Button>
+    );
+  }
+
+  return (
+    <Button component={Link} to={action.to || '/'} variant="contained" color="secondary" size="small" sx={sx}>
+      {action.label}
+    </Button>
+  );
+}
+
 /** Shared step chrome so applicant surfaces feel like one journey. */
-export function ApplicantJourney({ current = 'home', nextHint }) {
+export function ApplicantJourney({ current = 'home', nextHint, readiness: readinessOverride }) {
   const { user } = useAuth();
-  const readiness = applicantReadiness(user);
+  const readiness = readinessOverride || applicantReadiness(user);
 
   const nextAction = (() => {
     if (!readiness.profile.complete) {
+      if (current === 'profile') return { label: 'Fill required fields', href: '#profile-form' };
       return { label: 'Complete profile', to: '/applicant/profile' };
     }
     if (!readiness.resume.complete) {
+      if (current === 'resume') return { label: 'Fill required fields', href: '#resume-form' };
       return { label: 'Complete resume', to: '/applicant/resume' };
     }
     if (current === 'apply') return null;
+    if (current === 'resume') return { label: 'Browse roles to apply', to: '/jobs' };
     return { label: 'Browse roles to apply', to: '/jobs' };
   })();
+
+  const action = nextHint === null ? null : nextHint || nextAction;
 
   return (
     <Box className="applicant-journey" sx={{ mb: 3 }}>
@@ -77,18 +122,7 @@ export function ApplicantJourney({ current = 'home', nextHint }) {
             );
           })}
         </Box>
-        {(nextHint !== null && (nextHint || nextAction)) && (
-          <Button
-            component={Link}
-            to={(nextHint || nextAction).to}
-            variant="contained"
-            color="secondary"
-            size="small"
-            sx={{ alignSelf: { xs: 'stretch', sm: 'center' }, flexShrink: 0 }}
-          >
-            {(nextHint || nextAction).label}
-          </Button>
-        )}
+        <JourneyActionButton action={action} />
       </Stack>
       <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1.25 }}>
         {readiness.readyToApply
@@ -99,7 +133,7 @@ export function ApplicantJourney({ current = 'home', nextHint }) {
   );
 }
 
-export function JourneyFooter({ backTo, backLabel, nextTo, nextLabel, nextDisabled }) {
+export function JourneyFooter({ backTo, backLabel, nextTo, nextLabel, nextDisabled, onNext }) {
   return (
     <Stack
       className="journey-footer-cta"
@@ -116,7 +150,17 @@ export function JourneyFooter({ backTo, backLabel, nextTo, nextLabel, nextDisabl
       ) : (
         <span />
       )}
-      {nextTo && (
+      {onNext ? (
+        <Button
+          variant="contained"
+          color="secondary"
+          disabled={nextDisabled}
+          onClick={onNext}
+          sx={{ width: { xs: '100%', sm: 'auto' } }}
+        >
+          {nextLabel || 'Continue'}
+        </Button>
+      ) : nextTo ? (
         <Button
           component={Link}
           to={nextTo}
@@ -127,7 +171,7 @@ export function JourneyFooter({ backTo, backLabel, nextTo, nextLabel, nextDisabl
         >
           {nextLabel || 'Continue'}
         </Button>
-      )}
+      ) : null}
     </Stack>
   );
 }

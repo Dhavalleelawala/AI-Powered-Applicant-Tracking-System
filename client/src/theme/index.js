@@ -125,6 +125,16 @@ export const theme = createTheme({
         },
       },
     },
+    MuiLink: {
+      styleOverrides: {
+        root: {
+          color: emberDeep,
+          fontWeight: 650,
+          textDecorationColor: 'rgba(224,72,40,0.35)',
+          '&:hover': { color: ember, textDecorationColor: ember },
+        },
+      },
+    },
     MuiButton: {
       defaultProps: { disableElevation: true },
       styleOverrides: {

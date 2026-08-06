@@ -18,38 +18,41 @@ Living product-design plan. Epics in [`EPICS.md`](./EPICS.md) execute this plan 
 
 ---
 
-## Phase 2 — Depth (next)
+## Phase 2 — Depth (done)
 
-Ordered by demo impact and trust.
+| Epic | Outcome |
+|------|---------|
+| E17 | Dual workspace shell |
+| E18 | Ranking explainability |
+| E19 | Guided job authoring |
+| E20 | Accessibility & keyboard hiring |
+| E21 | Mobile applicant polish |
 
-### E17 — Dual workspace shell
-- **Goal:** Recruiter and applicant chrome feel like different products that share Rolefit.
-- **Accept:** Distinct nav density, header treatment, and home CTA language per role; public shell stays light.
+---
+
+## Phase 3 — Craft & trust (next)
+
+Ordered by demo clarity and craft.
+
+### E22 — Light theme + resume craftsmanship
+- **Goal:** App reads clearly in light mode; resume build → PDF → apply feels one craft.
+- **Accept:** Landing/auth/shell light and readable; resume 4-step wizard with required dates/dropdowns; PDF uses readable dates + file named `{Applicant Name}.pdf`.
 - **Status:** done
 
-### E18 — Ranking explainability
-- **Goal:** Score always pairs with “why” and one-click pipeline move.
-- **Accept:** Ranking cards show matched/gap skills + AI summary without accordion; advance from ranking.
-- **Status:** done
-- **Why:** AI trust is the product differentiator.
+### E23 — Recruiter mobile pipeline
+- **Goal:** Pipeline/ranking usable on phone (stacked columns or stage tabs; sticky stage actions).
+- **Accept:** No horizontal-only kanban trap under 600px; advance/reject reachable one-thumb.
+- **Status:** in_progress
 
-### E19 — Recruiter job authoring flow
-- **Goal:** Posting a role feels guided, not admin CRUD.
-- **Accept:** Sectioned job form (basics → skills → hiring prefs → publish); live preview of public card.
-- **Why:** First recruiter action after signup.
-- **Status:** done
+### E24 — Applicant apply trust
+- **Goal:** Apply wizard shows readiness + resume preview confidence before submit.
+- **Accept:** Ready step mirrors live checklist; attached Rolefit resume shows name filename; clear post-submit next step.
+- **Status:** planned
 
-### E20 — Accessibility & keyboard hiring
-- **Goal:** Pipeline and drawer usable without a mouse; focus rings consistent.
-- **Accept:** Keyboard stage advance shortcuts documented; skip links; drawer focus trap; contrast check on ember/ink.
-- **Why:** Professional HR tools must be operable under pressure.
-- **Status:** done
-
-### E21 — Mobile applicant polish
-- **Goal:** Apply + readiness work one-thumb on small screens.
-- **Accept:** Journey stepper wraps cleanly; apply wizard sticky primary CTA; profile sections collapse on mobile.
-- **Why:** Candidates often apply on phones.
-- **Status:** done
+### E25 — Demo narrative polish
+- **Goal:** Recruiter Decisions → Ranking → Pipeline and Applicant Ready → Apply tell one story without dead ends.
+- **Accept:** Empty states + CTAs point to the next demo beat; seed/demo copy still works.
+- **Status:** planned
 
 ---
 

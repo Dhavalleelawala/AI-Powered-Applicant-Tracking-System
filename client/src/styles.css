@@ -69,8 +69,21 @@ body {
 .shell-main .MuiTypography-h4,
 .shell-main .MuiTypography-h5,
 .shell-main .MuiTypography-h6 {
-  color: var(--rf-text);
   font-family: var(--rf-display);
+  color: var(--rf-text);
+}
+
+.auth-panel {
+  color: var(--rf-text);
+  background:
+    radial-gradient(ellipse 80% 55% at 12% 18%, rgba(255, 92, 53, 0.14), transparent 58%),
+    radial-gradient(ellipse 50% 40% at 88% 88%, rgba(18, 21, 28, 0.04), transparent 55%),
+    linear-gradient(165deg, #ffffff 0%, #f3f5f9 48%, #eef1f6 100%);
+  border-right: 1px solid var(--rf-line);
+}
+
+.auth-panel .auth-panel__lead {
+  color: var(--rf-muted);
 }
 a { color: inherit; }
 ::selection { background: rgba(255, 92, 53, 0.22); }
@@ -338,20 +351,22 @@ a { color: inherit; }
 
 .landing-hero {
   min-height: calc(100vh - 68px);
-  background: var(--rf-ink, #12151C);
-  color: #f7f8fb;
+  background: var(--rf-mist, #f7f8fb);
+  color: var(--rf-text);
   position: relative;
   overflow: hidden;
   display: flex;
   align-items: center;
+  border-bottom: 1px solid var(--rf-line);
 }
 
 .landing-hero__atmosphere {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(ellipse 70% 50% at 88% 12%, rgba(255, 92, 53, 0.32), transparent 55%),
-    radial-gradient(ellipse 40% 35% at 6% 90%, rgba(62, 107, 138, 0.2), transparent 50%);
+    radial-gradient(ellipse 75% 55% at 90% 8%, rgba(255, 92, 53, 0.16), transparent 55%),
+    radial-gradient(ellipse 45% 40% at 4% 92%, rgba(18, 21, 28, 0.05), transparent 52%),
+    linear-gradient(180deg, #ffffff 0%, #f7f8fb 55%, #eef1f6 100%);
 }
 
 .landing-hero__ledger {
@@ -363,7 +378,7 @@ a { color: inherit; }
   display: none;
   flex-direction: column;
   gap: 18px;
-  opacity: 0.55;
+  opacity: 0.85;
   pointer-events: none;
 }
 
@@ -376,9 +391,10 @@ a { color: inherit; }
 .landing-hero__ledger span {
   display: block;
   height: 72px;
-  border-radius: 4px;
-  border: 1px solid rgba(247, 248, 251, 0.12);
-  background: linear-gradient(90deg, rgba(255, 92, 53, 0.12), rgba(247, 248, 251, 0.03));
+  border-radius: 6px;
+  border: 1px solid var(--rf-line);
+  background: linear-gradient(90deg, rgba(255, 92, 53, 0.1), rgba(255, 255, 255, 0.85));
+  box-shadow: 0 8px 24px rgba(18, 21, 28, 0.04);
   transform-origin: right center;
   animation: ledgerPulse 5.5s ease-in-out infinite;
 }
@@ -398,13 +414,13 @@ a { color: inherit; }
   margin-left: auto;
   animation-delay: 1.05s;
   border-color: rgba(255, 92, 53, 0.35);
-  background: linear-gradient(90deg, rgba(255, 92, 53, 0.22), rgba(247, 248, 251, 0.04));
+  background: linear-gradient(90deg, rgba(255, 92, 53, 0.18), #fff);
 }
 
 @keyframes ledgerPulse {
   0%,
   100% {
-    opacity: 0.55;
+    opacity: 0.7;
     transform: translateX(0);
   }
   50% {
@@ -584,6 +600,23 @@ a { color: inherit; }
   color: #0b7a54;
 }
 
+.resume-status {
+  border: 1px solid var(--rf-line);
+}
+
+.resume-entry {
+  padding: 4px 0;
+}
+
+.resume-preview .MuiPaper-root {
+  border: 1px solid var(--rf-line);
+}
+
+.resume-stepper .apply-stepper__item {
+  cursor: pointer;
+  user-select: none;
+}
+
 .apply-wizard__cta,
 .journey-footer-cta {
   position: sticky;
@@ -748,32 +781,29 @@ a { color: inherit; }
 }
 
 .workspace-chip--recruiter {
-  background: rgba(255, 92, 53, 0.22);
-  color: #ffb39a;
+  background: rgba(255, 92, 53, 0.12);
+  color: var(--rf-ember-deep);
+  border: 1px solid rgba(255, 92, 53, 0.28);
 }
 
 .workspace-chip--applicant {
-  background: rgba(255, 92, 53, 0.12);
-  color: var(--rf-ember-deep);
-  border: 1px solid rgba(255, 92, 53, 0.3);
+  background: rgba(18, 21, 28, 0.05);
+  color: var(--rf-text);
+  border: 1px solid var(--rf-line);
 }
 
 .app-shell--recruiter .shell-bar .nav-link::after {
   bottom: -5px;
 }
 
-.app-shell--applicant .shell-bar {
+.app-shell--recruiter .shell-bar,
+.app-shell--applicant .shell-bar,
+.app-shell--public .shell-bar {
   box-shadow: none;
 }
 
 .job-author-preview {
   border: 1px solid var(--rf-line);
-}
-
-.auth-panel {
-  background:
-    radial-gradient(ellipse 70% 60% at 20% 20%, rgba(255,92,53,0.22), transparent 60%),
-    linear-gradient(160deg, #12151C 0%, #1C2230 55%, #12151C 100%);
 }
 
 .brand-mark {

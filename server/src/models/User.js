@@ -7,6 +7,7 @@ const resumeExperienceSchema = new mongoose.Schema(
     title: { type: String, default: '', trim: true },
     company: { type: String, default: '', trim: true },
     location: { type: String, default: '', trim: true },
+    employmentType: { type: String, default: '', trim: true },
     startDate: { type: String, default: '', trim: true },
     endDate: { type: String, default: '', trim: true },
     current: { type: Boolean, default: false },

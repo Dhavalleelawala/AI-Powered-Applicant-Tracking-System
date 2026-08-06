@@ -22,11 +22,29 @@ export function resumeChecklist(user = {}) {
   const skills = (draft.skills?.length ? draft.skills : user.skills) || [];
   const experience = (draft.experience || []).filter((row) => row.title?.trim() && row.company?.trim());
   const education = (draft.education || []).filter((row) => row.school?.trim());
+  const experienceDated = experience.every(
+    (row) => row.startDate?.trim() && (row.current || row.endDate?.trim()),
+  );
+  const educationComplete = education.every(
+    (row) => row.degree?.trim() && row.degree !== 'Other' && row.startDate?.trim(),
+  );
   const items = [
     { id: 'summary', label: 'Professional summary', done: Boolean(draft.summary?.trim()), required: true, to: '/applicant/resume' },
-    { id: 'experience', label: 'At least one experience entry', done: experience.length >= 1, required: true, to: '/applicant/resume' },
-    { id: 'education', label: 'At least one education entry', done: education.length >= 1, required: true, to: '/applicant/resume' },
-    { id: 'skills', label: 'Resume skills listed', done: skills.length >= 3, required: true, to: '/applicant/resume' },
+    { id: 'skills', label: 'At least 3 skills', done: skills.length >= 3, required: true, to: '/applicant/resume' },
+    {
+      id: 'experience',
+      label: 'Experience with dates',
+      done: experience.length >= 1 && experienceDated,
+      required: true,
+      to: '/applicant/resume',
+    },
+    {
+      id: 'education',
+      label: 'Education with degree & dates',
+      done: education.length >= 1 && educationComplete,
+      required: true,
+      to: '/applicant/resume',
+    },
   ];
   return summarize(items);
 }

@@ -109,8 +109,8 @@ export function ApplyJobPage() {
     setLoadingBuilt(true);
     setError('');
     try {
-      const blob = await authApi.downloadResumePdf();
-      const file = new File([blob], 'rolefit-resume.pdf', { type: 'application/pdf' });
+      const { blob, filename } = await authApi.downloadResumePdf(user?.name);
+      const file = new File([blob], filename, { type: 'application/pdf' });
       setResume(file);
       showToast('Rolefit resume attached');
     } catch (err) {
@@ -753,8 +753,9 @@ export function ProfilePage() {
       </Paper>
 
       <Paper
+        id="profile-form"
         component="form"
-        sx={{ p: { xs: 2.5, md: 4 }, bgcolor: 'rgba(255,255,255,0.96)' }}
+        sx={{ p: { xs: 2.5, md: 4 }, bgcolor: 'rgba(255,255,255,0.96)', scrollMarginTop: 96 }}
         onSubmit={(event) => {
           event.preventDefault();
           const problem = validate();

@@ -7,9 +7,30 @@ api.interceptors.request.use((config) => {
   return config;
 });
 api.interceptors.response.use(
-  (response) => response.data,
+  (response) => (response.config.rawResponse ? response : response.data),
   (error) => Promise.reject(error.response?.data?.error?.message || error.message)
 );
+
+function filenameFromDisposition(header = '') {
+  const utf = String(header).match(/filename\*\s*=\s*UTF-8''([^;]+)/i);
+  if (utf?.[1]) {
+    try {
+      return decodeURIComponent(utf[1].trim().replace(/^"|"$/g, ''));
+    } catch {
+      return utf[1].trim().replace(/^"|"$/g, '');
+    }
+  }
+  const plain = String(header).match(/filename\s*=\s*"([^"]+)"|filename\s*=\s*([^;]+)/i);
+  return (plain?.[1] || plain?.[2] || '').trim();
+}
+
+function resumeDownloadName(name) {
+  const base = String(name || 'Resume')
+    .trim()
+    .replace(/[<>:"/\\|?*\u0000-\u001F]/g, '')
+    .replace(/\s+/g, ' ');
+  return `${base || 'Resume'}.pdf`;
+}
 
 export const authApi = {
   login: (data) => api.post('/auth/login', data),
@@ -20,7 +41,16 @@ export const authApi = {
   toggleSavedJob: (jobId) => api.post(`/auth/saved-jobs/${jobId}`),
   getResume: () => api.get('/auth/resume'),
   saveResume: (data) => api.put('/auth/resume', data),
-  downloadResumePdf: () => api.get('/auth/resume.pdf', { responseType: 'blob' }),
+  downloadResumePdf: async (fallbackName) => {
+    const response = await api.get('/auth/resume.pdf', { responseType: 'blob', rawResponse: true });
+    const fromHeader =
+      filenameFromDisposition(response.headers['content-disposition']) ||
+      response.headers['x-resume-filename'];
+    return {
+      blob: response.data,
+      filename: fromHeader || resumeDownloadName(fallbackName),
+    };
+  },
 };
 
 export const jobsApi = {

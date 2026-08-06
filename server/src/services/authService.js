@@ -242,6 +242,7 @@ function normalizeExperience(list) {
     title: String(item?.title || '').trim().slice(0, 120),
     company: String(item?.company || '').trim().slice(0, 120),
     location: String(item?.location || '').trim().slice(0, 120),
+    employmentType: String(item?.employmentType || '').trim().slice(0, 40),
     startDate: String(item?.startDate || '').trim().slice(0, 40),
     endDate: String(item?.endDate || '').trim().slice(0, 40),
     current: Boolean(item?.current),
@@ -312,13 +313,9 @@ async function getResumePdf(userId) {
   if (user.role !== 'applicant') {
     throw new AppError('Only applicants can download resumes', { status: 403, code: 'FORBIDDEN' });
   }
-  const { buildResumePdfBuffer } = require('./resumePdfService');
+  const { buildResumePdfBuffer, resumeFilenameFromName } = require('./resumePdfService');
   const buffer = await buildResumePdfBuffer(user);
-  const safeName = String(user.name || 'resume')
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '') || 'resume';
-  return { buffer, filename: `${safeName}-rolefit-resume.pdf` };
+  return { buffer, filename: resumeFilenameFromName(user.name) };
 }
 
 module.exports = {

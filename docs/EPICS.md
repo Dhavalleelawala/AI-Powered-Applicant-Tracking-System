@@ -157,9 +157,36 @@ Status: `planned` · `in_progress` · `done`
 - **Notes:** 2×2 journey grid on xs; sticky apply/profile CTAs with safe-area; profile Basics/Links/Preferences accordions (Links & Preferences collapsed on phone).
 - **Paths:** `ApplicantPages.jsx`, `ApplicantJourney.jsx`, `AppBreadcrumbs.jsx`, `styles.css`
 
+### E22 — Light theme + resume craftsmanship
+- **Status:** done
+- **Goal:** App reads clearly in light mode; resume build → PDF → apply feels one craft.
+- **Accept:** Landing/auth/shell light and readable; resume 4-step wizard with required dates/dropdowns; PDF uses readable dates + file named `{Applicant Name}.pdf`.
+- **Shipped:** 2026-08-06
+- **Notes:** Full light chrome; auth/landing mist panels; resume Summary→Experience→Education→Review wizard with live preview; PDF date formatting; download/attach as `{Name}.pdf`.
+- **Paths:** `AppShell.jsx`, `AuthPages.jsx`, `PublicPages.jsx`, `ResumeBuilderPage.jsx`, `resumePdfService.js`, `client.js`
+
+---
+
+## In progress
+
+### E23 — Recruiter mobile pipeline
+- **Status:** in_progress
+- **Goal:** Pipeline/ranking usable on phone (stacked columns or stage tabs; sticky stage actions).
+- **Accept:** No horizontal-only kanban trap under 600px; advance/reject reachable one-thumb.
+
 ---
 
 ## Planned (next)
+
+### E24 — Applicant apply trust
+- **Status:** planned
+- **Goal:** Apply wizard shows readiness + resume preview confidence before submit.
+- **Accept:** Ready step mirrors live checklist; attached Rolefit resume shows name filename; clear post-submit next step.
+
+### E25 — Demo narrative polish
+- **Status:** planned
+- **Goal:** Recruiter Decisions → Ranking → Pipeline and Applicant Ready → Apply tell one story without dead ends.
+- **Accept:** Empty states + CTAs point to the next demo beat; seed/demo copy still works.
 
 ### E7b — Live production cutover
 - **Status:** planned

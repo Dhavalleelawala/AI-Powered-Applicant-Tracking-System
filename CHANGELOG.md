@@ -3,6 +3,13 @@
 All notable Rolefit changes are listed here. Newest first.
 Epics are tracked in [`docs/EPICS.md`](./docs/EPICS.md) — **one completed epic → one commit**.
 
+## 2026-08-06 (E22 — Light theme + resume craftsmanship)
+
+- Landing, auth, and workspace chrome use a readable light theme (mist/paper + ink text)
+- Resume builder is a four-step craft flow with required month dates, degree/employment dropdowns, and live preview
+- PDF layout cleaned up with human-readable dates; download/attach filename is `{Applicant Name}.pdf`
+- Phase 3 UX plan added (E22–E25) in `docs/UX-PLAN.md`
+
 ## 2026-08-06 (E21 — Mobile applicant polish)
 
 - Journey stepper uses a 2×2 grid on phones; apply step labels tighten for narrow widths

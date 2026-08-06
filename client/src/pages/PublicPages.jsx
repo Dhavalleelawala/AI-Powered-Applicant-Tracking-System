@@ -44,7 +44,7 @@ export function LandingPage() {
               letterSpacing: '-0.055em',
               lineHeight: 0.92,
               fontSize: { xs: 'clamp(3.4rem, 14vw, 5rem)', md: 'clamp(5.5rem, 11vw, 8.5rem)' },
-              color: '#F7F8FB',
+              color: 'text.primary',
             }}
           >
             Rolefit
@@ -60,14 +60,21 @@ export function LandingPage() {
               letterSpacing: '-0.03em',
               fontSize: { xs: '1.35rem', md: '1.65rem' },
               lineHeight: 1.25,
-              color: '#F7F8FB',
+              color: 'text.primary',
             }}
           >
             Hiring clarity, at human speed.
           </Typography>
           <Typography
             className="reveal-delay"
-            sx={{ maxWidth: 400, mt: 2, fontSize: { xs: '1rem', md: '1.08rem' }, lineHeight: 1.7, color: '#B8C0CC' }}
+            sx={{
+              maxWidth: 420,
+              mt: 2,
+              fontSize: { xs: '1.05rem', md: '1.12rem' },
+              lineHeight: 1.7,
+              fontWeight: 500,
+              color: 'text.secondary',
+            }}
           >
             Rank resumes with evidence, then move the pipeline without the noise.
           </Typography>
@@ -75,13 +82,7 @@ export function LandingPage() {
             <Button variant="contained" color="secondary" component={Link} to="/register/recruiter" endIcon={<ArrowOutward />} size="large">
               Start hiring
             </Button>
-            <Button
-              variant="outlined"
-              component={Link}
-              to="/jobs"
-              size="large"
-              sx={{ color: '#F7F8FB', borderColor: '#5A6578', '&:hover': { borderColor: '#F7F8FB', bgcolor: 'rgba(247,248,251,0.06)' } }}
-            >
+            <Button variant="outlined" color="primary" component={Link} to="/jobs" size="large">
               Find work
             </Button>
           </Stack>

@@ -180,54 +180,92 @@ export function RegisterPage({ role }) {
 
 function AuthFrame({ title, subtitle, children }) {
   return (
-    <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1.05fr 0.95fr' }, minHeight: { md: 'calc(100vh - 68px)' } }}>
+    <Box
+      className="auth-layout"
+      sx={{
+        display: 'grid',
+        gridTemplateColumns: { xs: '1fr', md: '1.05fr 0.95fr' },
+        minHeight: { md: 'calc(100vh - 68px)' },
+        bgcolor: 'background.default',
+      }}
+    >
       <Box
         className="auth-panel"
         sx={{
           display: { xs: 'none', md: 'flex' },
           flexDirection: 'column',
           justifyContent: 'flex-end',
-          color: '#F7F8FB',
           p: { md: 6, lg: 8 },
           position: 'relative',
           overflow: 'hidden',
         }}
       >
         <Box
+          aria-hidden
           sx={{
             position: 'absolute',
             width: 420,
             height: 420,
             borderRadius: '50%',
-            border: '1px solid rgba(255,92,53,0.35)',
+            border: '1px solid rgba(255,92,53,0.28)',
             right: '-12%',
             top: '-18%',
           }}
         />
-        <Typography sx={{ color: 'secondary.main', fontFamily: 'Outfit', fontWeight: 700, letterSpacing: '.14em', fontSize: 12 }}>
+        <Box
+          aria-hidden
+          sx={{
+            position: 'absolute',
+            width: 220,
+            height: 220,
+            borderRadius: '50%',
+            bgcolor: 'rgba(255,92,53,0.08)',
+            left: '8%',
+            top: '18%',
+          }}
+        />
+        <Typography
+          sx={{
+            color: 'secondary.dark',
+            fontFamily: 'Outfit',
+            fontWeight: 700,
+            letterSpacing: '.14em',
+            fontSize: 12,
+            position: 'relative',
+          }}
+        >
           ROLEFIT
         </Typography>
-        <Typography variant="h2" mt={2} maxWidth={420} sx={{ color: '#F7F8FB' }}>
+        <Typography variant="h2" mt={2} maxWidth={440} sx={{ position: 'relative', color: 'text.primary' }}>
           Decisions with context, not clutter.
         </Typography>
-        <Typography mt={2} maxWidth={360} sx={{ color: '#A8B2C0', lineHeight: 1.7 }}>
+        <Typography className="auth-panel__lead" mt={2} maxWidth={380} sx={{ position: 'relative', lineHeight: 1.7, fontSize: '1.05rem', fontWeight: 500 }}>
           Rank candidates against the role, move them through a calm pipeline, and keep every next step obvious.
         </Typography>
       </Box>
-      <Box sx={{ display: 'flex', alignItems: 'center', py: { xs: 5, md: 6 }, px: { xs: 2.5, sm: 4, md: 5 }, width: '100%' }}>
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          py: { xs: 5, md: 6 },
+          px: { xs: 2.5, sm: 4, md: 5 },
+          width: '100%',
+          bgcolor: { xs: 'background.default', md: 'rgba(255,255,255,0.55)' },
+        }}
+      >
         <Box className="page-enter" sx={{ width: '100%', maxWidth: 460, mx: 'auto' }}>
           <Typography
-            sx={{ color: 'secondary.main', fontFamily: 'Outfit', fontWeight: 700, letterSpacing: '0.12em', fontSize: 12, mb: 1.5 }}
+            sx={{ color: 'secondary.dark', fontFamily: 'Outfit', fontWeight: 700, letterSpacing: '0.12em', fontSize: 12, mb: 1.5 }}
           >
             ROLEFIT
           </Typography>
-          <Typography variant="h2">
+          <Typography variant="h2" color="text.primary">
             {title}
           </Typography>
-          <Typography color="text.secondary" mt={1.25} mb={3.25} sx={{ lineHeight: 1.65, fontSize: '1.02rem' }}>
+          <Typography color="text.secondary" mt={1.25} mb={3.25} sx={{ lineHeight: 1.65, fontSize: '1.02rem', fontWeight: 500 }}>
             {subtitle}
           </Typography>
-          <Paper sx={{ p: { xs: 3, md: 4 }, bgcolor: 'rgba(255,255,255,0.96)' }}>{children}</Paper>
+          <Paper sx={{ p: { xs: 3, md: 4 }, bgcolor: '#fff' }}>{children}</Paper>
         </Box>
       </Box>
     </Box>

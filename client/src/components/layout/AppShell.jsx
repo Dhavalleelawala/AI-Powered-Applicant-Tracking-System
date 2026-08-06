@@ -131,32 +131,12 @@ export function AppShell({ children }) {
     .slice(0, 2)
     .toUpperCase();
 
-  const barSx =
-    isLanding
-      ? {
-          bgcolor: 'rgba(18,21,28,0.82)',
-          borderColor: 'rgba(247,248,251,0.08)',
-          color: '#F7F8FB',
-        }
-      : role === 'recruiter'
-        ? {
-            bgcolor: 'rgba(18,21,28,0.96)',
-            borderColor: 'rgba(247,248,251,0.1)',
-            color: '#F7F8FB',
-          }
-        : role === 'applicant'
-          ? {
-              bgcolor: 'rgba(247,248,251,0.92)',
-              borderColor: 'divider',
-              color: 'text.primary',
-            }
-          : {
-              bgcolor: 'rgba(238,241,246,0.88)',
-              borderColor: 'divider',
-              color: 'text.primary',
-            };
+  const barSx = {
+    bgcolor: 'rgba(247,248,251,0.94)',
+    borderColor: 'divider',
+    color: 'text.primary',
+  };
 
-  const lightChrome = isLanding || role === 'recruiter';
   const toolbarMin = role === 'recruiter' ? 56 : 68;
 
   return (
@@ -191,7 +171,7 @@ export function AppShell({ children }) {
         <Container maxWidth="xl">
           <Toolbar disableGutters sx={{ minHeight: toolbarMin, gap: { xs: 1, md: 2 } }}>
             <Stack direction="row" alignItems="center">
-              <BrandLockup light={lightChrome} to={homeTo} />
+              <BrandLockup to={homeTo} />
               <WorkspaceChip role={role} />
             </Stack>
 
@@ -217,16 +197,16 @@ export function AppShell({ children }) {
                     '&.active': {
                       opacity: 1,
                       fontWeight: 700,
-                      color: lightChrome ? '#FFB39A' : 'secondary.dark',
+                      color: 'secondary.dark',
                     },
                     '&:focus-visible': {
                       opacity: 1,
-                      outline: lightChrome ? '2px solid #FF9A7A' : '2px solid',
-                      outlineColor: lightChrome ? undefined : 'secondary.main',
+                      outline: '2px solid',
+                      outlineColor: 'secondary.main',
                       outlineOffset: 4,
                       borderRadius: 4,
                     },
-                    '&:hover': { opacity: 1 },
+                    '&:hover': { opacity: 1, color: 'secondary.dark' },
                   }}
                 >
                   {label}
@@ -256,7 +236,7 @@ export function AppShell({ children }) {
                       px: 1.25,
                       py: 0.55,
                       borderRadius: 2,
-                      bgcolor: lightChrome ? 'rgba(247,248,251,0.08)' : 'rgba(18,21,28,0.04)',
+                      bgcolor: 'rgba(18,21,28,0.04)',
                     }}
                   >
                     <Avatar
@@ -275,7 +255,7 @@ export function AppShell({ children }) {
                       <Typography variant="body2" fontWeight={700} lineHeight={1.15} noWrap>
                         {user.name}
                       </Typography>
-                      <Typography variant="caption" sx={{ opacity: lightChrome ? 0.85 : 0.75, fontWeight: 600 }}>
+                      <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary' }}>
                         {role === 'recruiter' ? 'Hiring workspace' : 'Career workspace'}
                       </Typography>
                     </Box>
@@ -292,7 +272,7 @@ export function AppShell({ children }) {
                   <Button
                     startIcon={<Logout />}
                     onClick={exit}
-                    sx={{ color: 'inherit', borderColor: lightChrome ? 'rgba(247,248,251,0.22)' : 'divider' }}
+                    sx={{ color: 'inherit', borderColor: 'divider' }}
                     variant="outlined"
                     size="small"
                   >
@@ -318,8 +298,8 @@ export function AppShell({ children }) {
                     <Button
                       component={Link}
                       to="/jobs"
-                      sx={{ color: 'inherit', borderColor: 'rgba(247,248,251,0.28)' }}
                       variant="outlined"
+                      color="primary"
                     >
                       Find work
                     </Button>
@@ -409,17 +389,17 @@ export function AppShell({ children }) {
           className={`shell-footer shell-footer--${density}`}
           sx={{
             borderTop: '1px solid',
-            borderColor: role === 'recruiter' ? 'rgba(247,248,251,0.08)' : 'divider',
+            borderColor: 'divider',
             py: role === 'recruiter' ? 2.5 : 3.5,
             mt: 'auto',
-            bgcolor: role === 'recruiter' ? '#12151C' : 'rgba(255,255,255,0.35)',
-            color: role === 'recruiter' ? '#F7F8FB' : 'inherit',
+            bgcolor: 'rgba(255,255,255,0.55)',
+            color: 'text.primary',
           }}
         >
           <Container maxWidth="xl">
             <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ sm: 'center' }} gap={1.5}>
-              <BrandLockup light={role === 'recruiter'} to={homeTo} />
-              <Typography variant="body2" sx={{ opacity: role === 'recruiter' ? 0.7 : 1 }} color={role === 'recruiter' ? 'inherit' : 'text.secondary'}>
+              <BrandLockup to={homeTo} />
+              <Typography variant="body2" color="text.secondary" fontWeight={500}>
                 {role === 'recruiter'
                   ? 'Decide who to interview next.'
                   : role === 'applicant'
