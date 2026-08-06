@@ -32,6 +32,7 @@ export function ApplyJobPage() {
   const [coverLetter, setCoverLetter] = useState('');
   const [error, setError] = useState('');
   const [dragging, setDragging] = useState(false);
+  const [loadingBuilt, setLoadingBuilt] = useState(false);
   const dirty = Boolean(resume || coverLetter.trim());
   useBeforeUnloadWarning(dirty);
   const { data: job, isLoading: jobLoading, error: jobError, refetch: refetchJob } = useQuery({
@@ -89,6 +90,22 @@ export function ApplyJobPage() {
   };
 
   const select = (e) => acceptFile(e.target.files?.[0]);
+
+  const useBuiltResume = async () => {
+    setLoadingBuilt(true);
+    setError('');
+    try {
+      const blob = await authApi.downloadResumePdf();
+      const file = new File([blob], 'rolefit-resume.pdf', { type: 'application/pdf' });
+      setResume(file);
+      showToast('Rolefit resume attached');
+    } catch (err) {
+      setError(String(err));
+      showError(err);
+    } finally {
+      setLoadingBuilt(false);
+    }
+  };
 
   return (
     <Page narrow>
@@ -158,6 +175,14 @@ export function ApplyJobPage() {
               </Button>
             </Typography>
           )}
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
+            <Button variant="outlined" onClick={useBuiltResume} disabled={loadingBuilt || apply.isPending}>
+              {loadingBuilt ? 'Loading resume…' : 'Use Rolefit resume'}
+            </Button>
+            <Button component={Link} to="/applicant/resume" size="small">
+              Create or edit resume
+            </Button>
+          </Stack>
           <TextField
             label="Cover letter (optional)"
             multiline
@@ -469,7 +494,16 @@ export function ProfilePage() {
 
   return (
     <Page narrow>
-      <PageHeader eyebrow="PROFILE" title="Your profile" subtitle="Keep your experience current for sharper matches." />
+      <PageHeader
+        eyebrow="PROFILE"
+        title="Your profile"
+        subtitle="Keep your experience current for sharper matches."
+        actions={
+          <Button component={Link} to="/applicant/resume" variant="outlined">
+            Resume builder
+          </Button>
+        }
+      />
       <Paper
         component="form"
         sx={{ p: { xs: 2.5, md: 4 }, bgcolor: 'rgba(255,255,255,0.92)' }}

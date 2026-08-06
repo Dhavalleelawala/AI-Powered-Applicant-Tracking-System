@@ -6,6 +6,7 @@ import { ProtectedRoute } from './routes/ProtectedRoute';
 import { LandingPage, JobDetailPage, JobsPage, NotFoundPage } from './pages/PublicPages';
 import { LoginPage, RegisterPage } from './pages/AuthPages';
 import { ApplyJobPage, MyApplicationsPage, ProfilePage, SavedJobsPage } from './pages/applicant/ApplicantPages';
+import { ResumeBuilderPage } from './pages/applicant/ResumeBuilderPage';
 import {
   CandidatesPage,
   DashboardPage,
@@ -31,6 +32,7 @@ export default function App() {
         <Route path="/applicant/applications" element={<Guard role="applicant"><MyApplicationsPage /></Guard>} />
         <Route path="/applicant/jobs/:jobId/apply" element={<Guard role="applicant"><ApplyJobPage /></Guard>} />
         <Route path="/applicant/profile" element={<Guard role="applicant"><ProfilePage /></Guard>} />
+        <Route path="/applicant/resume" element={<Guard role="applicant"><ResumeBuilderPage /></Guard>} />
         <Route path="/applicant/saved" element={<Guard role="applicant"><SavedJobsPage /></Guard>} />
         <Route path="/recruiter" element={<Guard role="recruiter"><DashboardPage /></Guard>} />
         <Route path="/recruiter/candidates" element={<Guard role="recruiter"><CandidatesPage /></Guard>} />

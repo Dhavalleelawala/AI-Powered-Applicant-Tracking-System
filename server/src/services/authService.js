@@ -138,7 +138,7 @@ async function login({ email, password }) {
 
 async function getMe(userId) {
   const user = await User.findById(userId).select(
-    '_id name email role companyId isActive phone headline location experienceYears skills savedJobs'
+    '_id name email role companyId isActive phone headline location experienceYears skills savedJobs resumeDraft'
   );
 
   if (!user || !user.isActive) {
@@ -215,6 +215,91 @@ async function listSavedJobs(userId) {
   return { jobs };
 }
 
+function normalizeExperience(list) {
+  if (!Array.isArray(list)) return [];
+  return list.slice(0, 12).map((item) => ({
+    title: String(item?.title || '').trim().slice(0, 120),
+    company: String(item?.company || '').trim().slice(0, 120),
+    location: String(item?.location || '').trim().slice(0, 120),
+    startDate: String(item?.startDate || '').trim().slice(0, 40),
+    endDate: String(item?.endDate || '').trim().slice(0, 40),
+    current: Boolean(item?.current),
+    description: String(item?.description || '').trim().slice(0, 2000),
+  }));
+}
+
+function normalizeEducation(list) {
+  if (!Array.isArray(list)) return [];
+  return list.slice(0, 8).map((item) => ({
+    school: String(item?.school || '').trim().slice(0, 160),
+    degree: String(item?.degree || '').trim().slice(0, 120),
+    field: String(item?.field || '').trim().slice(0, 120),
+    startDate: String(item?.startDate || '').trim().slice(0, 40),
+    endDate: String(item?.endDate || '').trim().slice(0, 40),
+  }));
+}
+
+async function getResumeDraft(userId) {
+  const user = await User.findById(userId);
+  if (!user || !user.isActive) {
+    throw new AppError('Authentication required', { status: 401, code: 'UNAUTHORIZED' });
+  }
+  if (user.role !== 'applicant') {
+    throw new AppError('Only applicants can manage resumes', { status: 403, code: 'FORBIDDEN' });
+  }
+  return { user: toSafeUser(user), resumeDraft: toSafeUser(user).resumeDraft };
+}
+
+async function updateResumeDraft(userId, body) {
+  const user = await User.findById(userId);
+  if (!user || !user.isActive) {
+    throw new AppError('Authentication required', { status: 401, code: 'UNAUTHORIZED' });
+  }
+  if (user.role !== 'applicant') {
+    throw new AppError('Only applicants can manage resumes', { status: 403, code: 'FORBIDDEN' });
+  }
+
+  const skills = Array.isArray(body.skills)
+    ? body.skills
+    : String(body.skills || '')
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean);
+
+  user.resumeDraft = {
+    summary: String(body.summary || '').trim().slice(0, 2000),
+    experience: normalizeExperience(body.experience),
+    education: normalizeEducation(body.education),
+    skills: skills.slice(0, 40),
+    updatedAt: new Date(),
+  };
+
+  if (body.syncProfile) {
+    if (body.headline !== undefined) user.headline = String(body.headline || '').trim();
+    if (skills.length) user.skills = skills.map((s) => s.toLowerCase());
+  }
+
+  await user.save();
+  return { user: toSafeUser(user), resumeDraft: toSafeUser(user).resumeDraft };
+}
+
+async function getResumePdf(userId) {
+  const user = await User.findById(userId);
+  if (!user || !user.isActive) {
+    throw new AppError('Authentication required', { status: 401, code: 'UNAUTHORIZED' });
+  }
+  if (user.role !== 'applicant') {
+    throw new AppError('Only applicants can download resumes', { status: 403, code: 'FORBIDDEN' });
+  }
+  const { buildResumePdfBuffer } = require('./resumePdfService');
+  const buffer = await buildResumePdfBuffer(user);
+  const safeName = String(user.name || 'resume')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '') || 'resume';
+  return { buffer, filename: `${safeName}-rolefit-resume.pdf` };
+}
+
 module.exports = {
   registerApplicant,
   registerRecruiter,
@@ -223,4 +308,7 @@ module.exports = {
   updateProfile,
   toggleSavedJob,
   listSavedJobs,
+  getResumeDraft,
+  updateResumeDraft,
+  getResumePdf,
 };

@@ -63,6 +63,35 @@ async function listSavedJobs(req, res, next) {
   }
 }
 
+async function getResumeDraft(req, res, next) {
+  try {
+    const data = await authService.getResumeDraft(req.user.id);
+    return res.json({ success: true, data });
+  } catch (err) {
+    return next(err);
+  }
+}
+
+async function updateResumeDraft(req, res, next) {
+  try {
+    const data = await authService.updateResumeDraft(req.user.id, req.body);
+    return res.json({ success: true, data });
+  } catch (err) {
+    return next(err);
+  }
+}
+
+async function downloadResumePdf(req, res, next) {
+  try {
+    const { buffer, filename } = await authService.getResumePdf(req.user.id);
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    return res.send(buffer);
+  } catch (err) {
+    return next(err);
+  }
+}
+
 module.exports = {
   registerApplicant,
   registerRecruiter,
@@ -71,4 +100,7 @@ module.exports = {
   updateProfile,
   toggleSavedJob,
   listSavedJobs,
+  getResumeDraft,
+  updateResumeDraft,
+  downloadResumePdf,
 };

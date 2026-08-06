@@ -11,5 +11,8 @@ router.get('/me', authenticate, authController.getMe);
 router.patch('/me', authenticate, authController.updateProfile);
 router.get('/saved-jobs', authenticate, authorize('applicant'), authController.listSavedJobs);
 router.post('/saved-jobs/:jobId', authenticate, authorize('applicant'), authController.toggleSavedJob);
+router.get('/resume', authenticate, authorize('applicant'), authController.getResumeDraft);
+router.put('/resume', authenticate, authorize('applicant'), authController.updateResumeDraft);
+router.get('/resume.pdf', authenticate, authorize('applicant'), authController.downloadResumePdf);
 
 module.exports = router;

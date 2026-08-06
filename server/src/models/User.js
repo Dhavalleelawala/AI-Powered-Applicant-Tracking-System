@@ -2,6 +2,46 @@ const mongoose = require('mongoose');
 
 const ROLES = ['recruiter', 'applicant'];
 
+const resumeExperienceSchema = new mongoose.Schema(
+  {
+    title: { type: String, default: '', trim: true },
+    company: { type: String, default: '', trim: true },
+    location: { type: String, default: '', trim: true },
+    startDate: { type: String, default: '', trim: true },
+    endDate: { type: String, default: '', trim: true },
+    current: { type: Boolean, default: false },
+    description: { type: String, default: '', trim: true },
+  },
+  { _id: false }
+);
+
+const resumeEducationSchema = new mongoose.Schema(
+  {
+    school: { type: String, default: '', trim: true },
+    degree: { type: String, default: '', trim: true },
+    field: { type: String, default: '', trim: true },
+    startDate: { type: String, default: '', trim: true },
+    endDate: { type: String, default: '', trim: true },
+  },
+  { _id: false }
+);
+
+const resumeDraftSchema = new mongoose.Schema(
+  {
+    summary: { type: String, default: '', trim: true, maxlength: 2000 },
+    experience: { type: [resumeExperienceSchema], default: [] },
+    education: { type: [resumeEducationSchema], default: [] },
+    skills: {
+      type: [String],
+      default: [],
+      set: (skills) =>
+        [...new Set((skills || []).map((s) => String(s).trim()).filter(Boolean))].slice(0, 40),
+    },
+    updatedAt: { type: Date },
+  },
+  { _id: false }
+);
+
 const userSchema = new mongoose.Schema(
   {
     name: { type: String, required: true, trim: true },
@@ -30,13 +70,13 @@ const userSchema = new mongoose.Schema(
       set: (skills) =>
         [...new Set((skills || []).map((s) => String(s).trim().toLowerCase()).filter(Boolean))].slice(0, 40),
     },
+    resumeDraft: { type: resumeDraftSchema, default: () => ({}) },
     savedJobs: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Job' }],
     isActive: { type: Boolean, default: true },
   },
   { timestamps: true }
 );
 
-// email unique index comes from `unique: true`
 userSchema.index({ role: 1, companyId: 1 });
 
 userSchema.pre('validate', function validateRecruiterCompany(next) {

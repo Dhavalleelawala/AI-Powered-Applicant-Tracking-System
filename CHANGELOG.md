@@ -3,6 +3,12 @@
 All notable Rolefit changes are listed here. Newest first.
 Epics are tracked in [`docs/EPICS.md`](./docs/EPICS.md) — **one completed epic → one commit**.
 
+## 2026-08-06 (E10 — Applicant resume builder)
+
+- Applicants can create/edit a structured resume (summary, experience, education, skills)
+- Download PDF (`GET /api/auth/resume.pdf`) and attach via **Use Rolefit resume** on apply
+- Nav link: Resume · syncs skills to profile on save
+
 ## 2026-08-06 (E7 — Cloud deploy kit)
 
 - Added Atlas + Render checklist (`docs/16-deploy-checklist.md`)

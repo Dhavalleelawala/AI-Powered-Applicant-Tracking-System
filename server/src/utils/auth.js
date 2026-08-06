@@ -3,6 +3,7 @@ const config = require('../config');
 const AppError = require('./AppError');
 
 function toSafeUser(user) {
+  const draft = user.resumeDraft || {};
   return {
     id: String(user._id || user.id),
     name: user.name,
@@ -15,6 +16,13 @@ function toSafeUser(user) {
     experienceYears: user.experienceYears || 0,
     skills: user.skills || [],
     savedJobs: (user.savedJobs || []).map((id) => String(id)),
+    resumeDraft: {
+      summary: draft.summary || '',
+      experience: draft.experience || [],
+      education: draft.education || [],
+      skills: draft.skills || [],
+      updatedAt: draft.updatedAt || null,
+    },
   };
 }
 

@@ -18,6 +18,9 @@ export const authApi = {
   updateProfile: (data) => api.patch('/auth/me', data),
   savedJobs: () => api.get('/auth/saved-jobs'),
   toggleSavedJob: (jobId) => api.post(`/auth/saved-jobs/${jobId}`),
+  getResume: () => api.get('/auth/resume'),
+  saveResume: (data) => api.put('/auth/resume', data),
+  downloadResumePdf: () => api.get('/auth/resume.pdf', { responseType: 'blob' }),
 };
 
 export const jobsApi = {

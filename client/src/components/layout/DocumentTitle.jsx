@@ -11,6 +11,7 @@ const TITLES = [
   [/^\/applicant\/applications$/, 'My applications — Rolefit'],
   [/^\/applicant\/jobs\/[^/]+\/apply$/, 'Apply — Rolefit'],
   [/^\/applicant\/profile$/, 'Profile — Rolefit'],
+  [/^\/applicant\/resume$/, 'Resume builder — Rolefit'],
   [/^\/applicant\/saved$/, 'Saved roles — Rolefit'],
   [/^\/recruiter$/, 'Hiring dashboard — Rolefit'],
   [/^\/recruiter\/candidates$/, 'Candidates — Rolefit'],

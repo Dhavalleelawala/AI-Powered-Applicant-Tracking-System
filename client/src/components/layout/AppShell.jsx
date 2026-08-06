@@ -63,6 +63,7 @@ export function AppShell({ children }) {
         ? [
             ['Jobs', '/jobs'],
             ['Applications', '/applicant/applications'],
+            ['Resume', '/applicant/resume'],
             ['Saved', '/applicant/saved'],
             ['Profile', '/applicant/profile'],
           ]

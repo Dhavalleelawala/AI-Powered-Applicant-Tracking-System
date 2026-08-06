@@ -63,6 +63,12 @@ Status: `planned` · `in_progress` · `done`
 - **Notes:** Atlas+Render checklist, `npm run preflight`, richer `/api/health`, Blueprint `render.yaml` service name. Live URL still needs your Atlas URI + Render login.
 - **Paths:** `docs/16-deploy-checklist.md`, `server/src/scripts/preflight.js`, `render.yaml`, `server/src/controllers/healthController.js`
 
+### E10 — Applicant resume builder
+- **Status:** done
+- **Shipped:** 2026-08-06
+- **Notes:** Structured resume draft on User; PDF via pdfkit; builder UI; apply “Use Rolefit resume”.
+- **Paths:** `server/src/services/resumePdfService.js`, `client/src/pages/applicant/ResumeBuilderPage.jsx`, auth resume routes
+
 ---
 
 ## Planned (next)
