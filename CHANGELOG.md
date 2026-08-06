@@ -1,6 +1,12 @@
 # Changelog
 
 All notable Rolefit changes are listed here. Newest first.
+Epics are tracked in [`docs/EPICS.md`](./docs/EPICS.md) — **one completed epic → one commit**.
+
+## 2026-08-06 (E0 — epic workflow & auto docs)
+
+- Added epic tracker and Cursor rule: complete epic → update docs → single commit
+- Comment policy: sparse, why-focused; docs auto-managed via EPICS + CHANGELOG
 
 ## 2026-08-06 (UI refresh)
 

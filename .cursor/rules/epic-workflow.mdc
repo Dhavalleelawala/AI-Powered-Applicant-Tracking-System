@@ -1,0 +1,45 @@
+---
+description: Epic workflow — auto docs + one commit per completed epic
+alwaysApply: true
+---
+
+# Epic workflow (Rolefit)
+
+## Rule
+
+Work in **epics**. When an epic is **complete**, do all of the following in the same turn:
+
+1. Update `docs/EPICS.md` — mark the epic `done`, add ship notes (what / why / key paths).
+2. Update `CHANGELOG.md` — short bullet(s) under today’s date for that epic only.
+3. Keep code comments **useful and sparse** (module/purpose, non-obvious why) — no noisy line-by-line comments.
+4. **Create one git commit** for that epic (do not wait for the user to ask). Push only if the user already asked to push or the session pattern has been push-on-continue.
+5. Start or continue the next epic only after the commit succeeds.
+
+## Commit message
+
+Use a focused message that names the epic outcome, e.g.:
+
+```
+Complete epic: candidate directory search and pagination.
+
+```
+
+## While an epic is in progress
+
+- Do **not** create drive-by commits for tiny intermediate edits.
+- Keep `docs/EPICS.md` status as `in_progress` for the active epic.
+- Prefer updating docs at epic end, not after every micro-change.
+
+## Docs ownership
+
+| File | Auto-update when |
+|------|------------------|
+| `docs/EPICS.md` | Epic starts / completes |
+| `CHANGELOG.md` | Epic completes |
+| `README.md` | Only if user-facing run/deploy steps change |
+
+## Comments policy
+
+- Comment **why**, not what the code already says.
+- Public/service entry points may have a one-line purpose comment.
+- Do not add changelog-style comments inside source files.

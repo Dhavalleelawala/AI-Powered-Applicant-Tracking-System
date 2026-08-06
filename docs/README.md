@@ -1,5 +1,12 @@
 # AI-Powered ATS — Documentation Hub
 
+## Active delivery
+
+| Doc | Purpose |
+|-----|---------|
+| **[EPICS.md](./EPICS.md)** | Living epic tracker — complete epic → update docs → one commit |
+| [../CHANGELOG.md](../CHANGELOG.md) | Shipped milestones |
+
 ## Choose Your Path
 
 | Audience | Go to |

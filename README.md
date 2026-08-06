@@ -124,8 +124,8 @@ The production image serves the React app and API together (`SERVE_CLIENT=true`,
 
 ## Docs
 
-See [CHANGELOG.md](./CHANGELOG.md) for shipped milestones. Product/architecture notes live under [`docs/`](./docs/).
-
+- **Epics (active work):** [`docs/EPICS.md`](./docs/EPICS.md) — one completed epic → one commit
+- **Changelog:** [CHANGELOG.md](./CHANGELOG.md)
 - Product / delivery: [`docs/pro/`](./docs/pro/README.md)
 - Implementation: [`docs/`](./docs/README.md)
 - Day-by-day plan: [`docs/15-development-timeline-4weeks-5days.md`](./docs/15-development-timeline-4weeks-5days.md)
