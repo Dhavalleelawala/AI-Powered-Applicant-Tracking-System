@@ -463,6 +463,29 @@ a { color: inherit; }
   color: #0f8a5f;
 }
 
+.rf-feedback--empty {
+  padding: clamp(2.5rem, 6vw, 4rem) 1rem;
+  text-align: center;
+  border: 1px dashed var(--rf-line);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.45);
+}
+
+.rf-feedback--error,
+.rf-feedback--success,
+.rf-feedback--info,
+.rf-feedback--warning {
+  border: 1px solid transparent;
+}
+
+.rf-feedback--error {
+  border-color: rgba(214, 69, 69, 0.28);
+}
+
+.rf-feedback--success {
+  border-color: rgba(15, 138, 95, 0.28);
+}
+
 .attention-row {
   display: flex;
   flex-wrap: wrap;

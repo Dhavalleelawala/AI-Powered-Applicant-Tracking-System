@@ -32,7 +32,7 @@ import { applicationsApi, hiringApi, jobsApi } from '../../api/client';
 import { CandidateDrawer } from '../../components/recruiter/CandidateDrawer';
 import { AppBreadcrumbs } from '../../components/ui/AppBreadcrumbs';
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
-import { EmptyState, LoadingRows, Page, PageHeader, SectionLabel, StatTile, FunnelBars } from '../../components/ui/Primitives';
+import { EmptyState, ErrorState, LoadingRows, Page, PageHeader, SectionLabel, StatTile, FunnelBars } from '../../components/ui/Primitives';
 import { useToast } from '../../context/ToastContext';
 import { useUrlFilters } from '../../hooks/useUrlFilters';
 import { useBeforeUnloadWarning, useLeaveConfirm } from '../../hooks/useUnsavedWarning';
@@ -146,7 +146,7 @@ export function DashboardPage() {
             <Skeleton height={64} />
           </Stack>
         ) : attentionError ? (
-          <Alert severity="error">{String(attentionError)}</Alert>
+          <ErrorState error={attentionError} onRetry={refetchAttention} title="Couldn’t load attention queue" />
         ) : attentionTotal === 0 ? (
           <Typography color="text.secondary">Queue is clear. New applicants will land here first.</Typography>
         ) : (
@@ -225,22 +225,15 @@ export function DashboardPage() {
       </Paper>
 
       {error ? (
-        <Alert
-          severity="error"
-          action={
-            <Button
-              onClick={() => {
-                refetchJobs();
-                refetchAnalytics();
-              }}
-            >
-              Retry
-            </Button>
-          }
+        <ErrorState
+          error={error}
+          title="Couldn’t load hiring data"
+          onRetry={() => {
+            refetchJobs();
+            refetchAnalytics();
+          }}
           sx={{ mt: 3 }}
-        >
-          {String(error)}
-        </Alert>
+        />
       ) : (
         <>
           <Typography variant="h3" mt={5} mb={2} fontSize={28}>
@@ -819,14 +812,10 @@ export function PipelinePage() {
           {isLoading ? 'Loading…' : `${apps.length} candidate${apps.length === 1 ? '' : 's'}`}
         </Typography>
         {(move.error || addNote.error || bulkMove.error) && (
-          <Alert severity="error">{String(move.error || addNote.error || bulkMove.error)}</Alert>
+          <ErrorState error={move.error || addNote.error || bulkMove.error} title="Action failed" />
         )}
       </Stack>
-      {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {String(error)}
-        </Alert>
-      )}
+      {error && <ErrorState error={error} title="Couldn’t load pipeline" sx={{ mb: 2 }} />}
       {!isLoading && apps.length === 0 ? (
         <EmptyState
           title="No applications yet."
@@ -1016,9 +1005,7 @@ export function CandidatesPage() {
         </Grid>
       </Paper>
       {error ? (
-        <Alert severity="error" action={<Button onClick={refetch}>Retry</Button>}>
-          {String(error)}
-        </Alert>
+        <ErrorState error={error} onRetry={refetch} title="Couldn’t load candidates" />
       ) : isLoading ? (
         <LoadingRows />
       ) : candidates.length ? (
@@ -1215,9 +1202,7 @@ export function RankingPage() {
         {isLoading ? 'Ranking candidates…' : `${apps.length} candidate${apps.length === 1 ? '' : 's'}`}
       </Typography>
       {(error || actionError) && (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {error || actionError}
-        </Alert>
+        <ErrorState error={error || actionError} title="Couldn’t load ranking" sx={{ mb: 2 }} />
       )}
       <Stack spacing={1.5}>
         {isLoading ? (

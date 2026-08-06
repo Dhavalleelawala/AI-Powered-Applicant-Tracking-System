@@ -18,7 +18,7 @@ import { Link } from 'react-router-dom';
 import { authApi } from '../../api/client';
 import { AppBreadcrumbs } from '../../components/ui/AppBreadcrumbs';
 import { ApplicantJourney, JourneyFooter } from '../../components/applicant/ApplicantJourney';
-import { LoadingRows, Page, PageHeader } from '../../components/ui/Primitives';
+import { ErrorState, LoadingRows, Page, PageHeader } from '../../components/ui/Primitives';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { useBeforeUnloadWarning } from '../../hooks/useUnsavedWarning';
@@ -241,11 +241,7 @@ export function ResumeBuilderPage() {
         )}
       </Paper>
 
-      {error && (
-        <Alert severity="error" action={<Button onClick={refetch}>Retry</Button>} sx={{ mb: 2 }}>
-          {String(error)}
-        </Alert>
-      )}
+      {error && <ErrorState error={error} onRetry={refetch} title="Couldn’t load resume" sx={{ mb: 2 }} />}
 
       <Stack spacing={2.5} maxWidth={820}>
         <Paper sx={{ p: { xs: 2.5, md: 3.25 }, bgcolor: 'rgba(255,255,255,0.96)' }}>

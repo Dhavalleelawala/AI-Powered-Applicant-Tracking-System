@@ -1,3 +1,4 @@
+import { ErrorState } from '../ui/Primitives';
 import { Close, Description, Refresh } from '@mui/icons-material';
 import {
   Alert,
@@ -126,11 +127,7 @@ export function CandidateDrawer({ applicationId, open, onClose, invalidateKeys =
         </Box>
 
         <Box sx={{ px: 2.5, pb: 3, overflow: 'auto' }}>
-          {error && (
-            <Alert severity="error" action={<Button onClick={refetch}>Retry</Button>} sx={{ mb: 2 }}>
-              {String(error)}
-            </Alert>
-          )}
+          {error && <ErrorState error={error} onRetry={refetch} title="Couldn’t load candidate" sx={{ mb: 2 }} />}
           {isLoading && !app ? (
             <Stack spacing={1.5}>
               <Skeleton height={28} />

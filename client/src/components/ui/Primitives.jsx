@@ -1,4 +1,4 @@
-import { Box, Button, Chip, Container, Paper, Skeleton, Stack, Typography } from '@mui/material';
+import { Alert, Box, Button, Chip, Container, Paper, Skeleton, Stack, Typography } from '@mui/material';
 import { Link } from 'react-router-dom';
 
 export function Page({ children, maxWidth = 'lg', narrow = false, className = 'page-enter' }) {
@@ -53,17 +53,7 @@ export function PageHeader({ eyebrow, title, subtitle, actions }) {
 
 export function EmptyState({ title, text, actionLabel, actionTo, onAction }) {
   return (
-    <Box
-      sx={{
-        py: { xs: 6, md: 8 },
-        px: 2,
-        textAlign: 'center',
-        border: '1px dashed',
-        borderColor: 'divider',
-        borderRadius: 3,
-        bgcolor: 'rgba(255,255,255,0.45)',
-      }}
-    >
+    <Box className="rf-feedback rf-feedback--empty">
       <Typography variant="h3" fontSize={{ xs: 24, md: 30 }}>
         {title}
       </Typography>
@@ -88,12 +78,88 @@ export function EmptyState({ title, text, actionLabel, actionTo, onAction }) {
 
 export function LoadingRows({ count = 3, height = 96 }) {
   return (
-    <Stack spacing={1.75}>
+    <Stack spacing={1.75} className="rf-feedback rf-feedback--loading" aria-busy="true" aria-label="Loading">
       {Array.from({ length: count }).map((_, index) => (
         <Skeleton key={index} variant="rounded" height={height} sx={{ borderRadius: 2.5 }} />
       ))}
     </Stack>
   );
+}
+
+/** Compact page-level skeleton for detail screens. */
+export function PageSkeleton({ lines = 3 }) {
+  return (
+    <Stack spacing={1.5} className="rf-feedback rf-feedback--loading" aria-busy="true" aria-label="Loading">
+      <Skeleton height={36} width="32%" />
+      <Skeleton height={56} width="70%" />
+      {Array.from({ length: lines }).map((_, index) => (
+        <Skeleton key={index} height={index === lines - 1 ? 200 : 72} />
+      ))}
+    </Stack>
+  );
+}
+
+export function ErrorState({ error, onRetry, title = 'Something went wrong', sx }) {
+  return (
+    <Alert
+      className="rf-feedback rf-feedback--error"
+      severity="error"
+      sx={{ borderRadius: 2, ...sx }}
+      action={
+        onRetry ? (
+          <Button color="inherit" size="small" onClick={onRetry}>
+            Retry
+          </Button>
+        ) : null
+      }
+    >
+      <Typography component="span" fontWeight={700} display="block" sx={{ mb: 0.35 }}>
+        {title}
+      </Typography>
+      {String(error || 'Please try again in a moment.')}
+    </Alert>
+  );
+}
+
+export function SuccessBanner({ children, sx, onClose }) {
+  return (
+    <Alert className="rf-feedback rf-feedback--success" severity="success" sx={{ borderRadius: 2, mb: 2.5, ...sx }} onClose={onClose}>
+      {children}
+    </Alert>
+  );
+}
+
+export function InfoBanner({ children, sx, action }) {
+  return (
+    <Alert className="rf-feedback rf-feedback--info" severity="info" sx={{ borderRadius: 2, mb: 2, ...sx }} action={action}>
+      {children}
+    </Alert>
+  );
+}
+
+export function WarningBanner({ children, sx, action }) {
+  return (
+    <Alert className="rf-feedback rf-feedback--warning" severity="warning" sx={{ borderRadius: 2, mb: 2, ...sx }} action={action}>
+      {children}
+    </Alert>
+  );
+}
+
+/**
+ * Standard query render path: error → loading → empty → content.
+ * Keeps pages from inventing one-off Alert/Skeleton stacks.
+ */
+export function QueryState({ isLoading, error, onRetry, isEmpty, empty, loading, children, errorTitle }) {
+  if (error) {
+    return <ErrorState error={error} onRetry={onRetry} title={errorTitle} />;
+  }
+  if (isLoading) {
+    return loading || <LoadingRows />;
+  }
+  if (isEmpty) {
+    return empty || null;
+  }
+  return children;
 }
 
 export function StageChip({ stage }) {

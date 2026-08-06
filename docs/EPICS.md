@@ -101,13 +101,17 @@ Status: `planned` · `in_progress` · `done`
 - **Notes:** `GET /recruiter/attention`; CandidateDrawer with AI brief/advance/reject/notes; wired from dashboard, directory, pipeline.
 - **Paths:** `hiringService.js`, `CandidateDrawer.jsx`, `RecruiterPages.jsx`
 
+### E15 — System feedback kit
+- **Status:** done
+- **Goal:** Unified empty/loading/error/success patterns across surfaces.
+- **Accept:** Shared feedback primitives used on public, applicant, and recruiter pages; consistent retry/empty CTAs.
+- **Shipped:** 2026-08-06
+- **Notes:** ErrorState, QueryState, SuccessBanner, PageSkeleton; adopted across jobs/apps/saved/recruiter; toast + offline + boundary aligned.
+- **Paths:** `client/src/components/ui/Primitives.jsx`, pages, `ToastContext`, `ErrorBoundary`
+
 ---
 
 ## Planned (next)
-
-### E15 — System feedback kit
-- **Status:** planned
-- **Goal:** Unified empty/loading/error/success patterns across surfaces.
 
 ### E7b — Live production cutover
 - **Status:** planned

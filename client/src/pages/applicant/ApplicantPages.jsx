@@ -21,7 +21,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { applicationsApi, authApi, jobsApi } from '../../api/client';
-import { EmptyState, LoadingRows, Page, PageHeader, StageChip } from '../../components/ui/Primitives';
+import { EmptyState, ErrorState, LoadingRows, Page, PageHeader, QueryState, StageChip, SuccessBanner } from '../../components/ui/Primitives';
 import { AppBreadcrumbs } from '../../components/ui/AppBreadcrumbs';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
@@ -150,11 +150,7 @@ export function ApplyJobPage() {
         ))}
       </Box>
 
-      {jobError ? (
-        <Alert severity="error" action={<Button onClick={refetchJob}>Retry</Button>} sx={{ mb: 2 }}>
-          {String(jobError)}
-        </Alert>
-      ) : null}
+      {jobError ? <ErrorState error={jobError} onRetry={refetchJob} title="Couldn’t load this role" sx={{ mb: 2 }} /> : null}
       {jobLoading && !job ? <LinearProgress color="secondary" sx={{ mb: 2, borderRadius: 1 }} /> : null}
 
       <Paper sx={{ p: { xs: 3, md: 4 }, bgcolor: 'rgba(255,255,255,0.92)' }}>
@@ -548,18 +544,27 @@ export function MyApplicationsPage() {
         }
       />
       {justApplied && (
-        <Alert severity="success" sx={{ mb: 2.5 }}>
-          Application submitted{justAppliedTitle ? ` for ${justAppliedTitle}` : ''}. AI is scoring your resume —
-          this list updates automatically.
-        </Alert>
+        <SuccessBanner>
+          Application submitted{justAppliedTitle ? ` for ${justAppliedTitle}` : ''}. AI is scoring your resume — this list
+          updates automatically.
+        </SuccessBanner>
       )}
-      {error ? (
-        <Alert severity="error" action={<Button onClick={refetch}>Retry</Button>}>
-          {String(error)}
-        </Alert>
-      ) : isLoading ? (
-        <LoadingRows count={3} height={160} />
-      ) : apps.length ? (
+      <QueryState
+        isLoading={isLoading}
+        error={error}
+        onRetry={refetch}
+        errorTitle="Couldn’t load applications"
+        isEmpty={!apps.length}
+        loading={<LoadingRows count={3} height={160} />}
+        empty={
+          <EmptyState
+            title="No applications yet."
+            text="Explore open roles and take the first step — your pipeline will show up here."
+            actionLabel="Browse roles"
+            actionTo="/jobs"
+          />
+        }
+      >
         <Stack spacing={2}>
           <Stack direction="row" gap={1} flexWrap="wrap" useFlexGap>
             {[
@@ -581,14 +586,7 @@ export function MyApplicationsPage() {
             <ApplicationCard key={a.id || a._id} application={a} />
           ))}
         </Stack>
-      ) : (
-        <EmptyState
-          title="No applications yet."
-          text="Explore open roles and take the first step — your pipeline will show up here."
-          actionLabel="Browse roles"
-          actionTo="/jobs"
-        />
-      )}
+      </QueryState>
     </Page>
   );
 }
@@ -910,13 +908,21 @@ export function SavedJobsPage() {
           quickly from these saved roles.
         </Alert>
       )}
-      {error ? (
-        <Alert severity="error" action={<Button onClick={refetch}>Retry</Button>}>
-          {String(error)}
-        </Alert>
-      ) : isLoading ? (
-        <LoadingRows />
-      ) : jobs.length ? (
+      <QueryState
+        isLoading={isLoading}
+        error={error}
+        onRetry={refetch}
+        errorTitle="Couldn’t load saved roles"
+        isEmpty={!jobs.length}
+        empty={
+          <EmptyState
+            title="No saved roles yet."
+            text="Save roles while you explore to find them here."
+            actionLabel="Browse roles"
+            actionTo="/jobs"
+          />
+        }
+      >
         <Stack spacing={1.5}>
           {jobs.map((job) => {
             const id = job.id || job._id;
@@ -975,16 +981,9 @@ export function SavedJobsPage() {
               </Paper>
             );
           })}
-          {toggleSaved.error && <Alert severity="error">{String(toggleSaved.error)}</Alert>}
+          {toggleSaved.error && <ErrorState error={toggleSaved.error} title="Couldn’t update saved roles" />}
         </Stack>
-      ) : (
-        <EmptyState
-          title="No saved roles yet."
-          text="Save roles while you explore to find them here."
-          actionLabel="Browse roles"
-          actionTo="/jobs"
-        />
-      )}
+      </QueryState>
     </Page>
   );
 }

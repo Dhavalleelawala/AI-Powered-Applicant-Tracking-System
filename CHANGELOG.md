@@ -3,6 +3,12 @@
 All notable Rolefit changes are listed here. Newest first.
 Epics are tracked in [`docs/EPICS.md`](./docs/EPICS.md) — **one completed epic → one commit**.
 
+## 2026-08-06 (E15 — System feedback kit)
+
+- Shared `ErrorState`, `QueryState`, `SuccessBanner`, `InfoBanner`, `WarningBanner`, `PageSkeleton`
+- Jobs, applications, saved roles, recruiter surfaces use consistent retry/empty/loading patterns
+- Toasts keep errors longer; offline banner + ErrorBoundary aligned to the same feedback language
+
 ## 2026-08-06 (E14 — Recruiter decision cockpit)
 
 - Dashboard “Needs attention” queue: ready-to-advance, aging, interview follow-up, AI scoring

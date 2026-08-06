@@ -14,18 +14,23 @@ export function ToastProvider({ children }) {
     setToast({ open: true, message: String(message || 'Something went wrong'), severity: 'error' });
   }, []);
 
-  const value = useMemo(() => ({ showToast, showError }), [showToast, showError]);
+  const showInfo = useCallback((message) => {
+    setToast({ open: true, message: String(message || ''), severity: 'info' });
+  }, []);
+
+  const value = useMemo(() => ({ showToast, showError, showInfo }), [showToast, showError, showInfo]);
 
   return (
     <ToastContext.Provider value={value}>
       {children}
       <Snackbar
         open={toast.open}
-        autoHideDuration={3500}
+        autoHideDuration={toast.severity === 'error' ? 5200 : 3500}
         onClose={() => setToast((current) => ({ ...current, open: false }))}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       >
         <Alert
+          className={`rf-feedback rf-feedback--${toast.severity === 'error' ? 'error' : toast.severity === 'info' ? 'info' : 'success'}`}
           severity={toast.severity}
           variant="filled"
           onClose={() => setToast((current) => ({ ...current, open: false }))}
@@ -41,7 +46,7 @@ export function ToastProvider({ children }) {
 export function useToast() {
   const ctx = useContext(ToastContext);
   if (!ctx) {
-    return { showToast: () => undefined, showError: () => undefined };
+    return { showToast: () => undefined, showError: () => undefined, showInfo: () => undefined };
   }
   return ctx;
 }

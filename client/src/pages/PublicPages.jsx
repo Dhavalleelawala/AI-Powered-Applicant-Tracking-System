@@ -20,7 +20,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { authApi, jobsApi, applicationsApi } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
-import { EmptyState, Page, PageHeader } from '../components/ui/Primitives';
+import { EmptyState, ErrorState, LoadingRows, Page, PageHeader, PageSkeleton, QueryState } from '../components/ui/Primitives';
 import { useUrlFilters } from '../hooks/useUrlFilters';
 
 export function LandingPage() {
@@ -214,30 +214,38 @@ export function JobsPage() {
       </Paper>
 
       {error ? (
-        <Alert severity="error" action={<Button onClick={refetch}>Retry</Button>}>
-          {String(error)}
-        </Alert>
+        <ErrorState error={error} onRetry={refetch} title="Couldn’t load roles" />
       ) : (
         <>
           <Typography variant="body2" color="text.secondary" mb={1.5} aria-live="polite">
             {isLoading ? 'Loading roles…' : `${jobs.length} role${jobs.length === 1 ? '' : 's'}${isFetching ? ' · updating' : ''}`}
           </Typography>
-          <Box className="job-list" role="list">
-            {isLoading
-              ? Array.from({ length: 5 }).map((_, i) => (
+          <QueryState
+            isLoading={isLoading}
+            error={null}
+            isEmpty={!jobs.length}
+            loading={
+              <Box className="job-list">
+                {Array.from({ length: 5 }).map((_, i) => (
                   <Skeleton key={i} variant="rounded" height={96} sx={{ mb: 1.25, borderRadius: 2 }} />
-                ))
-              : jobs.length
-                ? jobs.map((job) => <JobRow key={job.id || job._id} job={job} />)
-                : (
-                  <EmptyState
-                    title="No roles match that search."
-                    text="Try a different title, skill, or clear filters to see everything open."
-                    actionLabel={activeCount ? 'Clear filters' : undefined}
-                    onAction={activeCount ? clearFilters : undefined}
-                  />
-                )}
-          </Box>
+                ))}
+              </Box>
+            }
+            empty={
+              <EmptyState
+                title="No roles match that search."
+                text="Try a different title, skill, or clear filters to see everything open."
+                actionLabel={activeCount ? 'Clear filters' : undefined}
+                onAction={activeCount ? clearFilters : undefined}
+              />
+            }
+          >
+            <Box className="job-list" role="list">
+              {jobs.map((job) => (
+                <JobRow key={job.id || job._id} job={job} />
+              ))}
+            </Box>
+          </QueryState>
         </>
       )}
     </Page>
@@ -409,18 +417,14 @@ export function JobDetailPage() {
   if (isLoading) {
     return (
       <Page>
-        <Skeleton height={36} width="30%" />
-        <Skeleton height={64} width="70%" sx={{ mt: 1 }} />
-        <Skeleton height={280} sx={{ mt: 3 }} />
+        <PageSkeleton lines={3} />
       </Page>
     );
   }
   if (error) {
     return (
       <Page narrow>
-        <Alert severity="error" action={<Button onClick={refetch}>Retry</Button>}>
-          {String(error)}
-        </Alert>
+        <ErrorState error={error} onRetry={refetch} title="Couldn’t load this role" />
       </Page>
     );
   }

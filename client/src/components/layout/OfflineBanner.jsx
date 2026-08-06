@@ -18,6 +18,7 @@ export function OfflineBanner() {
   return (
     <Slide direction="down" in={!online} mountOnEnter unmountOnExit>
       <Alert
+        className="rf-feedback rf-feedback--warning"
         severity="warning"
         sx={{
           borderRadius: 0,
