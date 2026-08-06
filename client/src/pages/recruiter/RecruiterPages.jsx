@@ -1,4 +1,4 @@
-import { Add, Archive, Description, Refresh } from '@mui/icons-material';
+import { Add, Archive, Description, Refresh, ArrowForward } from '@mui/icons-material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import {
   Accordion,
@@ -9,9 +9,11 @@ import {
   Button,
   Checkbox,
   Chip,
+  Collapse,
   Grid,
   MenuItem,
   Paper,
+  Skeleton,
   Slider,
   Stack,
   Table,
@@ -22,7 +24,6 @@ import {
   TableRow,
   TextField,
   Typography,
-  Skeleton,
 } from '@mui/material';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useState } from 'react';
@@ -418,6 +419,7 @@ export function JobFormPage() {
 }
 
 const stages = ['applied', 'interview', 'offered', 'rejected'];
+const nextStageOf = { applied: 'interview', interview: 'offered', offered: null, rejected: null };
 
 async function openResume(applicationId) {
   const res = await applicationsApi.resumeUrl(applicationId);
@@ -431,6 +433,150 @@ async function openResume(applicationId) {
   window.open(`${apiBase}${url}`, '_blank', 'noopener,noreferrer');
 }
 
+function PipelineCard({
+  application: a,
+  stage,
+  selected,
+  onToggle,
+  onAdvance,
+  onReject,
+  onDropStage,
+  notes,
+  setNote,
+  onAddNote,
+  notePending,
+  movePending,
+  onResume,
+}) {
+  const id = a.id || a._id;
+  const [openNotes, setOpenNotes] = useState(false);
+  const [dragging, setDragging] = useState(false);
+  const next = nextStageOf[stage];
+  const name = a.applicant?.name || a.applicantName || a.applicantId?.name || 'Candidate';
+  const email = a.applicant?.email || a.applicantEmail || a.applicantId?.email || '';
+  const score = a.aiAnalysis?.matchScore ?? a.matchScore;
+  const recentNotes = (a.recruiterNotes || []).slice(-2);
+
+  return (
+    <Paper
+      className={`pipeline-card${dragging ? ' is-dragging' : ''}`}
+      draggable
+      onDragStart={(event) => {
+        event.dataTransfer.setData('applicationId', id);
+        event.dataTransfer.setData('fromStage', stage);
+        event.dataTransfer.effectAllowed = 'move';
+        setDragging(true);
+      }}
+      onDragEnd={() => setDragging(false)}
+      sx={{ p: 1.5, bgcolor: '#fff', borderColor: selected ? 'secondary.main' : 'divider' }}
+    >
+      <Stack direction="row" alignItems="flex-start" spacing={0.5}>
+        <Checkbox
+          size="small"
+          checked={selected}
+          onChange={onToggle}
+          inputProps={{ 'aria-label': `Select ${name}` }}
+          sx={{ p: 0.25, mt: -0.25 }}
+        />
+        <Box sx={{ flex: 1, minWidth: 0 }}>
+          <Typography fontWeight={700} fontSize={14} noWrap title={name}>
+            {name}
+          </Typography>
+          <Typography variant="caption" color="text.secondary" sx={{ wordBreak: 'break-all', display: 'block' }}>
+            {email}
+          </Typography>
+        </Box>
+        <Chip label={score == null ? '—' : `${score}`} color="secondary" size="small" sx={{ height: 22, fontSize: 11 }} />
+      </Stack>
+
+      <Stack direction="row" spacing={0.75} mt={1.25} flexWrap="wrap" useFlexGap>
+        {next && (
+          <Button
+            size="small"
+            variant="contained"
+            color="secondary"
+            endIcon={<ArrowForward sx={{ fontSize: 14 }} />}
+            disabled={movePending}
+            onClick={() => onAdvance(a, next)}
+            sx={{ py: 0.25, px: 1, fontSize: 12, minHeight: 28 }}
+          >
+            {next}
+          </Button>
+        )}
+        {stage !== 'rejected' && (
+          <Button
+            size="small"
+            color="error"
+            variant="outlined"
+            disabled={movePending}
+            onClick={() => onReject(a)}
+            sx={{ py: 0.25, px: 1, fontSize: 12, minHeight: 28 }}
+          >
+            Reject
+          </Button>
+        )}
+        <Button
+          size="small"
+          startIcon={<Description sx={{ fontSize: 14 }} />}
+          onClick={() => onResume(id)}
+          sx={{ py: 0.25, px: 1, fontSize: 12, minHeight: 28 }}
+        >
+          Resume
+        </Button>
+      </Stack>
+
+      <TextField
+        select
+        size="small"
+        value={stage}
+        onChange={(e) => onDropStage(a, e.target.value)}
+        sx={{ mt: 1.25, width: '100%' }}
+        inputProps={{ 'aria-label': `Move ${name}` }}
+      >
+        {stages.map((s) => (
+          <MenuItem key={s} value={s} sx={{ textTransform: 'capitalize' }}>
+            {s}
+          </MenuItem>
+        ))}
+      </TextField>
+
+      <Button
+        size="small"
+        onClick={() => setOpenNotes((v) => !v)}
+        endIcon={<ExpandMoreIcon sx={{ transform: openNotes ? 'rotate(180deg)' : 'none', transition: 'transform .15s' }} />}
+        sx={{ mt: 0.75, px: 0.5, fontSize: 12 }}
+      >
+        Notes{recentNotes.length ? ` (${recentNotes.length})` : ''}
+      </Button>
+      <Collapse in={openNotes}>
+        <Stack spacing={0.75} mt={0.5}>
+          {recentNotes.map((note) => (
+            <Typography key={note._id || note.createdAt} variant="caption" color="text.secondary">
+              {note.text}
+            </Typography>
+          ))}
+          <Stack direction="row" spacing={0.75}>
+            <TextField
+              size="small"
+              placeholder="Add note"
+              value={notes[id] || ''}
+              onChange={(e) => setNote(id, e.target.value)}
+              fullWidth
+            />
+            <Button
+              size="small"
+              disabled={!notes[id]?.trim() || notePending}
+              onClick={() => onAddNote(id, notes[id])}
+            >
+              Add
+            </Button>
+          </Stack>
+        </Stack>
+      </Collapse>
+    </Paper>
+  );
+}
+
 export function PipelinePage() {
   const { jobId } = useParams();
   const qc = useQueryClient();
@@ -438,6 +584,7 @@ export function PipelinePage() {
   const [selected, setSelected] = useState([]);
   const [notes, setNotes] = useState({});
   const [rejectTarget, setRejectTarget] = useState(null);
+  const [dropStage, setDropStage] = useState(null);
   const { data: job } = useQuery({
     queryKey: ['job', jobId],
     queryFn: () => jobsApi.get(jobId).then((r) => r.data),
@@ -479,15 +626,36 @@ export function PipelinePage() {
     onError: (err) => showError(err),
   });
   const apps = data || [];
+  const byStage = useMemo(() => {
+    const map = Object.fromEntries(stages.map((s) => [s, []]));
+    for (const app of apps) {
+      const stage = stages.includes(app.stage) ? app.stage : 'applied';
+      map[stage].push(app);
+    }
+    return map;
+  }, [apps]);
+
   const toggleSelected = (id) =>
     setSelected((current) => (current.includes(id) ? current.filter((selectedId) => selectedId !== id) : [...current, id]));
 
   const requestStageChange = (application, nextStage) => {
+    if (nextStage === application.stage) return;
     if (nextStage === 'rejected') {
       setRejectTarget(application);
       return;
     }
     move.mutate({ id: application.id || application._id, stage: nextStage });
+  };
+
+  const onColumnDrop = (stage, event) => {
+    event.preventDefault();
+    setDropStage(null);
+    const applicationId = event.dataTransfer.getData('applicationId');
+    const fromStage = event.dataTransfer.getData('fromStage');
+    if (!applicationId || fromStage === stage) return;
+    const application = apps.find((row) => String(row.id || row._id) === String(applicationId));
+    if (!application) return;
+    requestStageChange(application, stage);
   };
 
   return (
@@ -502,17 +670,20 @@ export function PipelinePage() {
       <PageHeader
         eyebrow="PIPELINE"
         title={job?.title ? `${job.title} pipeline` : 'Candidate pipeline'}
-        subtitle="Move each conversation forward with intent."
+        subtitle="Drag cards between columns, or advance in one click."
         actions={
           <Button component={Link} to={`/recruiter/jobs/${jobId}/ranking`} variant="outlined">
             Open ranking
           </Button>
         }
       />
-      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} alignItems={{ sm: 'center' }} mb={3}>
+      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} alignItems={{ sm: 'center' }} mb={2.5}>
         <Button variant="contained" color="secondary" disabled={!selected.length || bulkMove.isPending} onClick={() => bulkMove.mutate(selected)}>
           Move selected to Interview ({selected.length})
         </Button>
+        <Typography variant="body2" color="text.secondary">
+          {isLoading ? 'Loading…' : `${apps.length} candidate${apps.length === 1 ? '' : 's'}`}
+        </Typography>
         {(move.error || addNote.error || bulkMove.error) && (
           <Alert severity="error">{String(move.error || addNote.error || bulkMove.error)}</Alert>
         )}
@@ -530,97 +701,67 @@ export function PipelinePage() {
           actionTo={`/jobs/${jobId}`}
         />
       ) : (
-      <Grid container spacing={2} sx={{ overflowX: { xs: 'auto', lg: 'visible' }, flexWrap: { xs: 'nowrap', lg: 'wrap' }, pb: { xs: 1, lg: 0 } }}>
-        {stages.map((stage) => (
-          <Grid item xs={10} sm={6} lg={3} key={stage} sx={{ minWidth: { xs: 260, lg: 0 } }}>
-            <Paper className="pipeline-column" sx={{ p: 2, minHeight: 420, border: '1px solid', borderColor: 'divider' }}>
-              <Stack direction="row" justifyContent="space-between" alignItems="center">
-                <Typography variant="h3" fontSize={18} sx={{ textTransform: 'capitalize' }}>
-                  {stage}
-                </Typography>
-                <Chip size="small" label={apps.filter((a) => a.stage === stage).length} />
-              </Stack>
-              <Stack spacing={1.25} mt={2}>
-                {isLoading ? (
-                  <Typography variant="body2" color="text.secondary">
-                    Loading…
+        <Box className="pipeline-board" role="list">
+          {stages.map((stage) => {
+            const columnApps = byStage[stage] || [];
+            return (
+              <Paper
+                key={stage}
+                className={`pipeline-column${dropStage === stage ? ' is-drop-target' : ''}`}
+                role="listitem"
+                onDragOver={(event) => {
+                  event.preventDefault();
+                  event.dataTransfer.dropEffect = 'move';
+                  setDropStage(stage);
+                }}
+                onDragLeave={() => setDropStage((current) => (current === stage ? null : current))}
+                onDrop={(event) => onColumnDrop(stage, event)}
+                sx={{ p: 1.75, minHeight: 440, border: '1px solid', borderColor: 'divider' }}
+              >
+                <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1.5}>
+                  <Typography variant="h3" fontSize={16} sx={{ textTransform: 'capitalize' }}>
+                    {stage}
                   </Typography>
-                ) : apps.filter((a) => a.stage === stage).length === 0 ? (
-                  <Typography variant="body2" color="text.secondary" sx={{ py: 2, px: 0.5 }}>
-                    No candidates in {stage}.
-                  </Typography>
-                ) : (
-                  apps
-                    .filter((a) => a.stage === stage)
-                    .map((a) => (
-                      <Paper key={a.id || a._id} sx={{ p: 1.75, bgcolor: '#fff' }}>
-                        <Checkbox
-                          size="small"
-                          checked={selected.includes(a.id || a._id)}
-                          onChange={() => toggleSelected(a.id || a._id)}
-                          inputProps={{ 'aria-label': `Select ${a.applicant?.name || a.applicantName || 'candidate'}` }}
-                          sx={{ float: 'right', p: 0 }}
+                  <Chip size="small" label={isLoading ? '…' : columnApps.length} />
+                </Stack>
+                <Stack spacing={1.1}>
+                  {isLoading ? (
+                    <>
+                      <Skeleton variant="rounded" height={96} />
+                      <Skeleton variant="rounded" height={96} />
+                    </>
+                  ) : columnApps.length === 0 ? (
+                    <Typography variant="body2" color="text.secondary" sx={{ py: 2.5, px: 0.5, textAlign: 'center' }}>
+                      Drop candidates here
+                    </Typography>
+                  ) : (
+                    columnApps.map((a) => {
+                      const id = a.id || a._id;
+                      return (
+                        <PipelineCard
+                          key={id}
+                          application={a}
+                          stage={stage}
+                          selected={selected.includes(id)}
+                          onToggle={() => toggleSelected(id)}
+                          onAdvance={requestStageChange}
+                          onReject={(app) => setRejectTarget(app)}
+                          onDropStage={requestStageChange}
+                          notes={notes}
+                          setNote={(cardId, text) => setNotes((current) => ({ ...current, [cardId]: text }))}
+                          onAddNote={(cardId, text) => addNote.mutate({ id: cardId, text })}
+                          notePending={addNote.isPending}
+                          movePending={move.isPending}
+                          onResume={(cardId) => openResume(cardId).catch((err) => showError(err.message || err))}
                         />
-                        <Typography fontWeight={700}>{a.applicant?.name || a.applicantName || a.applicantId?.name}</Typography>
-                        <Typography variant="body2" color="text.secondary" sx={{ wordBreak: 'break-all' }}>
-                          {a.applicant?.email || a.applicantEmail || a.applicantId?.email}
-                        </Typography>
-                        <Chip
-                          label={`${a.aiAnalysis?.matchScore ?? a.matchScore ?? '—'} match`}
-                          color="secondary"
-                          size="small"
-                          sx={{ mt: 1 }}
-                        />
-                        <TextField
-                          select
-                          size="small"
-                          value={stage}
-                          onChange={(e) => requestStageChange(a, e.target.value)}
-                          sx={{ mt: 1.5, width: '100%' }}
-                        >
-                          {stages.map((s) => (
-                            <MenuItem key={s} value={s}>
-                              Move to {s}
-                            </MenuItem>
-                          ))}
-                        </TextField>
-                        {(a.recruiterNotes || []).slice(-2).map((note) => (
-                          <Typography key={note._id || note.createdAt} variant="caption" color="text.secondary" display="block" mt={1}>
-                            Note: {note.text}
-                          </Typography>
-                        ))}
-                        <Stack direction="row" spacing={1} mt={1}>
-                          <TextField
-                            size="small"
-                            label="Note"
-                            value={notes[a.id || a._id] || ''}
-                            onChange={(e) => setNotes({ ...notes, [a.id || a._id]: e.target.value })}
-                            fullWidth
-                          />
-                          <Button
-                            size="small"
-                            disabled={!notes[a.id || a._id]?.trim() || addNote.isPending}
-                            onClick={() => addNote.mutate({ id: a.id || a._id, text: notes[a.id || a._id] })}
-                          >
-                            Add
-                          </Button>
-                        </Stack>
-                        <Button
-                          size="small"
-                          startIcon={<Description />}
-                          sx={{ mt: 1 }}
-                          onClick={() => openResume(a.id || a._id).catch((err) => showError(err.message || err))}
-                        >
-                          Resume
-                        </Button>
-                      </Paper>
-                    ))
-                )}
-              </Stack>
-            </Paper>
-          </Grid>
-        ))}
-      </Grid>
+                      );
+                    })
+                  )}
+                </Stack>
+              </Paper>
+            );
+          })}
+        </Box>
       )}
       <ConfirmDialog
         open={Boolean(rejectTarget)}

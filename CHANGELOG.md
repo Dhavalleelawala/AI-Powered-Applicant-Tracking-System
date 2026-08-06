@@ -3,6 +3,12 @@
 All notable Rolefit changes are listed here. Newest first.
 Epics are tracked in [`docs/EPICS.md`](./docs/EPICS.md) — **one completed epic → one commit**.
 
+## 2026-08-06 (E5 — Pipeline Kanban UX)
+
+- Drag candidates between pipeline columns (drop highlight)
+- One-click advance to next stage + reject confirm
+- Denser cards; notes collapse; column skeletons; mobile snap-scroll board
+
 ## 2026-08-06 (E0 — epic workflow & auto docs)
 
 - Added epic tracker and Cursor rule: complete epic → update docs → single commit

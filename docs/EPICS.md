@@ -39,14 +39,15 @@ Status: `planned` · `in_progress` · `done`
 - **Notes:** `SEED_ON_EMPTY`, ErrorBoundary, Render/Docker seed defaults, CHANGELOG.
 - **Paths:** `server/src/scripts/seed.js`, `server/src/server.js`, `render.yaml`
 
+### E5 — Pipeline Kanban UX depth
+- **Status:** done
+- **Shipped:** 2026-08-06
+- **Notes:** Native drag-and-drop between columns; one-click advance; denser cards with collapsible notes; snap-scroll mobile board; column skeletons.
+- **Paths:** `client/src/pages/recruiter/RecruiterPages.jsx`, `client/src/styles.css`
+
 ---
 
 ## Planned (next)
-
-### E5 — Pipeline Kanban UX depth
-- **Status:** planned
-- **Goal:** Drag-and-drop stages (or clearer stage controls), denser cards, better mobile horizontal board, loading skeletons per column.
-- **Accept:** Recruiter can move a candidate stage in under two clicks on desktop and phone without losing context.
 
 ### E6 — Applicant applications polish
 - **Status:** planned
