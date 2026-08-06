@@ -2,7 +2,13 @@
 
 All notable Rolefit changes are listed here. Newest first.
 
-## 2026-08-06 (demo polish)
+## 2026-08-06 (UI refresh)
+
+### Visual & UX
+- Stronger Rolefit theme: focus rings, table hover, funnel bars, brand mark
+- Cleaner shell CTAs; landing hero + how-it-works section
+- Auth split panel; clickable job cards; frosted filter bar
+- Stat tiles with accent rails; calmer empty states
 
 ### Fixes
 - Recruiters no longer get sent to login when viewing Apply on a public job

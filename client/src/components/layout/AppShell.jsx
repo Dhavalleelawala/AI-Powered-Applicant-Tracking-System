@@ -1,4 +1,4 @@
-import { Logout, Menu, WorkOutline } from '@mui/icons-material';
+import { Logout, Menu } from '@mui/icons-material';
 import {
   AppBar,
   Avatar,
@@ -16,6 +16,34 @@ import { useState } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { OfflineBanner } from './OfflineBanner';
+
+function BrandLockup({ light = false }) {
+  return (
+    <Stack
+      component={Link}
+      to="/"
+      direction="row"
+      spacing={1.1}
+      alignItems="center"
+      sx={{ color: 'inherit', textDecoration: 'none' }}
+    >
+      <Box className="brand-mark" sx={light ? { boxShadow: '0 0 0 1px rgba(247,244,239,0.15)' } : undefined}>
+        R
+      </Box>
+      <Typography
+        variant="h6"
+        sx={{
+          fontFamily: 'Syne',
+          fontWeight: 800,
+          letterSpacing: '-.06em',
+          lineHeight: 1,
+        }}
+      >
+        ROLEFIT
+      </Typography>
+    </Stack>
+  );
+}
 
 export function AppShell({ children }) {
   const { user, logout } = useAuth();
@@ -38,10 +66,7 @@ export function AppShell({ children }) {
             ['Saved', '/applicant/saved'],
             ['Profile', '/applicant/profile'],
           ]
-        : [
-            ['Jobs', '/jobs'],
-            ['Sign in', '/login'],
-          ];
+        : [['Jobs', '/jobs']];
 
   const exit = () => {
     logout();
@@ -78,32 +103,18 @@ export function AppShell({ children }) {
         color="transparent"
         elevation={0}
         sx={{
-          bgcolor: isLanding ? 'rgba(11,31,26,0.72)' : 'rgba(244,247,245,0.82)',
-          backdropFilter: 'blur(14px)',
-          borderBottom: isLanding ? '1px solid rgba(247,244,239,0.08)' : '1px solid',
-          borderColor: isLanding ? 'transparent' : 'divider',
+          bgcolor: isLanding ? 'rgba(11,31,26,0.78)' : 'rgba(238,242,240,0.86)',
+          backdropFilter: 'blur(16px)',
+          borderBottom: '1px solid',
+          borderColor: isLanding ? 'rgba(247,244,239,0.08)' : 'divider',
           color: isLanding ? '#F7F4EF' : 'text.primary',
         }}
       >
         <Container maxWidth="xl">
-          <Toolbar disableGutters sx={{ minHeight: 72, gap: { xs: 1, md: 3 } }}>
-            <Typography
-              component={Link}
-              to="/"
-              variant="h6"
-              sx={{
-                color: 'inherit',
-                textDecoration: 'none',
-                fontFamily: 'Syne',
-                fontWeight: 800,
-                letterSpacing: '-.06em',
-                mr: 1,
-              }}
-            >
-              ROLEFIT
-            </Typography>
+          <Toolbar disableGutters sx={{ minHeight: 68, gap: { xs: 1, md: 2.5 } }}>
+            <BrandLockup light={isLanding} />
 
-            <Stack direction="row" spacing={2.75} sx={{ display: { xs: 'none', md: 'flex' }, flex: 1, ml: 2 }}>
+            <Stack direction="row" spacing={2.5} sx={{ display: { xs: 'none', md: 'flex' }, flex: 1, ml: 2.5 }}>
               {links.map(([label, to]) => (
                 <Typography
                   key={`${label}-${to}`}
@@ -113,9 +124,10 @@ export function AppShell({ children }) {
                   end={to === '/recruiter' || to === '/'}
                   sx={{
                     color: 'inherit',
-                    opacity: 0.82,
+                    opacity: 0.78,
                     textDecoration: 'none',
                     fontSize: 14,
+                    fontWeight: 500,
                     '&.active': { opacity: 1, fontWeight: 700, color: isLanding ? '#7FE0D9' : 'secondary.main' },
                     '&:hover': { opacity: 1 },
                   }}
@@ -138,15 +150,26 @@ export function AppShell({ children }) {
             <Stack direction="row" spacing={1.25} alignItems="center" sx={{ display: { xs: 'none', md: 'flex' } }}>
               {user ? (
                 <>
-                  <Stack direction="row" spacing={1} alignItems="center" sx={{ mr: 0.5 }}>
-                    <Avatar sx={{ width: 32, height: 32, bgcolor: 'secondary.main', color: 'primary.main', fontSize: 13, fontWeight: 800 }}>
+                  <Stack
+                    direction="row"
+                    spacing={1.1}
+                    alignItems="center"
+                    sx={{
+                      mr: 0.5,
+                      px: 1.25,
+                      py: 0.6,
+                      borderRadius: 2,
+                      bgcolor: isLanding ? 'rgba(247,244,239,0.08)' : 'rgba(11,31,26,0.04)',
+                    }}
+                  >
+                    <Avatar sx={{ width: 30, height: 30, bgcolor: 'secondary.main', color: 'primary.main', fontSize: 12, fontWeight: 800 }}>
                       {initials}
                     </Avatar>
-                    <Box>
-                      <Typography variant="body2" fontWeight={700} lineHeight={1.2}>
+                    <Box sx={{ minWidth: 0 }}>
+                      <Typography variant="body2" fontWeight={700} lineHeight={1.15} noWrap>
                         {user.name}
                       </Typography>
-                      <Typography variant="caption" sx={{ opacity: 0.7, textTransform: 'capitalize' }}>
+                      <Typography variant="caption" sx={{ opacity: 0.65, textTransform: 'capitalize' }}>
                         {user.role}
                       </Typography>
                     </Box>
@@ -154,7 +177,7 @@ export function AppShell({ children }) {
                   <Button
                     startIcon={<Logout />}
                     onClick={exit}
-                    sx={{ color: 'inherit', borderColor: isLanding ? 'rgba(247,244,239,0.25)' : 'divider' }}
+                    sx={{ color: 'inherit', borderColor: isLanding ? 'rgba(247,244,239,0.22)' : 'divider' }}
                     variant="outlined"
                     size="small"
                   >
@@ -166,16 +189,13 @@ export function AppShell({ children }) {
                   <Button component={Link} to="/login" sx={{ color: 'inherit' }}>
                     Sign in
                   </Button>
-                  <Button component={Link} to="/register/applicant" sx={{ color: 'inherit' }}>
-                    Join as applicant
-                  </Button>
                   <Button
                     variant="contained"
                     color={isLanding ? 'secondary' : 'primary'}
                     component={Link}
                     to="/register/recruiter"
                   >
-                    Hire with Rolefit
+                    Start hiring
                   </Button>
                 </>
               )}
@@ -187,12 +207,10 @@ export function AppShell({ children }) {
       <OfflineBanner />
 
       <Drawer open={open} onClose={() => setOpen(false)} anchor="right">
-        <Box sx={{ width: 290, p: 3, height: '100%', display: 'flex', flexDirection: 'column' }}>
-          <Typography fontFamily="Syne" fontWeight={800} letterSpacing="-.06em" mb={2}>
-            ROLEFIT
-          </Typography>
+        <Box sx={{ width: 300, p: 3, height: '100%', display: 'flex', flexDirection: 'column' }}>
+          <BrandLockup />
           {user && (
-            <Stack direction="row" spacing={1.25} alignItems="center" mb={2}>
+            <Stack direction="row" spacing={1.25} alignItems="center" mt={3} mb={1}>
               <Avatar sx={{ bgcolor: 'secondary.main', color: 'primary.main', fontWeight: 800 }}>{initials}</Avatar>
               <Box>
                 <Typography fontWeight={700}>{user.name}</Typography>
@@ -202,29 +220,28 @@ export function AppShell({ children }) {
               </Box>
             </Stack>
           )}
-          <Divider sx={{ mb: 2 }} />
-          <Stack spacing={1} flex={1}>
+          <Divider sx={{ my: 2 }} />
+          <Stack spacing={0.5} flex={1}>
             {links.map(([label, to]) => (
               <Button
                 key={`${label}-${to}`}
                 component={Link}
                 to={to}
                 onClick={() => setOpen(false)}
-                sx={{ justifyContent: 'flex-start' }}
+                sx={{ justifyContent: 'flex-start', py: 1.25 }}
               >
                 {label}
               </Button>
             ))}
             {!user && (
-              <Button
-                startIcon={<WorkOutline />}
-                component={Link}
-                to="/register/applicant"
-                onClick={() => setOpen(false)}
-                sx={{ justifyContent: 'flex-start' }}
-              >
-                Join as applicant
-              </Button>
+              <>
+                <Button component={Link} to="/login" onClick={() => setOpen(false)} sx={{ justifyContent: 'flex-start', py: 1.25 }}>
+                  Sign in
+                </Button>
+                <Button component={Link} to="/register/applicant" onClick={() => setOpen(false)} sx={{ justifyContent: 'flex-start', py: 1.25 }}>
+                  Join as applicant
+                </Button>
+              </>
             )}
           </Stack>
           {user ? (
@@ -233,28 +250,30 @@ export function AppShell({ children }) {
             </Button>
           ) : (
             <Button component={Link} to="/register/recruiter" variant="contained" color="secondary" onClick={() => setOpen(false)}>
-              Hire with Rolefit
+              Start hiring
             </Button>
           )}
         </Box>
       </Drawer>
 
-      <Box
-        component="main"
-        id="main-content"
-        tabIndex={-1}
-        sx={{ flex: 1, outline: 'none' }}
-      >
+      <Box component="main" id="main-content" tabIndex={-1} sx={{ flex: 1, outline: 'none' }}>
         {children}
       </Box>
 
       {!isLanding && (
-        <Box component="footer" sx={{ borderTop: '1px solid', borderColor: 'divider', py: 3, mt: 'auto' }}>
+        <Box
+          component="footer"
+          sx={{
+            borderTop: '1px solid',
+            borderColor: 'divider',
+            py: 3.5,
+            mt: 'auto',
+            bgcolor: 'rgba(255,255,255,0.35)',
+          }}
+        >
           <Container maxWidth="xl">
-            <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" gap={1}>
-              <Typography fontFamily="Syne" fontWeight={800} letterSpacing="-.04em">
-                ROLEFIT
-              </Typography>
+            <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ sm: 'center' }} gap={1.5}>
+              <BrandLockup />
               <Typography variant="body2" color="text.secondary">
                 Hiring clarity, at human speed.
               </Typography>

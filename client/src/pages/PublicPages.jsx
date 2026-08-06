@@ -25,90 +25,120 @@ import { useUrlFilters } from '../hooks/useUrlFilters';
 
 export function LandingPage() {
   return (
-    <Box
-      sx={{
-        minHeight: 'calc(100vh - 72px)',
-        bgcolor: 'primary.main',
-        color: '#F7F4EF',
-        position: 'relative',
-        overflow: 'hidden',
-        display: 'flex',
-        alignItems: 'center',
-      }}
-    >
-      <Box
-        className="hero-glow"
-        sx={{
-          position: 'absolute',
-          inset: 0,
-          background:
-            'radial-gradient(ellipse 70% 55% at 78% 20%, rgba(31,167,160,0.28), transparent 60%), radial-gradient(ellipse 50% 40% at 10% 90%, rgba(127,224,217,0.12), transparent 55%)',
-        }}
-      />
-      <Box
-        className="hero-orb"
-        sx={{
-          position: 'absolute',
-          width: { xs: 320, md: 580 },
-          height: { xs: 320, md: 580 },
-          borderRadius: '50%',
-          border: '1px solid rgba(31,167,160,.35)',
-          right: { xs: '-30%', md: '-10%' },
-          top: { xs: '-18%', md: '-22%' },
-        }}
-      />
+    <>
       <Box
         sx={{
-          position: 'absolute',
-          width: 460,
-          height: 460,
-          borderRadius: '50%',
-          bgcolor: 'rgba(31,167,160,.1)',
-          filter: 'blur(2px)',
-          left: '55%',
-          bottom: '-45%',
-          display: { xs: 'none', md: 'block' },
+          minHeight: 'calc(100vh - 68px)',
+          bgcolor: 'primary.main',
+          color: '#F7F4EF',
+          position: 'relative',
+          overflow: 'hidden',
+          display: 'flex',
+          alignItems: 'center',
         }}
-      />
-      <Container maxWidth="lg" sx={{ position: 'relative', py: { xs: 10, md: 8 } }}>
-        <Typography
-          className="reveal"
-          sx={{ color: 'secondary.main', fontFamily: 'Syne', fontWeight: 800, letterSpacing: '.12em', fontSize: 14 }}
-        >
-          ROLEFIT
-        </Typography>
-        <Typography className="reveal" variant="h1" sx={{ maxWidth: 820, fontSize: { xs: 52, sm: 72, md: 100 }, mt: 2 }}>
-          Hiring clarity,
-          <br />
-          at human speed.
-        </Typography>
-        <Typography className="reveal-delay" sx={{ maxWidth: 480, fontSize: { xs: 17, md: 19 }, lineHeight: 1.65, mt: 3.5, color: '#D5DDD8' }}>
-          Semantic ranking meets a focused pipeline, so every candidate gets the attention they deserve.
-        </Typography>
-        <Stack className="reveal-late" direction={{ xs: 'column', sm: 'row' }} spacing={1.5} mt={4.5} flexWrap="wrap" useFlexGap>
-          <Button variant="contained" color="secondary" component={Link} to="/register/recruiter" endIcon={<ArrowOutward />} size="large">
-            Start hiring
-          </Button>
-          <Button
-            variant="outlined"
-            component={Link}
-            to="/jobs"
-            size="large"
-            sx={{ color: '#F7F4EF', borderColor: '#7E958D', '&:hover': { borderColor: '#F7F4EF', bgcolor: 'rgba(247,244,239,0.06)' } }}
+      >
+        <Box
+          sx={{
+            position: 'absolute',
+            inset: 0,
+            background:
+              'radial-gradient(ellipse 75% 55% at 82% 18%, rgba(31,167,160,0.32), transparent 58%), radial-gradient(ellipse 45% 40% at 8% 88%, rgba(127,224,217,0.1), transparent 55%)',
+          }}
+        />
+        <Box
+          className="hero-orb"
+          sx={{
+            position: 'absolute',
+            width: { xs: 300, md: 560 },
+            height: { xs: 300, md: 560 },
+            borderRadius: '50%',
+            border: '1px solid rgba(31,167,160,.28)',
+            right: { xs: '-28%', md: '-8%' },
+            top: { xs: '-16%', md: '-20%' },
+          }}
+        />
+        <Box
+          sx={{
+            position: 'absolute',
+            inset: 0,
+            opacity: 0.35,
+            backgroundImage:
+              'linear-gradient(rgba(247,244,239,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(247,244,239,0.03) 1px, transparent 1px)',
+            backgroundSize: '64px 64px',
+            maskImage: 'radial-gradient(ellipse 70% 60% at 50% 40%, black, transparent)',
+          }}
+        />
+        <Container maxWidth="lg" sx={{ position: 'relative', py: { xs: 10, md: 8 } }}>
+          <Typography
+            className="reveal"
+            sx={{ color: 'secondary.main', fontFamily: 'Syne', fontWeight: 800, letterSpacing: '.14em', fontSize: 13 }}
           >
-            Explore open roles
-          </Button>
-          <Button
-            component={Link}
-            to="/register/applicant"
-            size="large"
-            sx={{ color: '#D5DDD8', '&:hover': { color: '#F7F4EF', bgcolor: 'rgba(247,244,239,0.06)' } }}
+            ROLEFIT
+          </Typography>
+          <Typography className="reveal" variant="h1" sx={{ maxWidth: 860, fontSize: { xs: 48, sm: 68, md: 96 }, mt: 2.25 }}>
+            Hiring clarity,
+            <br />
+            at human speed.
+          </Typography>
+          <Typography
+            className="reveal-delay"
+            sx={{ maxWidth: 460, fontSize: { xs: 17, md: 19 }, lineHeight: 1.7, mt: 3.5, color: '#C9D5CF' }}
           >
-            Join as applicant
-          </Button>
-        </Stack>
-      </Container>
-    </Box>
+            Semantic ranking meets a focused pipeline, so every candidate gets the attention they deserve.
+          </Typography>
+          <Stack className="reveal-late" direction={{ xs: 'column', sm: 'row' }} spacing={1.5} mt={4.5} alignItems={{ sm: 'center' }}>
+            <Button variant="contained" color="secondary" component={Link} to="/register/recruiter" endIcon={<ArrowOutward />} size="large">
+              Start hiring
+            </Button>
+            <Button
+              variant="outlined"
+              component={Link}
+              to="/jobs"
+              size="large"
+              sx={{ color: '#F7F4EF', borderColor: '#6F857D', '&:hover': { borderColor: '#F7F4EF', bgcolor: 'rgba(247,244,239,0.06)' } }}
+            >
+              Explore open roles
+            </Button>
+          </Stack>
+          <Typography className="reveal-late" mt={2.5} variant="body2" sx={{ color: '#8FA199' }}>
+            Looking for work?{' '}
+            <Box component={Link} to="/register/applicant" sx={{ color: '#7FE0D9', textDecoration: 'none', fontWeight: 700, '&:hover': { textDecoration: 'underline' } }}>
+              Join as an applicant
+            </Box>
+          </Typography>
+        </Container>
+      </Box>
+
+      <Box sx={{ bgcolor: 'background.default', borderTop: '1px solid', borderColor: 'divider', py: { xs: 8, md: 11 } }}>
+        <Container maxWidth="lg">
+          <Typography sx={{ color: 'secondary.main', fontFamily: 'Syne', fontWeight: 800, letterSpacing: '.12em', fontSize: 12, mb: 1.5 }}>
+            HOW IT WORKS
+          </Typography>
+          <Typography variant="h2" fontSize={{ xs: 34, md: 48 }} maxWidth={640}>
+            One clear path from role to decision.
+          </Typography>
+          <Grid container spacing={{ xs: 4, md: 6 }} mt={1}>
+            {[
+              ['Post with intent', 'Describe the role once. Rolefit keeps skills, urgency, and openings in one place.'],
+              ['Rank with evidence', 'AI scores each resume against the job — or a sharp heuristic when no key is set.'],
+              ['Move the pipeline', 'Kanban stages, notes, and bulk actions keep hiring conversations moving.'],
+            ].map(([title, text], index) => (
+              <Grid item xs={12} md={4} key={title}>
+                <Typography variant="overline" color="text.secondary" sx={{ letterSpacing: '0.16em' }}>
+                  0{index + 1}
+                </Typography>
+                <Typography variant="h3" fontSize={24} mt={1.25}>
+                  {title}
+                </Typography>
+                <Typography color="text.secondary" mt={1.25} sx={{ lineHeight: 1.7, maxWidth: 320 }}>
+                  {text}
+                </Typography>
+              </Grid>
+            ))}
+          </Grid>
+        </Container>
+      </Box>
+    </>
   );
 }
 
@@ -141,7 +171,7 @@ export function JobsPage() {
         title="Find a role with room to grow."
         subtitle="Search by craft, place, or team — then apply in minutes."
       />
-      <Paper sx={{ p: { xs: 2, md: 2.5 }, mb: 3, bgcolor: 'rgba(255,255,255,0.9)' }} component="form" onSubmit={(e) => e.preventDefault()}>
+      <Paper className="filter-bar" sx={{ p: { xs: 2, md: 2.5 }, mb: 3 }} component="form" onSubmit={(e) => e.preventDefault()}>
         <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5}>
           <TextField
             value={values.q}
@@ -234,39 +264,66 @@ export function JobCard({ job }) {
   const id = job.id || job._id;
   const company = job.companyName || job.company?.name || job.companyId?.name || 'Rolefit partner';
   return (
-    <Paper
-      className="surface-hover"
-      sx={{
-        p: 3,
-        height: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-        bgcolor: 'rgba(255,255,255,0.92)',
-      }}
-    >
-      <Typography color="text.secondary" variant="body2">
-        {company}
-      </Typography>
-      <Typography variant="h3" fontSize={24} mt={0.75}>
-        {job.title}
-      </Typography>
-      <Typography color="text.secondary" mt={1}>
-        {job.location || 'Flexible'} · {job.employmentType || 'Full-time'}
-      </Typography>
-      <Stack direction="row" gap={0.75} mt={2} flexWrap="wrap" useFlexGap>
-        {job.department && <Chip size="small" label={job.department} variant="outlined" />}
-        {job.openings != null && <Chip size="small" label={`${job.openings} opening${job.openings === 1 ? '' : 's'}`} />}
-        {job.priority && job.priority !== 'medium' && (
-          <Chip size="small" color={job.priority === 'critical' ? 'error' : job.priority === 'high' ? 'warning' : 'default'} label={job.priority} />
-        )}
-        {(job.requiredSkills || []).slice(0, 4).map((s) => (
-          <Chip key={s} size="small" label={s} color="secondary" variant="outlined" />
-        ))}
-      </Stack>
-      <Button component={Link} to={`/jobs/${id}`} endIcon={<ArrowOutward />} sx={{ mt: 'auto', alignSelf: 'flex-start', pt: 3 }}>
-        View role
-      </Button>
-    </Paper>
+    <Link to={`/jobs/${id}`} className="job-card-link">
+      <Paper
+        className="surface-hover"
+        sx={{
+          p: 3,
+          height: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          bgcolor: 'rgba(255,255,255,0.94)',
+          position: 'relative',
+          overflow: 'hidden',
+          '&::after': {
+            content: '""',
+            position: 'absolute',
+            left: 0,
+            top: 0,
+            bottom: 0,
+            width: 3,
+            bgcolor: 'secondary.main',
+            opacity: 0,
+            transition: 'opacity .2s ease',
+          },
+          '&:hover::after': { opacity: 1 },
+        }}
+      >
+        <Typography color="text.secondary" variant="body2" fontWeight={600}>
+          {company}
+        </Typography>
+        <Typography variant="h3" fontSize={{ xs: 22, md: 24 }} mt={0.75} sx={{ letterSpacing: '-0.03em' }}>
+          {job.title}
+        </Typography>
+        <Typography color="text.secondary" mt={1.25} sx={{ fontSize: 14 }}>
+          {job.location || 'Flexible'} · {job.employmentType || 'Full-time'}
+        </Typography>
+        <Stack direction="row" gap={0.75} mt={2} flexWrap="wrap" useFlexGap>
+          {job.department && <Chip size="small" label={job.department} variant="outlined" />}
+          {job.openings != null && <Chip size="small" label={`${job.openings} opening${job.openings === 1 ? '' : 's'}`} />}
+          {job.priority && job.priority !== 'medium' && (
+            <Chip size="small" color={job.priority === 'critical' ? 'error' : job.priority === 'high' ? 'warning' : 'default'} label={job.priority} />
+          )}
+          {(job.requiredSkills || []).slice(0, 4).map((s) => (
+            <Chip key={s} size="small" label={s} color="secondary" variant="outlined" />
+          ))}
+        </Stack>
+        <Typography
+          sx={{
+            mt: 'auto',
+            pt: 3,
+            color: 'secondary.dark',
+            fontWeight: 700,
+            fontSize: 14,
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 0.5,
+          }}
+        >
+          View role <ArrowOutward sx={{ fontSize: 16 }} />
+        </Typography>
+      </Paper>
+    </Link>
   );
 }
 
@@ -327,10 +384,10 @@ export function JobDetailPage() {
       <Typography color="secondary.main" fontWeight={700}>
         {job.companyName || job.company?.name || job.companyId?.name}
       </Typography>
-      <Typography variant="h2" fontSize={{ xs: 40, md: 58 }} mt={1}>
+      <Typography variant="h2" fontSize={{ xs: 40, md: 56 }} mt={1} sx={{ letterSpacing: '-0.045em', maxWidth: 720 }}>
         {job.title}
       </Typography>
-      <Typography color="text.secondary" mt={2}>
+      <Typography color="text.secondary" mt={2} sx={{ fontSize: 17 }}>
         {job.location} · {job.employmentType}
       </Typography>
       <Stack direction="row" gap={1} flexWrap="wrap" useFlexGap mt={3}>

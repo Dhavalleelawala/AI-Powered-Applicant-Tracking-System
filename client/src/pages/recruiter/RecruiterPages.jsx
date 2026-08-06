@@ -22,6 +22,7 @@ import {
   TableRow,
   TextField,
   Typography,
+  Skeleton,
 } from '@mui/material';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useState } from 'react';
@@ -29,7 +30,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { applicationsApi, hiringApi, jobsApi } from '../../api/client';
 import { AppBreadcrumbs } from '../../components/ui/AppBreadcrumbs';
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
-import { EmptyState, LoadingRows, Page, PageHeader, SectionLabel, StatTile } from '../../components/ui/Primitives';
+import { EmptyState, LoadingRows, Page, PageHeader, SectionLabel, StatTile, FunnelBars } from '../../components/ui/Primitives';
 import { useToast } from '../../context/ToastContext';
 import { useUrlFilters } from '../../hooks/useUrlFilters';
 import { useBeforeUnloadWarning, useLeaveConfirm } from '../../hooks/useUnsavedWarning';
@@ -95,19 +96,13 @@ export function DashboardPage() {
         ))}
       </Grid>
 
-      <Paper sx={{ p: 3, mt: 2.5, bgcolor: 'rgba(255,255,255,0.9)' }}>
+      <Paper sx={{ p: { xs: 2.5, md: 3.25 }, mt: 2.5, bgcolor: 'rgba(255,255,255,0.92)' }}>
         <SectionLabel>Hiring funnel</SectionLabel>
-        <Stack direction="row" gap={1} flexWrap="wrap" useFlexGap>
-          {['applied', 'interview', 'offered', 'rejected'].map((stage) => (
-            <Chip
-              key={stage}
-              label={`${stage}: ${summary.funnel?.[stage] ?? 0}`}
-              color={stage === 'rejected' ? 'error' : stage === 'offered' ? 'success' : 'secondary'}
-              variant={stage === 'applied' ? 'outlined' : 'filled'}
-              sx={{ textTransform: 'capitalize' }}
-            />
-          ))}
-        </Stack>
+        {isLoading ? (
+          <Skeleton variant="rounded" height={140} />
+        ) : (
+          <FunnelBars funnel={summary.funnel} />
+        )}
       </Paper>
 
       {error ? (

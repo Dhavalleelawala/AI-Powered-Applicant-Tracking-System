@@ -4,7 +4,6 @@ import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { authApi } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
-import { Page } from '../components/ui/Primitives';
 
 function redirectAfterAuth(user, location) {
   const from = location.state?.from;
@@ -181,19 +180,56 @@ export function RegisterPage({ role }) {
 
 function AuthFrame({ title, subtitle, children }) {
   return (
-    <Page narrow>
-      <Typography
-        sx={{ color: 'secondary.main', fontFamily: 'Syne', fontWeight: 800, letterSpacing: '0.1em', fontSize: 12, mb: 1.5 }}
+    <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1.05fr 0.95fr' }, minHeight: { md: 'calc(100vh - 68px)' } }}>
+      <Box
+        className="auth-panel"
+        sx={{
+          display: { xs: 'none', md: 'flex' },
+          flexDirection: 'column',
+          justifyContent: 'flex-end',
+          color: '#F7F4EF',
+          p: { md: 6, lg: 8 },
+          position: 'relative',
+          overflow: 'hidden',
+        }}
       >
-        ROLEFIT
-      </Typography>
-      <Typography variant="h2" fontSize={{ xs: 36, md: 48 }}>
-        {title}
-      </Typography>
-      <Typography color="text.secondary" mt={1.25} mb={3}>
-        {subtitle}
-      </Typography>
-      <Paper sx={{ p: { xs: 3, md: 4 }, bgcolor: 'rgba(255,255,255,0.92)' }}>{children}</Paper>
-    </Page>
+        <Box
+          sx={{
+            position: 'absolute',
+            width: 420,
+            height: 420,
+            borderRadius: '50%',
+            border: '1px solid rgba(31,167,160,0.35)',
+            right: '-12%',
+            top: '-18%',
+          }}
+        />
+        <Typography sx={{ color: 'secondary.main', fontFamily: 'Syne', fontWeight: 800, letterSpacing: '.14em', fontSize: 12 }}>
+          ROLEFIT
+        </Typography>
+        <Typography variant="h2" fontSize={{ md: 44, lg: 52 }} mt={2} maxWidth={420} sx={{ color: '#F7F4EF' }}>
+          Decisions with context, not clutter.
+        </Typography>
+        <Typography mt={2} maxWidth={360} sx={{ color: '#A8B8B1', lineHeight: 1.7 }}>
+          Rank candidates against the role, move them through a calm pipeline, and keep every next step obvious.
+        </Typography>
+      </Box>
+      <Box sx={{ display: 'flex', alignItems: 'center', py: { xs: 5, md: 6 }, px: { xs: 2.5, sm: 4, md: 5 }, width: '100%' }}>
+        <Box className="page-enter" sx={{ width: '100%', maxWidth: 460, mx: 'auto' }}>
+          <Typography
+            sx={{ color: 'secondary.main', fontFamily: 'Syne', fontWeight: 800, letterSpacing: '0.1em', fontSize: 12, mb: 1.5 }}
+          >
+            ROLEFIT
+          </Typography>
+          <Typography variant="h2" fontSize={{ xs: 34, md: 42 }}>
+            {title}
+          </Typography>
+          <Typography color="text.secondary" mt={1.25} mb={3.25} sx={{ lineHeight: 1.65 }}>
+            {subtitle}
+          </Typography>
+          <Paper sx={{ p: { xs: 3, md: 4 }, bgcolor: 'rgba(255,255,255,0.94)' }}>{children}</Paper>
+        </Box>
+      </Box>
+    </Box>
   );
 }
