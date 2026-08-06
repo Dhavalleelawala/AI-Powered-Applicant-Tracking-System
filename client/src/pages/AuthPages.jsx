@@ -187,7 +187,7 @@ function AuthFrame({ title, subtitle, children }) {
           display: { xs: 'none', md: 'flex' },
           flexDirection: 'column',
           justifyContent: 'flex-end',
-          color: '#F7F4EF',
+          color: '#F7F8FB',
           p: { md: 6, lg: 8 },
           position: 'relative',
           overflow: 'hidden',
@@ -199,35 +199,35 @@ function AuthFrame({ title, subtitle, children }) {
             width: 420,
             height: 420,
             borderRadius: '50%',
-            border: '1px solid rgba(31,167,160,0.35)',
+            border: '1px solid rgba(255,92,53,0.35)',
             right: '-12%',
             top: '-18%',
           }}
         />
-        <Typography sx={{ color: 'secondary.main', fontFamily: 'Syne', fontWeight: 800, letterSpacing: '.14em', fontSize: 12 }}>
+        <Typography sx={{ color: 'secondary.main', fontFamily: 'Outfit', fontWeight: 700, letterSpacing: '.14em', fontSize: 12 }}>
           ROLEFIT
         </Typography>
-        <Typography variant="h2" fontSize={{ md: 44, lg: 52 }} mt={2} maxWidth={420} sx={{ color: '#F7F4EF' }}>
+        <Typography variant="h2" mt={2} maxWidth={420} sx={{ color: '#F7F8FB' }}>
           Decisions with context, not clutter.
         </Typography>
-        <Typography mt={2} maxWidth={360} sx={{ color: '#A8B8B1', lineHeight: 1.7 }}>
+        <Typography mt={2} maxWidth={360} sx={{ color: '#A8B2C0', lineHeight: 1.7 }}>
           Rank candidates against the role, move them through a calm pipeline, and keep every next step obvious.
         </Typography>
       </Box>
       <Box sx={{ display: 'flex', alignItems: 'center', py: { xs: 5, md: 6 }, px: { xs: 2.5, sm: 4, md: 5 }, width: '100%' }}>
         <Box className="page-enter" sx={{ width: '100%', maxWidth: 460, mx: 'auto' }}>
           <Typography
-            sx={{ color: 'secondary.main', fontFamily: 'Syne', fontWeight: 800, letterSpacing: '0.1em', fontSize: 12, mb: 1.5 }}
+            sx={{ color: 'secondary.main', fontFamily: 'Outfit', fontWeight: 700, letterSpacing: '0.12em', fontSize: 12, mb: 1.5 }}
           >
             ROLEFIT
           </Typography>
-          <Typography variant="h2" fontSize={{ xs: 34, md: 42 }}>
+          <Typography variant="h2">
             {title}
           </Typography>
-          <Typography color="text.secondary" mt={1.25} mb={3.25} sx={{ lineHeight: 1.65 }}>
+          <Typography color="text.secondary" mt={1.25} mb={3.25} sx={{ lineHeight: 1.65, fontSize: '1.02rem' }}>
             {subtitle}
           </Typography>
-          <Paper sx={{ p: { xs: 3, md: 4 }, bgcolor: 'rgba(255,255,255,0.94)' }}>{children}</Paper>
+          <Paper sx={{ p: { xs: 3, md: 4 }, bgcolor: 'rgba(255,255,255,0.96)' }}>{children}</Paper>
         </Box>
       </Box>
     </Box>

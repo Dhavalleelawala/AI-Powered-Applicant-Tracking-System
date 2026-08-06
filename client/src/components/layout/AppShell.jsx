@@ -27,15 +27,15 @@ function BrandLockup({ light = false }) {
       alignItems="center"
       sx={{ color: 'inherit', textDecoration: 'none' }}
     >
-      <Box className="brand-mark" sx={light ? { boxShadow: '0 0 0 1px rgba(247,244,239,0.15)' } : undefined}>
+      <Box className="brand-mark" sx={light ? { boxShadow: '0 0 0 1px rgba(247,248,251,0.18)' } : undefined}>
         R
       </Box>
       <Typography
         variant="h6"
         sx={{
-          fontFamily: 'Syne',
+          fontFamily: 'Outfit',
           fontWeight: 800,
-          letterSpacing: '-.06em',
+          letterSpacing: '-.04em',
           lineHeight: 1,
         }}
       >
@@ -103,11 +103,11 @@ export function AppShell({ children }) {
         color="transparent"
         elevation={0}
         sx={{
-          bgcolor: isLanding ? 'rgba(11,31,26,0.78)' : 'rgba(238,242,240,0.86)',
+          bgcolor: isLanding ? 'rgba(18,21,28,0.82)' : 'rgba(238,241,246,0.88)',
           backdropFilter: 'blur(16px)',
           borderBottom: '1px solid',
-          borderColor: isLanding ? 'rgba(247,244,239,0.08)' : 'divider',
-          color: isLanding ? '#F7F4EF' : 'text.primary',
+          borderColor: isLanding ? 'rgba(247,248,251,0.08)' : 'divider',
+          color: isLanding ? '#F7F8FB' : 'text.primary',
         }}
       >
         <Container maxWidth="xl">
@@ -128,7 +128,7 @@ export function AppShell({ children }) {
                     textDecoration: 'none',
                     fontSize: 14,
                     fontWeight: 500,
-                    '&.active': { opacity: 1, fontWeight: 700, color: isLanding ? '#7FE0D9' : 'secondary.main' },
+                    '&.active': { opacity: 1, fontWeight: 700, color: isLanding ? '#FF8A6A' : 'secondary.main' },
                     '&:hover': { opacity: 1 },
                   }}
                 >
@@ -159,10 +159,10 @@ export function AppShell({ children }) {
                       px: 1.25,
                       py: 0.6,
                       borderRadius: 2,
-                      bgcolor: isLanding ? 'rgba(247,244,239,0.08)' : 'rgba(11,31,26,0.04)',
+                      bgcolor: isLanding ? 'rgba(247,248,251,0.08)' : 'rgba(18,21,28,0.04)',
                     }}
                   >
-                    <Avatar sx={{ width: 30, height: 30, bgcolor: 'secondary.main', color: 'primary.main', fontSize: 12, fontWeight: 800 }}>
+                    <Avatar sx={{ width: 30, height: 30, bgcolor: 'secondary.main', color: '#fff', fontSize: 12, fontWeight: 800 }}>
                       {initials}
                     </Avatar>
                     <Box sx={{ minWidth: 0 }}>

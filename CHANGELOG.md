@@ -3,6 +3,12 @@
 All notable Rolefit changes are listed here. Newest first.
 Epics are tracked in [`docs/EPICS.md`](./docs/EPICS.md) — **one completed epic → one commit**.
 
+## 2026-08-06 (E8 — Ember Ledger theme)
+
+- New palette: cool ink `#12151C` + ember accent `#FF5C35` on mist paper
+- Headings: Outfit; body: Manrope; fluid type scale via clamp()
+- CSS variables + updated landing, auth, shell, and interaction surfaces
+
 ## 2026-08-06 (E6 — Applicant applications polish)
 
 - Fit score, next-step copy, and stage timeline visible without opening accordions

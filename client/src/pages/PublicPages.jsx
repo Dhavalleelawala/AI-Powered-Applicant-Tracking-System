@@ -30,7 +30,7 @@ export function LandingPage() {
         sx={{
           minHeight: 'calc(100vh - 68px)',
           bgcolor: 'primary.main',
-          color: '#F7F4EF',
+          color: '#F7F8FB',
           position: 'relative',
           overflow: 'hidden',
           display: 'flex',
@@ -42,7 +42,7 @@ export function LandingPage() {
             position: 'absolute',
             inset: 0,
             background:
-              'radial-gradient(ellipse 75% 55% at 82% 18%, rgba(31,167,160,0.32), transparent 58%), radial-gradient(ellipse 45% 40% at 8% 88%, rgba(127,224,217,0.1), transparent 55%)',
+              'radial-gradient(ellipse 75% 55% at 82% 18%, rgba(255,92,53,0.28), transparent 58%), radial-gradient(ellipse 45% 40% at 8% 88%, rgba(62,107,138,0.18), transparent 55%)',
           }}
         />
         <Box
@@ -52,7 +52,7 @@ export function LandingPage() {
             width: { xs: 300, md: 560 },
             height: { xs: 300, md: 560 },
             borderRadius: '50%',
-            border: '1px solid rgba(31,167,160,.28)',
+            border: '1px solid rgba(255,92,53,.28)',
             right: { xs: '-28%', md: '-8%' },
             top: { xs: '-16%', md: '-20%' },
           }}
@@ -63,7 +63,7 @@ export function LandingPage() {
             inset: 0,
             opacity: 0.35,
             backgroundImage:
-              'linear-gradient(rgba(247,244,239,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(247,244,239,0.03) 1px, transparent 1px)',
+              'linear-gradient(rgba(247,248,251,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(247,248,251,0.04) 1px, transparent 1px)',
             backgroundSize: '64px 64px',
             maskImage: 'radial-gradient(ellipse 70% 60% at 50% 40%, black, transparent)',
           }}
@@ -71,18 +71,18 @@ export function LandingPage() {
         <Container maxWidth="lg" sx={{ position: 'relative', py: { xs: 10, md: 8 } }}>
           <Typography
             className="reveal"
-            sx={{ color: 'secondary.main', fontFamily: 'Syne', fontWeight: 800, letterSpacing: '.14em', fontSize: 13 }}
+            sx={{ color: 'secondary.main', fontFamily: 'Outfit', fontWeight: 700, letterSpacing: '.14em', fontSize: 13 }}
           >
             ROLEFIT
           </Typography>
-          <Typography className="reveal" variant="h1" sx={{ maxWidth: 860, fontSize: { xs: 48, sm: 68, md: 96 }, mt: 2.25 }}>
+          <Typography className="reveal" variant="h1" sx={{ maxWidth: 860, mt: 2.25 }}>
             Hiring clarity,
             <br />
             at human speed.
           </Typography>
           <Typography
             className="reveal-delay"
-            sx={{ maxWidth: 460, fontSize: { xs: 17, md: 19 }, lineHeight: 1.7, mt: 3.5, color: '#C9D5CF' }}
+            sx={{ maxWidth: 460, fontSize: { xs: '1.05rem', md: '1.2rem' }, lineHeight: 1.7, mt: 3.5, color: '#B8C0CC' }}
           >
             Semantic ranking meets a focused pipeline, so every candidate gets the attention they deserve.
           </Typography>
@@ -95,14 +95,14 @@ export function LandingPage() {
               component={Link}
               to="/jobs"
               size="large"
-              sx={{ color: '#F7F4EF', borderColor: '#6F857D', '&:hover': { borderColor: '#F7F4EF', bgcolor: 'rgba(247,244,239,0.06)' } }}
+              sx={{ color: '#F7F8FB', borderColor: '#5A6578', '&:hover': { borderColor: '#F7F8FB', bgcolor: 'rgba(247,248,251,0.06)' } }}
             >
               Explore open roles
             </Button>
           </Stack>
-          <Typography className="reveal-late" mt={2.5} variant="body2" sx={{ color: '#8FA199' }}>
+          <Typography className="reveal-late" mt={2.5} variant="body2" sx={{ color: '#8B95A5' }}>
             Looking for work?{' '}
-            <Box component={Link} to="/register/applicant" sx={{ color: '#7FE0D9', textDecoration: 'none', fontWeight: 700, '&:hover': { textDecoration: 'underline' } }}>
+            <Box component={Link} to="/register/applicant" sx={{ color: '#FF8A6A', textDecoration: 'none', fontWeight: 700, '&:hover': { textDecoration: 'underline' } }}>
               Join as an applicant
             </Box>
           </Typography>
@@ -111,10 +111,10 @@ export function LandingPage() {
 
       <Box sx={{ bgcolor: 'background.default', borderTop: '1px solid', borderColor: 'divider', py: { xs: 8, md: 11 } }}>
         <Container maxWidth="lg">
-          <Typography sx={{ color: 'secondary.main', fontFamily: 'Syne', fontWeight: 800, letterSpacing: '.12em', fontSize: 12, mb: 1.5 }}>
+          <Typography sx={{ color: 'secondary.main', fontFamily: 'Outfit', fontWeight: 700, letterSpacing: '.12em', fontSize: 12, mb: 1.5 }}>
             HOW IT WORKS
           </Typography>
-          <Typography variant="h2" fontSize={{ xs: 34, md: 48 }} maxWidth={640}>
+          <Typography variant="h2" maxWidth={640}>
             One clear path from role to decision.
           </Typography>
           <Grid container spacing={{ xs: 4, md: 6 }} mt={1}>
@@ -127,7 +127,7 @@ export function LandingPage() {
                 <Typography variant="overline" color="text.secondary" sx={{ letterSpacing: '0.16em' }}>
                   0{index + 1}
                 </Typography>
-                <Typography variant="h3" fontSize={24} mt={1.25}>
+                <Typography variant="h3" mt={1.25}>
                   {title}
                 </Typography>
                 <Typography color="text.secondary" mt={1.25} sx={{ lineHeight: 1.7, maxWidth: 320 }}>
@@ -459,7 +459,7 @@ export function NotFoundPage() {
   return (
     <Page narrow>
       <Box textAlign="center" py={6}>
-        <Typography color="secondary.main" fontFamily="Syne" fontWeight={800} letterSpacing=".1em">
+        <Typography color="secondary.main" fontFamily="Outfit" fontWeight={700} letterSpacing=".1em">
           ROLEFIT
         </Typography>
         <Typography variant="h2" fontSize={{ xs: 40, md: 56 }} mt={2}>

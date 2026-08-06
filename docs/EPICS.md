@@ -51,6 +51,12 @@ Status: `planned` · `in_progress` · `done`
 - **Notes:** Fit score + next-step copy visible without accordion; stage timeline; matched/gap skills; summary chips; clearer history.
 - **Paths:** `client/src/pages/applicant/ApplicantPages.jsx`, `client/src/styles.css`
 
+### E8 — Ember Ledger theme & type system
+- **Status:** done
+- **Shipped:** 2026-08-06
+- **Notes:** New palette (ink + ember), Outfit headings + Manrope body, clamped type scale, CSS variables across surfaces.
+- **Paths:** `client/src/theme/`, `client/index.html`, `client/src/styles.css`, shell/landing/auth/primitives
+
 ---
 
 ## Planned (next)

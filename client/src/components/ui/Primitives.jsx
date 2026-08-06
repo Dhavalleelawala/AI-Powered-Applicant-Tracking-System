@@ -23,9 +23,9 @@ export function PageHeader({ eyebrow, title, subtitle, actions }) {
           <Typography
             sx={{
               color: 'secondary.main',
-              fontFamily: 'Syne',
-              fontWeight: 800,
-              letterSpacing: '0.12em',
+              fontFamily: 'Outfit',
+              fontWeight: 700,
+              letterSpacing: '0.14em',
               fontSize: 11,
               mb: 1.25,
             }}
@@ -33,11 +33,11 @@ export function PageHeader({ eyebrow, title, subtitle, actions }) {
             {eyebrow}
           </Typography>
         )}
-        <Typography variant="h2" fontSize={{ xs: 34, md: 48 }} sx={{ letterSpacing: '-0.04em' }}>
+        <Typography variant="h2" sx={{ maxWidth: 720 }}>
           {title}
         </Typography>
         {subtitle && (
-          <Typography color="text.secondary" mt={1.5} sx={{ maxWidth: 540, lineHeight: 1.65, fontSize: { md: 17 } }}>
+          <Typography color="text.secondary" mt={1.5} sx={{ maxWidth: 540, lineHeight: 1.65, fontSize: { xs: '0.95rem', md: '1.05rem' } }}>
             {subtitle}
           </Typography>
         )}
@@ -134,10 +134,10 @@ export function SectionLabel({ children }) {
 
 export function FunnelBars({ funnel = {} }) {
   const stages = [
-    { key: 'applied', label: 'Applied', color: '#3A6B8C' },
-    { key: 'interview', label: 'Interview', color: '#C47B2D' },
-    { key: 'offered', label: 'Offered', color: '#2F7D57' },
-    { key: 'rejected', label: 'Rejected', color: '#B84335' },
+    { key: 'applied', label: 'Applied', color: '#3E6B8A' },
+    { key: 'interview', label: 'Interview', color: '#D97706' },
+    { key: 'offered', label: 'Offered', color: '#0F8A5F' },
+    { key: 'rejected', label: 'Rejected', color: '#D64545' },
   ];
   const max = Math.max(1, ...stages.map((s) => Number(funnel[s.key]) || 0));
 

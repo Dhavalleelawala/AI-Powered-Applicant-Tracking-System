@@ -30,7 +30,7 @@ export function ConfirmDialog({
 
   return (
     <Dialog open={open} onClose={loading ? undefined : onClose} fullWidth maxWidth="xs">
-      <DialogTitle sx={{ fontFamily: 'Syne', fontWeight: 700 }}>{title}</DialogTitle>
+      <DialogTitle sx={{ fontFamily: 'Outfit', fontWeight: 700 }}>{title}</DialogTitle>
       <DialogContent>
         {description && <DialogContentText sx={{ mb: requireReason ? 2 : 0 }}>{description}</DialogContentText>}
         {requireReason && (

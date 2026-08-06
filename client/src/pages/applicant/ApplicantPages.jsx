@@ -143,7 +143,7 @@ export function ApplyJobPage() {
               py: 3,
               borderStyle: 'dashed',
               justifyContent: 'flex-start',
-              bgcolor: dragging || resume ? 'rgba(31,167,160,0.08)' : 'transparent',
+              bgcolor: dragging || resume ? 'rgba(255,92,53,0.08)' : 'transparent',
               borderColor: dragging ? 'secondary.main' : undefined,
             }}
           >

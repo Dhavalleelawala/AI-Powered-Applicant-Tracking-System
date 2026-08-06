@@ -1,13 +1,27 @@
+:root {
+  --rf-ink: #12151C;
+  --rf-ember: #FF5C35;
+  --rf-ember-deep: #E04828;
+  --rf-paper: #EEF1F6;
+  --rf-mist: #F7F8FB;
+  --rf-line: #D5DBE5;
+  --rf-text: #171A22;
+  --rf-muted: #667085;
+  --rf-display: "Outfit", sans-serif;
+  --rf-body: "Manrope", sans-serif;
+}
+
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
 body {
   margin: 0;
   min-height: 100vh;
-  color: #14201C;
+  color: var(--rf-text);
+  font-family: var(--rf-body);
   -webkit-font-smoothing: antialiased;
 }
 a { color: inherit; }
-::selection { background: rgba(31, 167, 160, 0.28); }
+::selection { background: rgba(255, 92, 53, 0.22); }
 
 @keyframes rise {
   from { opacity: 0; transform: translateY(16px); }
@@ -19,10 +33,6 @@ a { color: inherit; }
 }
 @keyframes drift {
   50% { transform: translate(14px, -12px) scale(1.02); }
-}
-@keyframes sheen {
-  0% { background-position: 0% 50%; }
-  100% { background-position: 100% 50%; }
 }
 
 .reveal { animation: rise 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
@@ -40,7 +50,7 @@ a { color: inherit; }
   position: absolute;
   width: 0;
   height: 2px;
-  background: #1FA7A0;
+  background: var(--rf-ember);
   bottom: -7px;
   left: 0;
   transition: width 0.22s ease;
@@ -54,7 +64,7 @@ a { color: inherit; }
   transition: border-color 0.2s ease, transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1), background-color 0.2s ease;
 }
 .surface-hover:hover {
-  border-color: #1FA7A0 !important;
+  border-color: var(--rf-ember) !important;
   transform: translateY(-3px);
   background-color: #fff !important;
 }
@@ -71,16 +81,16 @@ a { color: inherit; }
 
 .pipeline-column {
   background:
-    linear-gradient(180deg, rgba(255,255,255,0.88), rgba(255,255,255,0.55)),
-    #E4EBE7;
+    linear-gradient(180deg, rgba(255,255,255,0.92), rgba(255,255,255,0.6)),
+    #E6EAF1;
   transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
 }
 .pipeline-column.is-drop-target {
-  border-color: #1FA7A0 !important;
-  box-shadow: inset 0 0 0 1px rgba(31,167,160,0.35);
+  border-color: var(--rf-ember) !important;
+  box-shadow: inset 0 0 0 1px rgba(255,92,53,0.35);
   background:
-    linear-gradient(180deg, rgba(31,167,160,0.1), rgba(255,255,255,0.55)),
-    #E4EBE7;
+    linear-gradient(180deg, rgba(255,92,53,0.1), rgba(255,255,255,0.55)),
+    #E6EAF1;
 }
 
 .pipeline-board {
@@ -133,7 +143,7 @@ a { color: inherit; }
   align-items: center;
   gap: 6px;
   position: relative;
-  color: #5A6F68;
+  color: var(--rf-muted);
 }
 .app-stage-step:not(:last-child)::after {
   content: '';
@@ -142,30 +152,29 @@ a { color: inherit; }
   left: calc(50% + 8px);
   right: calc(-50% + 8px);
   height: 2px;
-  background: #CDD6D1;
+  background: var(--rf-line);
 }
 .app-stage-step.is-done:not(:last-child)::after {
-  background: #1FA7A0;
+  background: var(--rf-ember);
 }
 .app-stage-dot {
   width: 12px;
   height: 12px;
   border-radius: 50%;
   background: #fff;
-  border: 2px solid #CDD6D1;
+  border: 2px solid var(--rf-line);
   z-index: 1;
 }
 .app-stage-step.is-done .app-stage-dot {
-  border-color: #1FA7A0;
-  background: #1FA7A0;
+  border-color: var(--rf-ember);
+  background: var(--rf-ember);
 }
 .app-stage-step.is-current .app-stage-dot {
-  box-shadow: 0 0 0 3px rgba(31, 167, 160, 0.22);
+  box-shadow: 0 0 0 3px rgba(255, 92, 53, 0.22);
 }
 .app-stage-step.is-current {
-  color: #14201C;
+  color: var(--rf-text);
 }
-
 
 .stat-accent {
   position: relative;
@@ -178,43 +187,43 @@ a { color: inherit; }
   top: 0;
   bottom: 0;
   width: 3px;
-  background: #1FA7A0;
+  background: var(--rf-ember);
 }
 
 .funnel-track {
   height: 8px;
   border-radius: 99px;
-  background: rgba(11, 31, 26, 0.08);
+  background: rgba(18, 21, 28, 0.08);
   overflow: hidden;
 }
 .funnel-fill {
   height: 100%;
   border-radius: 99px;
-  background: linear-gradient(90deg, #1FA7A0, #4BC4BE);
+  background: linear-gradient(90deg, var(--rf-ember), #FF8A6A);
   transition: width 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .filter-bar {
   backdrop-filter: blur(10px);
-  background: rgba(255, 255, 255, 0.82) !important;
+  background: rgba(255, 255, 255, 0.84) !important;
 }
 
 .auth-panel {
   background:
-    radial-gradient(ellipse 70% 60% at 20% 20%, rgba(31,167,160,0.22), transparent 60%),
-    linear-gradient(160deg, #0B1F1A 0%, #14352C 55%, #0B1F1A 100%);
+    radial-gradient(ellipse 70% 60% at 20% 20%, rgba(255,92,53,0.22), transparent 60%),
+    linear-gradient(160deg, #12151C 0%, #1C2230 55%, #12151C 100%);
 }
 
 .brand-mark {
   width: 28px;
   height: 28px;
   border-radius: 8px;
-  background: linear-gradient(135deg, #1FA7A0, #0B1F1A 120%);
+  background: linear-gradient(135deg, var(--rf-ember), #12151C 125%);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: #F7F4EF;
-  font-family: Syne, sans-serif;
+  color: #fff;
+  font-family: var(--rf-display);
   font-weight: 800;
   font-size: 13px;
   letter-spacing: -0.06em;

@@ -1,49 +1,102 @@
 import { createTheme } from '@mui/material/styles';
 
-const ink = '#0B1F1A';
-const teal = '#1FA7A0';
-const tealDeep = '#178F89';
-const paper = '#EEF2F0';
-const cream = '#F7F4EF';
-const line = '#CDD6D1';
+/** Rolefit "Ember Ledger" — cool ink + ember accent (replaces forest/teal). */
+const ink = '#12151C';
+const inkSoft = '#1C2230';
+const ember = '#FF5C35';
+const emberDeep = '#E04828';
+const paper = '#EEF1F6';
+const mist = '#F7F8FB';
+const line = '#D5DBE5';
+const textPrimary = '#171A22';
+const textSecondary = '#667085';
+
+const display = '"Outfit", sans-serif';
+const body = '"Manrope", sans-serif';
 
 export const theme = createTheme({
   palette: {
     mode: 'light',
-    primary: { main: ink, light: '#1A332C', dark: '#061410', contrastText: cream },
-    secondary: { main: teal, light: '#4BC4BE', dark: tealDeep, contrastText: ink },
+    primary: { main: ink, light: inkSoft, dark: '#0A0C10', contrastText: mist },
+    secondary: { main: ember, light: '#FF7A58', dark: emberDeep, contrastText: '#FFFFFF' },
     background: { default: paper, paper: '#FFFFFF' },
-    text: { primary: '#14201C', secondary: '#5A6F68' },
-    error: { main: '#B84335' },
-    warning: { main: '#C47B2D' },
-    success: { main: '#2F7D57' },
-    info: { main: '#3A6B8C' },
+    text: { primary: textPrimary, secondary: textSecondary },
+    error: { main: '#D64545' },
+    warning: { main: '#D97706' },
+    success: { main: '#0F8A5F' },
+    info: { main: '#3E6B8A' },
     divider: line,
   },
   typography: {
-    fontFamily: '"DM Sans", sans-serif',
-    h1: { fontFamily: '"Syne", sans-serif', fontWeight: 800, letterSpacing: '-0.06em', lineHeight: 0.95 },
-    h2: { fontFamily: '"Syne", sans-serif', fontWeight: 750, letterSpacing: '-0.045em', lineHeight: 1.05 },
-    h3: { fontFamily: '"Syne", sans-serif', fontWeight: 700, letterSpacing: '-0.03em', lineHeight: 1.15 },
-    h4: { fontFamily: '"Syne", sans-serif', fontWeight: 700 },
-    h5: { fontFamily: '"Syne", sans-serif', fontWeight: 700 },
-    body1: { lineHeight: 1.65 },
-    body2: { lineHeight: 1.55 },
-    button: { fontWeight: 700, textTransform: 'none', letterSpacing: '-0.01em' },
-    overline: { fontFamily: '"Syne", sans-serif', fontWeight: 700, letterSpacing: '0.12em' },
+    fontFamily: body,
+    htmlFontSize: 16,
+    h1: {
+      fontFamily: display,
+      fontWeight: 700,
+      letterSpacing: '-0.045em',
+      lineHeight: 0.98,
+      fontSize: 'clamp(2.75rem, 6vw, 5.5rem)',
+    },
+    h2: {
+      fontFamily: display,
+      fontWeight: 700,
+      letterSpacing: '-0.035em',
+      lineHeight: 1.08,
+      fontSize: 'clamp(1.85rem, 3.2vw, 2.85rem)',
+    },
+    h3: {
+      fontFamily: display,
+      fontWeight: 650,
+      letterSpacing: '-0.025em',
+      lineHeight: 1.2,
+      fontSize: 'clamp(1.25rem, 1.8vw, 1.55rem)',
+    },
+    h4: {
+      fontFamily: display,
+      fontWeight: 650,
+      letterSpacing: '-0.02em',
+      fontSize: '1.25rem',
+    },
+    h5: {
+      fontFamily: display,
+      fontWeight: 650,
+      fontSize: '1.1rem',
+    },
+    h6: {
+      fontFamily: display,
+      fontWeight: 650,
+      fontSize: '1rem',
+    },
+    subtitle1: { fontSize: '1.05rem', lineHeight: 1.55, fontWeight: 500 },
+    body1: { fontSize: '1rem', lineHeight: 1.65 },
+    body2: { fontSize: '0.925rem', lineHeight: 1.55 },
+    button: {
+      fontFamily: body,
+      fontWeight: 700,
+      textTransform: 'none',
+      letterSpacing: '-0.01em',
+      fontSize: '0.95rem',
+    },
+    caption: { fontSize: '0.8rem', lineHeight: 1.45, color: textSecondary },
+    overline: {
+      fontFamily: display,
+      fontWeight: 700,
+      letterSpacing: '0.14em',
+      fontSize: '0.7rem',
+    },
   },
-  shape: { borderRadius: 14 },
+  shape: { borderRadius: 12 },
   components: {
     MuiCssBaseline: {
       styleOverrides: {
         body: {
           backgroundColor: paper,
           backgroundImage:
-            'radial-gradient(ellipse 90% 55% at 0% -15%, rgba(31,167,160,0.1), transparent 55%), radial-gradient(ellipse 55% 45% at 100% 0%, rgba(11,31,26,0.05), transparent 52%)',
+            'radial-gradient(ellipse 85% 50% at 0% -12%, rgba(255,92,53,0.08), transparent 55%), radial-gradient(ellipse 55% 45% at 100% 0%, rgba(18,21,28,0.05), transparent 52%)',
           backgroundAttachment: 'fixed',
         },
         '*:focus-visible': {
-          outline: `2px solid ${teal}`,
+          outline: `2px solid ${ember}`,
           outlineOffset: 2,
         },
       },
@@ -54,23 +107,23 @@ export const theme = createTheme({
         root: {
           borderRadius: 10,
           padding: '10px 18px',
-          transition: 'transform .18s ease, background-color .18s ease, border-color .18s ease, box-shadow .18s ease',
+          transition: 'transform .18s ease, background-color .18s ease, border-color .18s ease',
         },
-        sizeLarge: { padding: '12px 22px', fontSize: 15 },
+        sizeLarge: { padding: '12px 22px', fontSize: '1rem' },
+        sizeSmall: { padding: '6px 12px', fontSize: '0.85rem' },
         contained: {
           '&:hover': { transform: 'translateY(-1px)' },
           '&:active': { transform: 'translateY(0)' },
         },
         containedSecondary: {
-          boxShadow: '0 1px 0 rgba(11,31,26,0.06)',
-          '&:hover': { backgroundColor: tealDeep },
+          '&:hover': { backgroundColor: emberDeep },
         },
         outlined: {
           borderColor: line,
-          '&:hover': { borderColor: teal, backgroundColor: 'rgba(31,167,160,0.06)' },
+          '&:hover': { borderColor: ember, backgroundColor: 'rgba(255,92,53,0.06)' },
         },
         text: {
-          '&:hover': { backgroundColor: 'rgba(31,167,160,0.08)' },
+          '&:hover': { backgroundColor: 'rgba(255,92,53,0.08)' },
         },
       },
     },
@@ -85,7 +138,7 @@ export const theme = createTheme({
     },
     MuiChip: {
       styleOverrides: {
-        root: { borderRadius: 8, fontWeight: 600 },
+        root: { borderRadius: 8, fontWeight: 600, fontFamily: body },
         sizeSmall: { height: 26 },
       },
     },
@@ -94,9 +147,7 @@ export const theme = createTheme({
         root: {
           backgroundColor: '#fff',
           borderRadius: 12,
-          transition: 'background-color .15s ease',
-          '&.Mui-focused': { backgroundColor: '#fff' },
-          '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: teal, borderWidth: 2 },
+          '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: ember, borderWidth: 2 },
         },
       },
     },
@@ -105,7 +156,13 @@ export const theme = createTheme({
     },
     MuiTableCell: {
       styleOverrides: {
-        head: { fontWeight: 700, color: '#5A6F68', borderBottomColor: line, backgroundColor: 'rgba(238,242,240,0.85)' },
+        head: {
+          fontWeight: 700,
+          color: textSecondary,
+          borderBottomColor: line,
+          backgroundColor: 'rgba(238,241,246,0.9)',
+          fontFamily: body,
+        },
         body: { borderBottomColor: line },
       },
     },
@@ -113,7 +170,7 @@ export const theme = createTheme({
       styleOverrides: {
         root: {
           transition: 'background-color .15s ease',
-          '&:hover': { backgroundColor: 'rgba(31,167,160,0.04)' },
+          '&:hover': { backgroundColor: 'rgba(255,92,53,0.04)' },
         },
       },
     },
@@ -133,7 +190,7 @@ export const theme = createTheme({
     },
     MuiDrawer: {
       styleOverrides: {
-        paper: { backgroundColor: cream, borderLeft: `1px solid ${line}` },
+        paper: { backgroundColor: mist, borderLeft: `1px solid ${line}` },
       },
     },
     MuiDialog: {
@@ -143,14 +200,16 @@ export const theme = createTheme({
     },
     MuiSkeleton: {
       styleOverrides: {
-        root: { backgroundColor: 'rgba(11,31,26,0.06)' },
+        root: { backgroundColor: 'rgba(18,21,28,0.07)' },
       },
     },
     MuiLinearProgress: {
       styleOverrides: {
-        root: { borderRadius: 99, height: 6, backgroundColor: 'rgba(31,167,160,0.15)' },
+        root: { borderRadius: 99, height: 6, backgroundColor: 'rgba(255,92,53,0.15)' },
         bar: { borderRadius: 99 },
       },
     },
   },
 });
+
+export const brand = { ink, ember, paper, mist, line, display, body };
