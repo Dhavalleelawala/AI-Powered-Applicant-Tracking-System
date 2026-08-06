@@ -5,7 +5,9 @@ import {
   AccordionDetails,
   AccordionSummary,
   Alert,
+  Box,
   Button,
+  Chip,
   LinearProgress,
   Paper,
   Stack,
@@ -13,7 +15,7 @@ import {
   Typography,
 } from '@mui/material';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { applicationsApi, authApi, jobsApi } from '../../api/client';
 import { EmptyState, LoadingRows, Page, PageHeader, StageChip } from '../../components/ui/Primitives';
@@ -178,6 +180,194 @@ export function ApplyJobPage() {
   );
 }
 
+const PIPELINE_STEPS = ['applied', 'interview', 'offered'];
+
+function nextStepCopy(application) {
+  const stage = application.stage || 'applied';
+  const ai = application.aiStatus || 'pending';
+  if (stage === 'rejected') return 'This role isn’t moving forward. Keep exploring other openings.';
+  if (stage === 'offered') return 'Great news — an offer path is open. Watch your inbox for details.';
+  if (stage === 'interview') return 'You’re in interview. Expect follow-up from the hiring team.';
+  if (['pending', 'processing'].includes(ai)) return 'AI is scoring your resume against this role.';
+  if (ai === 'failed') return 'Fit review hit a snag, but your application is still with the team.';
+  return 'Waiting for the hiring team to review your application.';
+}
+
+function StageTimeline({ stage }) {
+  if (stage === 'rejected') {
+    return (
+      <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap>
+        <Chip size="small" label="Applied" variant="outlined" />
+        <Typography variant="caption" color="text.secondary">
+          →
+        </Typography>
+        <Chip size="small" color="error" label="Rejected" />
+      </Stack>
+    );
+  }
+  const activeIndex = Math.max(0, PIPELINE_STEPS.indexOf(stage));
+  return (
+    <Box className="app-stage-track" aria-label={`Stage: ${stage}`}>
+      {PIPELINE_STEPS.map((step, index) => {
+        const done = index <= activeIndex;
+        return (
+          <Box key={step} className={`app-stage-step${done ? ' is-done' : ''}${index === activeIndex ? ' is-current' : ''}`}>
+            <span className="app-stage-dot" />
+            <Typography variant="caption" sx={{ textTransform: 'capitalize', fontWeight: index === activeIndex ? 700 : 500 }}>
+              {step}
+            </Typography>
+          </Box>
+        );
+      })}
+    </Box>
+  );
+}
+
+function ApplicationCard({ application: a }) {
+  const jobId = a.job?.id || a.jobId;
+  const title = a.jobTitle || a.job?.title || 'Role';
+  const location = a.job?.location;
+  const score = a.aiAnalysis?.matchScore;
+  const matched = a.aiAnalysis?.skillsMatched || a.aiAnalysis?.matchedSkills || [];
+  const missing = a.aiAnalysis?.skillsMissing || a.aiAnalysis?.gaps || [];
+  const summary = a.aiAnalysis?.summary;
+  const history = a.stageHistory || [];
+  const reviewing = ['pending', 'processing'].includes(a.aiStatus);
+
+  return (
+    <Paper sx={{ overflow: 'hidden', bgcolor: 'rgba(255,255,255,0.94)', p: 0 }}>
+      <Box sx={{ p: { xs: 2.25, md: 2.75 } }}>
+        <Stack
+          direction={{ xs: 'column', md: 'row' }}
+          spacing={2}
+          justifyContent="space-between"
+          alignItems={{ md: 'flex-start' }}
+        >
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            <Typography
+              fontWeight={700}
+              fontSize={18}
+              component={Link}
+              to={`/jobs/${jobId}`}
+              sx={{ color: 'inherit', textDecoration: 'none', '&:hover': { color: 'secondary.dark' } }}
+            >
+              {title}
+            </Typography>
+            <Typography variant="body2" color="text.secondary" mt={0.5}>
+              Applied {new Date(a.createdAt).toLocaleDateString()}
+              {location ? ` · ${location}` : ''}
+              {a.job?.employmentType ? ` · ${a.job.employmentType}` : ''}
+            </Typography>
+            <Typography variant="body2" mt={1.5} sx={{ color: 'text.primary', lineHeight: 1.55, maxWidth: 520 }}>
+              {nextStepCopy(a)}
+            </Typography>
+            <Box mt={2}>
+              <StageTimeline stage={a.stage} />
+            </Box>
+          </Box>
+
+          <Stack spacing={1.25} alignItems={{ xs: 'stretch', md: 'flex-end' }} minWidth={{ md: 160 }}>
+            <StageChip stage={a.stage} />
+            <Box sx={{ width: '100%', maxWidth: { md: 160 } }}>
+              <Stack direction="row" justifyContent="space-between" alignItems="baseline" mb={0.5}>
+                <Typography variant="caption" color="text.secondary" fontWeight={600}>
+                  Fit score
+                </Typography>
+                <Typography variant="h3" fontSize={22} sx={{ fontVariantNumeric: 'tabular-nums' }}>
+                  {reviewing ? '…' : score == null ? '—' : `${score}`}
+                </Typography>
+              </Stack>
+              {reviewing ? (
+                <LinearProgress color="secondary" />
+              ) : (
+                <LinearProgress
+                  variant="determinate"
+                  color="secondary"
+                  value={score == null ? 0 : Math.min(100, Number(score))}
+                />
+              )}
+              <Typography variant="caption" color="text.secondary" display="block" mt={0.5}>
+                {reviewing ? 'AI review in progress' : a.aiStatus === 'failed' ? 'Review incomplete' : a.aiStatus === 'completed' ? 'AI complete' : 'Pending review'}
+              </Typography>
+            </Box>
+            <Button size="small" component={Link} to={`/jobs/${jobId}`} variant="outlined">
+              View role
+            </Button>
+          </Stack>
+        </Stack>
+
+        {(matched.length > 0 || missing.length > 0) && (
+          <Stack spacing={1} mt={2.5}>
+            {matched.length > 0 && (
+              <Stack direction="row" gap={0.75} flexWrap="wrap" useFlexGap alignItems="center">
+                <Typography variant="caption" color="text.secondary" fontWeight={700} sx={{ mr: 0.5 }}>
+                  Matched
+                </Typography>
+                {matched.slice(0, 6).map((skill) => (
+                  <Chip key={`m-${skill}`} size="small" color="success" variant="outlined" label={skill} />
+                ))}
+              </Stack>
+            )}
+            {missing.length > 0 && (
+              <Stack direction="row" gap={0.75} flexWrap="wrap" useFlexGap alignItems="center">
+                <Typography variant="caption" color="text.secondary" fontWeight={700} sx={{ mr: 0.5 }}>
+                  Gaps
+                </Typography>
+                {missing.slice(0, 6).map((skill) => (
+                  <Chip key={`g-${skill}`} size="small" color="warning" variant="outlined" label={skill} />
+                ))}
+              </Stack>
+            )}
+          </Stack>
+        )}
+
+        {summary && (
+          <Typography variant="body2" color="text.secondary" mt={2} sx={{ lineHeight: 1.6, maxWidth: 640 }}>
+            {summary}
+          </Typography>
+        )}
+      </Box>
+
+      {history.length > 0 && (
+        <Accordion disableGutters elevation={0} sx={{ borderTop: '1px solid', borderColor: 'divider' }}>
+          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+            <Typography variant="body2" fontWeight={600}>
+              Stage history ({history.length})
+            </Typography>
+          </AccordionSummary>
+          <AccordionDetails>
+            <Stack spacing={1}>
+              {history.map((entry, index) => (
+                <Stack key={`${entry.changedAt || index}-${entry.to}`} direction="row" spacing={1.25} alignItems="flex-start">
+                  <Box
+                    sx={{
+                      width: 8,
+                      height: 8,
+                      borderRadius: '50%',
+                      bgcolor: 'secondary.main',
+                      mt: 0.7,
+                      flexShrink: 0,
+                    }}
+                  />
+                  <Box>
+                    <Typography variant="body2" fontWeight={600} sx={{ textTransform: 'capitalize' }}>
+                      {entry.from || '—'} → {entry.to}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {entry.changedAt ? new Date(entry.changedAt).toLocaleString() : ''}
+                      {entry.note ? ` · ${entry.note}` : ''}
+                    </Typography>
+                  </Box>
+                </Stack>
+              ))}
+            </Stack>
+          </AccordionDetails>
+        </Accordion>
+      )}
+    </Paper>
+  );
+}
+
 export function MyApplicationsPage() {
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['applicant-applications'],
@@ -188,13 +378,20 @@ export function MyApplicationsPage() {
     },
   });
   const apps = data || [];
+  const summary = useMemo(() => {
+    const counts = { applied: 0, interview: 0, offered: 0, rejected: 0 };
+    for (const app of apps) {
+      if (counts[app.stage] != null) counts[app.stage] += 1;
+    }
+    return counts;
+  }, [apps]);
 
   return (
     <Page>
       <PageHeader
         eyebrow="YOUR PIPELINE"
         title="My applications"
-        subtitle="A clear view of every opportunity you are pursuing."
+        subtitle="See fit score, stage, and what happens next — without digging."
         actions={
           <Button component={Link} to="/jobs" variant="contained" color="secondary">
             Browse roles
@@ -206,83 +403,33 @@ export function MyApplicationsPage() {
           {String(error)}
         </Alert>
       ) : isLoading ? (
-        <LoadingRows count={3} />
+        <LoadingRows count={3} height={160} />
       ) : apps.length ? (
-        <Stack spacing={1.5}>
+        <Stack spacing={2}>
+          <Stack direction="row" gap={1} flexWrap="wrap" useFlexGap>
+            {[
+              ['Total', apps.length],
+              ['Interview', summary.interview],
+              ['Offered', summary.offered],
+              ['Rejected', summary.rejected],
+            ].map(([label, value]) => (
+              <Chip
+                key={label}
+                label={`${label}: ${value}`}
+                variant={label === 'Total' ? 'filled' : 'outlined'}
+                color={label === 'Total' ? 'secondary' : 'default'}
+                sx={{ fontWeight: 600 }}
+              />
+            ))}
+          </Stack>
           {apps.map((a) => (
-            <Paper key={a.id || a._id} sx={{ overflow: 'hidden', bgcolor: 'rgba(255,255,255,0.92)' }}>
-              <Stack
-                direction={{ xs: 'column', sm: 'row' }}
-                gap={2}
-                justifyContent="space-between"
-                alignItems={{ sm: 'center' }}
-                sx={{ p: 2.5 }}
-              >
-                <Stack spacing={0.5}>
-                  <Typography
-                    fontWeight={700}
-                    fontSize={18}
-                    component={Link}
-                    to={`/jobs/${a.job?.id || a.jobId}`}
-                    sx={{ color: 'inherit', textDecoration: 'none', '&:hover': { color: 'secondary.dark' } }}
-                  >
-                    {a.jobTitle || a.job?.title || a.jobId?.title || 'Role'}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Applied {new Date(a.createdAt).toLocaleDateString()} · AI review: {a.aiStatus || 'pending'}
-                    {a.aiAnalysis?.matchScore != null ? ` · ${a.aiAnalysis.matchScore}% match` : ''}
-                  </Typography>
-                  {['pending', 'processing'].includes(a.aiStatus) && (
-                    <LinearProgress color="secondary" sx={{ mt: 1, maxWidth: 220, borderRadius: 1 }} />
-                  )}
-                </Stack>
-                <Stack direction="row" spacing={1} alignItems="center">
-                  <Button size="small" component={Link} to={`/jobs/${a.job?.id || a.jobId}`} variant="outlined">
-                    View role
-                  </Button>
-                  <StageChip stage={a.stage} />
-                </Stack>
-              </Stack>
-              {(a.aiAnalysis?.summary || (a.stageHistory || []).length > 0) && (
-                <Accordion disableGutters elevation={0}>
-                  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                    <Typography variant="body2">Details & history</Typography>
-                  </AccordionSummary>
-                  <AccordionDetails>
-                    {a.aiAnalysis?.summary && (
-                      <>
-                        <Typography fontWeight={700}>AI summary</Typography>
-                        <Typography variant="body2" sx={{ whiteSpace: 'pre-line', mt: 0.5 }}>
-                          {a.aiAnalysis.summary}
-                        </Typography>
-                      </>
-                    )}
-                    {(a.stageHistory || []).length > 0 && (
-                      <>
-                        <Typography fontWeight={700} mt={2}>
-                          Stage history
-                        </Typography>
-                        <Stack spacing={0.75} mt={1}>
-                          {(a.stageHistory || []).map((entry, index) => (
-                            <Typography key={`${entry.changedAt || index}-${entry.to}`} variant="body2" color="text.secondary">
-                              {entry.from || '—'} → {entry.to}
-                              {entry.changedAt ? ` · ${new Date(entry.changedAt).toLocaleString()}` : ''}
-                              {entry.note ? ` · ${entry.note}` : ''}
-                            </Typography>
-                          ))}
-                        </Stack>
-                      </>
-                    )}
-                  </AccordionDetails>
-                </Accordion>
-              )}
-            </Paper>
+            <ApplicationCard key={a.id || a._id} application={a} />
           ))}
         </Stack>
       ) : (
         <EmptyState
           title="No applications yet."
-          text="Explore open roles and take the first step."
+          text="Explore open roles and take the first step — your pipeline will show up here."
           actionLabel="Browse roles"
           actionTo="/jobs"
         />

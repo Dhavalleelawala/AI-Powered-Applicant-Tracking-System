@@ -3,6 +3,12 @@
 All notable Rolefit changes are listed here. Newest first.
 Epics are tracked in [`docs/EPICS.md`](./docs/EPICS.md) — **one completed epic → one commit**.
 
+## 2026-08-06 (E6 — Applicant applications polish)
+
+- Fit score, next-step copy, and stage timeline visible without opening accordions
+- Matched / gap skill chips + AI summary on each application card
+- Pipeline summary chips and clearer stage history
+
 ## 2026-08-06 (E5 — Pipeline Kanban UX)
 
 - Drag candidates between pipeline columns (drop highlight)

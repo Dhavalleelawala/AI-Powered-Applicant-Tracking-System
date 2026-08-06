@@ -45,14 +45,15 @@ Status: `planned` · `in_progress` · `done`
 - **Notes:** Native drag-and-drop between columns; one-click advance; denser cards with collapsible notes; snap-scroll mobile board; column skeletons.
 - **Paths:** `client/src/pages/recruiter/RecruiterPages.jsx`, `client/src/styles.css`
 
+### E6 — Applicant applications polish
+- **Status:** done
+- **Shipped:** 2026-08-06
+- **Notes:** Fit score + next-step copy visible without accordion; stage timeline; matched/gap skills; summary chips; clearer history.
+- **Paths:** `client/src/pages/applicant/ApplicantPages.jsx`, `client/src/styles.css`
+
 ---
 
 ## Planned (next)
-
-### E6 — Applicant applications polish
-- **Status:** planned
-- **Goal:** Clearer match evidence, stage timeline visual, empty/loading polish, deep links to job + status.
-- **Accept:** Applicant understands score + next step without opening every accordion.
 
 ### E7 — Live cloud deploy
 - **Status:** planned
