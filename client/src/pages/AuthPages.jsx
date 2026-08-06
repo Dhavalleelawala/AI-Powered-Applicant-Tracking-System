@@ -1,9 +1,10 @@
-import { Alert, Box, Button, Container, Link as MuiLink, Paper, Stack, TextField, Typography } from '@mui/material';
+import { Alert, Box, Button, Link as MuiLink, Paper, Stack, TextField, Typography } from '@mui/material';
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { authApi } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
+import { Page } from '../components/ui/Primitives';
 
 function redirectAfterAuth(user, location) {
   const from = location.state?.from;
@@ -40,16 +41,30 @@ export function LoginPage() {
   return (
     <AuthFrame title="Welcome back" subtitle="Continue where your hiring work left off.">
       <Box component="form" onSubmit={submit}>
-        <Stack spacing={2}>
-          <TextField label="Email" type="email" required value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
-          <TextField label="Password" type="password" required value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
+        <Stack spacing={2.25}>
+          <TextField
+            label="Email"
+            type="email"
+            autoComplete="email"
+            required
+            value={form.email}
+            onChange={(e) => setForm({ ...form, email: e.target.value })}
+          />
+          <TextField
+            label="Password"
+            type="password"
+            autoComplete="current-password"
+            required
+            value={form.password}
+            onChange={(e) => setForm({ ...form, password: e.target.value })}
+          />
           {error && <Alert severity="error">{String(error)}</Alert>}
-          <Button type="submit" variant="contained" color="secondary" disabled={sending}>
+          <Button type="submit" variant="contained" color="secondary" size="large" disabled={sending}>
             {sending ? 'Signing in…' : 'Sign in'}
           </Button>
         </Stack>
       </Box>
-      <Typography mt={3} variant="body2">
+      <Typography mt={3} variant="body2" color="text.secondary">
         New here? <MuiLink component={Link} to="/register/applicant">Join as an applicant</MuiLink> or{' '}
         <MuiLink component={Link} to="/register/recruiter">start hiring</MuiLink>.
       </Typography>
@@ -89,9 +104,9 @@ export function RegisterPage({ role }) {
       subtitle={recruiter ? 'Set up your Rolefit hiring workspace.' : 'Create your candidate profile in minutes.'}
     >
       <Box component="form" onSubmit={submit}>
-        <Stack spacing={2}>
-          <TextField label="Full name" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-          <TextField label="Work email" type="email" required value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+        <Stack spacing={2.25}>
+          <TextField label="Full name" autoComplete="name" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+          <TextField label="Work email" type="email" autoComplete="email" required value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
           {recruiter && (
             <>
               <TextField label="Company name" required value={form.companyName} onChange={(e) => setForm({ ...form, companyName: e.target.value })} />
@@ -101,19 +116,25 @@ export function RegisterPage({ role }) {
           <TextField
             label="Password"
             type="password"
+            autoComplete="new-password"
             helperText="Use 8+ characters with a letter and a number."
             required
             value={form.password}
             onChange={(e) => setForm({ ...form, password: e.target.value })}
           />
           {error && <Alert severity="error">{String(error)}</Alert>}
-          <Button type="submit" variant="contained" color="secondary" disabled={sending}>
+          <Button type="submit" variant="contained" color="secondary" size="large" disabled={sending}>
             {sending ? 'Creating account…' : recruiter ? 'Create hiring workspace' : 'Create my account'}
           </Button>
         </Stack>
       </Box>
-      <Typography mt={3} variant="body2">
+      <Typography mt={3} variant="body2" color="text.secondary">
         Already have an account? <MuiLink component={Link} to="/login">Sign in</MuiLink>.
+        {!recruiter && (
+          <>
+            {' '}Looking to hire? <MuiLink component={Link} to="/register/recruiter">Start as a recruiter</MuiLink>.
+          </>
+        )}
       </Typography>
     </AuthFrame>
   );
@@ -121,14 +142,19 @@ export function RegisterPage({ role }) {
 
 function AuthFrame({ title, subtitle, children }) {
   return (
-    <Container maxWidth="sm" sx={{ py: { xs: 5, md: 10 } }}>
-      <Typography variant="h2" fontSize={{ xs: 40, md: 54 }}>
+    <Page narrow>
+      <Typography
+        sx={{ color: 'secondary.main', fontFamily: 'Syne', fontWeight: 800, letterSpacing: '0.1em', fontSize: 12, mb: 1.5 }}
+      >
+        ROLEFIT
+      </Typography>
+      <Typography variant="h2" fontSize={{ xs: 36, md: 48 }}>
         {title}
       </Typography>
-      <Typography color="text.secondary" mt={1}>
+      <Typography color="text.secondary" mt={1.25} mb={3}>
         {subtitle}
       </Typography>
-      <Paper sx={{ p: { xs: 3, md: 4 }, mt: 4 }}>{children}</Paper>
-    </Container>
+      <Paper sx={{ p: { xs: 3, md: 4 }, bgcolor: 'rgba(255,255,255,0.92)' }}>{children}</Paper>
+    </Page>
   );
 }

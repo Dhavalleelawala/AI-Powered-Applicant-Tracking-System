@@ -1,4 +1,5 @@
 import { Add, Archive, Description, Refresh } from '@mui/icons-material';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import {
   Accordion,
   AccordionDetails,
@@ -8,7 +9,6 @@ import {
   Button,
   Checkbox,
   Chip,
-  Container,
   Grid,
   MenuItem,
   Paper,
@@ -23,12 +23,11 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { applicationsApi, hiringApi, jobsApi } from '../../api/client';
-import { Empty } from '../PublicPages';
+import { EmptyState, LoadingRows, Page, PageHeader, SectionLabel, StatTile } from '../../components/ui/Primitives';
 import { useToast } from '../../context/ToastContext';
 
 export function DashboardPage() {
@@ -63,27 +62,21 @@ export function DashboardPage() {
   const vacancies = analyticsData?.vacancies || [];
   const isLoading = jobsLoading || analyticsLoading;
   const error = jobsError || analyticsError;
-  const refetch = () => {
-    refetchJobs();
-    refetchAnalytics();
-  };
 
   return (
-    <Container maxWidth="xl" sx={{ py: 6 }}>
-      <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" alignItems={{ md: 'end' }} gap={2}>
-        <Box>
-          <Typography variant="h2" fontSize={48}>
-            Your hiring field.
-          </Typography>
-          <Typography color="text.secondary" mt={1}>
-            Keep every decision moving with context.
-          </Typography>
-        </Box>
-        <Button component={Link} to="/recruiter/jobs/new" variant="contained" color="secondary" startIcon={<Add />}>
-          Create a job
-        </Button>
-      </Stack>
-      <Grid container spacing={2} mt={2}>
+    <Page maxWidth="xl">
+      <PageHeader
+        eyebrow="RECRUITER"
+        title="Your hiring field."
+        subtitle="Keep every decision moving with context."
+        actions={
+          <Button component={Link} to="/recruiter/jobs/new" variant="contained" color="secondary" startIcon={<Add />}>
+            Create a job
+          </Button>
+        }
+      />
+
+      <Grid container spacing={2}>
         {[
           ['Open vacancies', summary.openVacancies],
           ['Total applications', summary.totalApplications],
@@ -91,32 +84,50 @@ export function DashboardPage() {
           ['Openings to fill', summary.openingsToFill],
           ['Fill progress', `${summary.fillProgressPercent ?? 0}%`],
         ].map(([label, n]) => (
-          <Grid item xs={12} sm={6} lg={2} key={label}>
-            <Paper sx={{ p: 3 }}>
-              <Typography color="text.secondary">{label}</Typography>
-              <Typography variant="h2" fontSize={45}>
-                {isLoading ? '—' : n}
-              </Typography>
-            </Paper>
+          <Grid item xs={12} sm={6} md={4} lg key={label}>
+            <StatTile label={label} value={isLoading ? '—' : n} />
           </Grid>
         ))}
       </Grid>
-      <Paper sx={{ p: 3, mt: 2 }}>
-        <Typography variant="h3" fontSize={20}>Hiring funnel</Typography>
-        <Stack direction="row" gap={1} mt={2} flexWrap="wrap">
+
+      <Paper sx={{ p: 3, mt: 2.5, bgcolor: 'rgba(255,255,255,0.9)' }}>
+        <SectionLabel>Hiring funnel</SectionLabel>
+        <Stack direction="row" gap={1} flexWrap="wrap" useFlexGap>
           {['applied', 'interview', 'offered', 'rejected'].map((stage) => (
-            <Chip key={stage} label={`${stage}: ${summary.funnel?.[stage] ?? 0}`} color={stage === 'rejected' ? 'error' : 'secondary'} />
+            <Chip
+              key={stage}
+              label={`${stage}: ${summary.funnel?.[stage] ?? 0}`}
+              color={stage === 'rejected' ? 'error' : stage === 'offered' ? 'success' : 'secondary'}
+              variant={stage === 'applied' ? 'outlined' : 'filled'}
+              sx={{ textTransform: 'capitalize' }}
+            />
           ))}
         </Stack>
       </Paper>
+
       {error ? (
-        <Alert severity="error" action={<Button onClick={refetch}>Retry</Button>} sx={{ mt: 4 }}>
-          {error}
+        <Alert
+          severity="error"
+          action={
+            <Button
+              onClick={() => {
+                refetchJobs();
+                refetchAnalytics();
+              }}
+            >
+              Retry
+            </Button>
+          }
+          sx={{ mt: 3 }}
+        >
+          {String(error)}
         </Alert>
       ) : (
         <>
-          <Typography variant="h3" mt={5}>Vacancy overview</Typography>
-          <TableContainer component={Paper} sx={{ mt: 2, overflowX: 'auto' }}>
+          <Typography variant="h3" mt={5} mb={2} fontSize={28}>
+            Vacancy overview
+          </Typography>
+          <TableContainer component={Paper} sx={{ overflowX: 'auto', bgcolor: 'rgba(255,255,255,0.92)' }}>
             <Table size="small">
               <TableHead>
                 <TableRow>
@@ -131,20 +142,41 @@ export function DashboardPage() {
                 </TableRow>
               </TableHead>
               <TableBody>
+                {vacancies.length === 0 && !isLoading && (
+                  <TableRow>
+                    <TableCell colSpan={8}>
+                      <Typography color="text.secondary" py={2}>
+                        No open vacancies yet.
+                      </Typography>
+                    </TableCell>
+                  </TableRow>
+                )}
                 {vacancies.map((vacancy) => (
-                  <TableRow key={vacancy.id}>
-                    <TableCell>{vacancy.title}</TableCell>
+                  <TableRow key={vacancy.id} hover>
+                    <TableCell sx={{ fontWeight: 700 }}>{vacancy.title}</TableCell>
                     <TableCell>{vacancy.department || '—'}</TableCell>
-                    <TableCell><Chip size="small" label={vacancy.priority} color={vacancy.priority === 'critical' ? 'error' : vacancy.priority === 'high' ? 'warning' : 'default'} /></TableCell>
+                    <TableCell>
+                      <Chip
+                        size="small"
+                        label={vacancy.priority}
+                        color={vacancy.priority === 'critical' ? 'error' : vacancy.priority === 'high' ? 'warning' : 'default'}
+                      />
+                    </TableCell>
                     <TableCell align="right">{vacancy.openings}</TableCell>
                     <TableCell align="right">{vacancy.applications}</TableCell>
                     <TableCell align="right">{vacancy.interviews}</TableCell>
                     <TableCell align="right">{vacancy.ageDays}d</TableCell>
                     <TableCell>
                       <Stack direction="row" spacing={0.5}>
-                        <Button size="small" component={Link} to={`/recruiter/jobs/${vacancy.id}/applications`}>Pipeline</Button>
-                        <Button size="small" component={Link} to={`/recruiter/jobs/${vacancy.id}/ranking`}>Ranking</Button>
-                        <Button size="small" component={Link} to={`/recruiter/jobs/${vacancy.id}/edit`}>Edit</Button>
+                        <Button size="small" component={Link} to={`/recruiter/jobs/${vacancy.id}/applications`}>
+                          Pipeline
+                        </Button>
+                        <Button size="small" component={Link} to={`/recruiter/jobs/${vacancy.id}/ranking`}>
+                          Ranking
+                        </Button>
+                        <Button size="small" component={Link} to={`/recruiter/jobs/${vacancy.id}/edit`}>
+                          Edit
+                        </Button>
                       </Stack>
                     </TableCell>
                   </TableRow>
@@ -152,44 +184,58 @@ export function DashboardPage() {
               </TableBody>
             </Table>
           </TableContainer>
-          <Stack spacing={1.5} mt={5}>
-          <Typography variant="h3">Your roles</Typography>
-          {jobs.length ? (
-            jobs.map((j) => (
-              <Paper key={j.id || j._id} sx={{ p: 2.5, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 2 }}>
-                <Box sx={{ flex: 1, minWidth: 220 }}>
-                  <Typography fontWeight={700}>{j.title}</Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {j.location} · {j.applicationCount || 0} candidates
-                  </Typography>
-                </Box>
-                <Chip label={j.status} />
-                <Button component={Link} to={`/recruiter/jobs/${j.id || j._id}/edit`}>
-                  Edit
-                </Button>
-                <Button component={Link} to={`/recruiter/jobs/${j.id || j._id}/applications`}>
-                  Pipeline
-                </Button>
-                <Button component={Link} to={`/recruiter/jobs/${j.id || j._id}/ranking`}>
-                  Ranking
-                </Button>
-                <Button disabled={duplicate.isPending} onClick={() => duplicate.mutate(j.id || j._id)}>
-                  Duplicate
-                </Button>
-                {j.status !== 'archived' && (
-                  <Button color="error" startIcon={<Archive />} onClick={() => archive.mutate(j.id || j._id)}>
-                    Archive
+
+          <Typography variant="h3" mt={5} mb={2} fontSize={28}>
+            Your roles
+          </Typography>
+          {isLoading ? (
+            <LoadingRows />
+          ) : jobs.length ? (
+            <Stack spacing={1.25}>
+              {jobs.map((j) => (
+                <Paper
+                  key={j.id || j._id}
+                  className="surface-hover"
+                  sx={{ p: 2.5, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 1.5, bgcolor: 'rgba(255,255,255,0.92)' }}
+                >
+                  <Box sx={{ flex: 1, minWidth: 220 }}>
+                    <Typography fontWeight={700}>{j.title}</Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {j.location} · {j.applicationCount || 0} candidates
+                    </Typography>
+                  </Box>
+                  <Chip label={j.status} size="small" color={j.status === 'open' ? 'success' : 'default'} />
+                  <Button component={Link} to={`/recruiter/jobs/${j.id || j._id}/edit`}>
+                    Edit
                   </Button>
-                )}
-              </Paper>
-            ))
+                  <Button component={Link} to={`/recruiter/jobs/${j.id || j._id}/applications`}>
+                    Pipeline
+                  </Button>
+                  <Button component={Link} to={`/recruiter/jobs/${j.id || j._id}/ranking`}>
+                    Ranking
+                  </Button>
+                  <Button disabled={duplicate.isPending} onClick={() => duplicate.mutate(j.id || j._id)}>
+                    Duplicate
+                  </Button>
+                  {j.status !== 'archived' && (
+                    <Button color="error" startIcon={<Archive />} onClick={() => archive.mutate(j.id || j._id)}>
+                      Archive
+                    </Button>
+                  )}
+                </Paper>
+              ))}
+            </Stack>
           ) : (
-            !isLoading && <Empty title="Your pipeline begins with a role." text="Create your first job to start meeting great candidates." />
+            <EmptyState
+              title="Your pipeline begins with a role."
+              text="Create your first job to start meeting great candidates."
+              actionLabel="Create a job"
+              actionTo="/recruiter/jobs/new"
+            />
           )}
-          </Stack>
         </>
       )}
-    </Container>
+    </Page>
   );
 }
 
@@ -260,11 +306,13 @@ export function JobFormPage() {
   };
 
   return (
-    <Container maxWidth="md" sx={{ py: 7 }}>
-      <Typography variant="h2" fontSize={48}>
-        {editing ? 'Refine the role.' : 'Open a new role.'}
-      </Typography>
-      <Paper component="form" onSubmit={submit} sx={{ p: { xs: 2.5, md: 4 }, mt: 4 }}>
+    <Page narrow>
+      <PageHeader
+        eyebrow={editing ? 'EDIT ROLE' : 'NEW ROLE'}
+        title={editing ? 'Refine the role.' : 'Open a new role.'}
+        subtitle="Clear requirements help AI ranking and candidates alike."
+      />
+      <Paper component="form" onSubmit={submit} sx={{ p: { xs: 2.5, md: 4 }, bgcolor: 'rgba(255,255,255,0.92)' }}>
         <Stack spacing={2.5}>
           <TextField label="Job title" required value={form.title} onChange={set('title')} />
           <TextField label="Location" required value={form.location} onChange={set('location')} />
@@ -272,7 +320,11 @@ export function JobFormPage() {
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
             <TextField label="Openings" type="number" inputProps={{ min: 1 }} value={form.openings} onChange={set('openings')} fullWidth />
             <TextField label="Priority" select value={form.priority} onChange={set('priority')} fullWidth>
-              {['low', 'medium', 'high', 'critical'].map((priority) => <MenuItem key={priority} value={priority}>{priority}</MenuItem>)}
+              {['low', 'medium', 'high', 'critical'].map((priority) => (
+                <MenuItem key={priority} value={priority}>
+                  {priority}
+                </MenuItem>
+              ))}
             </TextField>
             <TextField label="Closes at" type="date" value={form.closesAt} onChange={set('closesAt')} InputLabelProps={{ shrink: true }} fullWidth />
           </Stack>
@@ -290,10 +342,18 @@ export function JobFormPage() {
             onChange={set('requiredSkills')}
           />
           <Stack direction="row" spacing={2}>
-            <TextField label="Minimum years" type="number" value={form.experienceYearsMin} onChange={set('experienceYearsMin')} />
-            <TextField label="Maximum years" type="number" value={form.experienceYearsMax} onChange={set('experienceYearsMax')} />
+            <TextField label="Minimum years" type="number" value={form.experienceYearsMin} onChange={set('experienceYearsMin')} fullWidth />
+            <TextField label="Maximum years" type="number" value={form.experienceYearsMax} onChange={set('experienceYearsMax')} fullWidth />
           </Stack>
-          <TextField label="Job description" multiline minRows={8} required value={form.description} onChange={set('description')} helperText="Write at least ~50 characters so AI ranking has enough context." />
+          <TextField
+            label="Job description"
+            multiline
+            minRows={8}
+            required
+            value={form.description}
+            onChange={set('description')}
+            helperText="Write at least ~50 characters so AI ranking has enough context."
+          />
           <TextField label="Status" select value={form.status} onChange={set('status')}>
             {['draft', 'open'].map((x) => (
               <MenuItem value={x} key={x}>
@@ -302,12 +362,15 @@ export function JobFormPage() {
             ))}
           </TextField>
           {save.error && <Alert severity="error">{String(save.error)}</Alert>}
-          <Button type="submit" color="secondary" variant="contained" disabled={save.isPending}>
-            {save.isPending ? 'Saving…' : editing ? 'Save changes' : 'Publish role'}
-          </Button>
+          <Stack direction="row" spacing={1.5}>
+            <Button type="submit" color="secondary" variant="contained" size="large" disabled={save.isPending}>
+              {save.isPending ? 'Saving…' : editing ? 'Save changes' : 'Publish role'}
+            </Button>
+            <Button onClick={() => nav('/recruiter')}>Cancel</Button>
+          </Stack>
         </Stack>
       </Paper>
-    </Container>
+    </Page>
   );
 }
 
@@ -368,41 +431,45 @@ export function PipelinePage() {
     setSelected((current) => (current.includes(id) ? current.filter((selectedId) => selectedId !== id) : [...current, id]));
 
   return (
-    <Container maxWidth="xl" sx={{ py: 6 }}>
-      <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" alignItems={{ md: 'end' }} gap={2}>
-        <Box>
-          <Typography variant="h2" fontSize={48}>
-            Candidate pipeline
-          </Typography>
-          <Typography color="text.secondary" mt={1}>
-            Move each conversation forward with intent.
-          </Typography>
-        </Box>
-        <Button component={Link} to={`/recruiter/jobs/${jobId}/ranking`} variant="outlined">
-          Open ranking
-        </Button>
-      </Stack>
-      <Stack direction="row" spacing={1} alignItems="center" mt={3}>
+    <Page maxWidth="xl">
+      <PageHeader
+        eyebrow="PIPELINE"
+        title="Candidate pipeline"
+        subtitle="Move each conversation forward with intent."
+        actions={
+          <Button component={Link} to={`/recruiter/jobs/${jobId}/ranking`} variant="outlined">
+            Open ranking
+          </Button>
+        }
+      />
+      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} alignItems={{ sm: 'center' }} mb={3}>
         <Button variant="contained" color="secondary" disabled={!selected.length || bulkMove.isPending} onClick={() => bulkMove.mutate(selected)}>
           Move selected to Interview ({selected.length})
         </Button>
-        {(move.error || addNote.error || bulkMove.error) && <Alert severity="error">{String(move.error || addNote.error || bulkMove.error)}</Alert>}
+        {(move.error || addNote.error || bulkMove.error) && (
+          <Alert severity="error">{String(move.error || addNote.error || bulkMove.error)}</Alert>
+        )}
       </Stack>
       {error && (
-        <Alert severity="error" sx={{ mt: 3 }}>
-          {error}
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {String(error)}
         </Alert>
       )}
-      <Grid container spacing={2} mt={2}>
+      <Grid container spacing={2}>
         {stages.map((stage) => (
           <Grid item xs={12} sm={6} lg={3} key={stage}>
-            <Paper sx={{ p: 2, bgcolor: '#EFF1EC', minHeight: 400 }}>
-              <Typography variant="h3" fontSize={20} sx={{ textTransform: 'capitalize' }}>
-                {stage} <Chip size="small" label={apps.filter((a) => a.stage === stage).length} />
-              </Typography>
+            <Paper className="pipeline-column" sx={{ p: 2, minHeight: 420, border: '1px solid', borderColor: 'divider' }}>
+              <Stack direction="row" justifyContent="space-between" alignItems="center">
+                <Typography variant="h3" fontSize={18} sx={{ textTransform: 'capitalize' }}>
+                  {stage}
+                </Typography>
+                <Chip size="small" label={apps.filter((a) => a.stage === stage).length} />
+              </Stack>
               <Stack spacing={1.25} mt={2}>
                 {isLoading ? (
-                  <Typography>Loading candidates…</Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Loading…
+                  </Typography>
                 ) : (
                   apps
                     .filter((a) => a.stage === stage)
@@ -416,7 +483,7 @@ export function PipelinePage() {
                           sx={{ float: 'right', p: 0 }}
                         />
                         <Typography fontWeight={700}>{a.applicant?.name || a.applicantName || a.applicantId?.name}</Typography>
-                        <Typography variant="body2" color="text.secondary">
+                        <Typography variant="body2" color="text.secondary" sx={{ wordBreak: 'break-all' }}>
                           {a.applicant?.email || a.applicantEmail || a.applicantId?.email}
                         </Typography>
                         <Chip
@@ -432,9 +499,7 @@ export function PipelinePage() {
                           onChange={(e) => {
                             const nextStage = e.target.value;
                             const rejectionReason =
-                              nextStage === 'rejected'
-                                ? window.prompt('Rejection reason (optional):') || undefined
-                                : undefined;
+                              nextStage === 'rejected' ? window.prompt('Rejection reason (optional):') || undefined : undefined;
                             move.mutate({ id: a.id || a._id, stage: nextStage, rejectionReason });
                           }}
                           sx={{ mt: 1.5, width: '100%' }}
@@ -453,7 +518,7 @@ export function PipelinePage() {
                         <Stack direction="row" spacing={1} mt={1}>
                           <TextField
                             size="small"
-                            label="Add recruiter note"
+                            label="Note"
                             value={notes[a.id || a._id] || ''}
                             onChange={(e) => setNotes({ ...notes, [a.id || a._id]: e.target.value })}
                             fullWidth
@@ -463,7 +528,7 @@ export function PipelinePage() {
                             disabled={!notes[a.id || a._id]?.trim() || addNote.isPending}
                             onClick={() => addNote.mutate({ id: a.id || a._id, text: notes[a.id || a._id] })}
                           >
-                            Add note
+                            Add
                           </Button>
                         </Stack>
                         <Button size="small" startIcon={<Description />} sx={{ mt: 1 }} onClick={() => openResume(a.id || a._id).catch(alert)}>
@@ -477,7 +542,7 @@ export function PipelinePage() {
           </Grid>
         ))}
       </Grid>
-    </Container>
+    </Page>
   );
 }
 
@@ -495,43 +560,78 @@ export function CandidatesPage() {
   const candidates = data || [];
 
   return (
-    <Container maxWidth="lg" sx={{ py: 6 }}>
-      <Typography variant="h2" fontSize={48}>Candidate directory</Typography>
-      <Typography color="text.secondary" mt={1}>Search every candidate across your active hiring work.</Typography>
-      <Paper sx={{ p: 3, mt: 4 }}>
+    <Page>
+      <PageHeader
+        eyebrow="DIRECTORY"
+        title="Candidate directory"
+        subtitle="Search every candidate across your active hiring work."
+      />
+      <Paper sx={{ p: 3, mb: 3, bgcolor: 'rgba(255,255,255,0.92)' }}>
         <Grid container spacing={2}>
           <Grid item xs={12} md={6}>
-            <TextField fullWidth label="Search name, email, skills" value={filters.q} onChange={(e) => setFilters({ ...filters, q: e.target.value })} />
+            <TextField
+              fullWidth
+              label="Search name, email, skills"
+              value={filters.q}
+              onChange={(e) => setFilters({ ...filters, q: e.target.value })}
+            />
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
             <TextField fullWidth select label="Stage" value={filters.stage} onChange={(e) => setFilters({ ...filters, stage: e.target.value })}>
               <MenuItem value="">All stages</MenuItem>
-              {stages.map((stage) => <MenuItem key={stage} value={stage}>{stage}</MenuItem>)}
+              {stages.map((stage) => (
+                <MenuItem key={stage} value={stage}>
+                  {stage}
+                </MenuItem>
+              ))}
             </TextField>
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
-            <TextField fullWidth type="number" label="Minimum score" inputProps={{ min: 0, max: 100 }} value={filters.minScore} onChange={(e) => setFilters({ ...filters, minScore: e.target.value })} />
+            <TextField
+              fullWidth
+              type="number"
+              label="Minimum score"
+              inputProps={{ min: 0, max: 100 }}
+              value={filters.minScore}
+              onChange={(e) => setFilters({ ...filters, minScore: e.target.value })}
+            />
           </Grid>
         </Grid>
       </Paper>
       {error ? (
-        <Alert severity="error" action={<Button onClick={refetch}>Retry</Button>} sx={{ mt: 3 }}>{String(error)}</Alert>
-      ) : (
-        <Stack spacing={1.5} mt={3}>
-          {isLoading ? <Typography>Searching candidates…</Typography> : candidates.length ? candidates.map((candidate) => (
-            <Paper key={candidate.id} sx={{ p: 2.5, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 2 }}>
+        <Alert severity="error" action={<Button onClick={refetch}>Retry</Button>}>
+          {String(error)}
+        </Alert>
+      ) : isLoading ? (
+        <LoadingRows />
+      ) : candidates.length ? (
+        <Stack spacing={1.5}>
+          {candidates.map((candidate) => (
+            <Paper
+              key={candidate.id}
+              className="surface-hover"
+              sx={{ p: 2.5, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 2, bgcolor: 'rgba(255,255,255,0.92)' }}
+            >
               <Box sx={{ flex: 1, minWidth: 220 }}>
                 <Typography fontWeight={700}>{candidate.applicant?.name || 'Unknown candidate'}</Typography>
-                <Typography variant="body2" color="text.secondary">{candidate.applicant?.email || '—'} · {candidate.job?.title || 'Role unavailable'}</Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {candidate.applicant?.email || '—'} · {candidate.job?.title || 'Role unavailable'}
+                </Typography>
               </Box>
               <Chip color="secondary" label={`${candidate.matchScore ?? '—'} match`} />
-              <Chip label={candidate.stage} />
-              {candidate.job && <Button component={Link} to={`/recruiter/jobs/${candidate.job.id}/applications`}>View pipeline</Button>}
+              <Chip label={candidate.stage} sx={{ textTransform: 'capitalize' }} />
+              {candidate.job && (
+                <Button component={Link} to={`/recruiter/jobs/${candidate.job.id}/applications`} variant="outlined">
+                  View pipeline
+                </Button>
+              )}
             </Paper>
-          )) : <Empty title="No candidates match these filters." text="Try broadening your search or score threshold." />}
+          ))}
         </Stack>
+      ) : (
+        <EmptyState title="No candidates match these filters." text="Try broadening your search or score threshold." />
       )}
-    </Container>
+    </Page>
   );
 }
 
@@ -567,23 +667,25 @@ export function RankingPage() {
   const apps = data || [];
 
   return (
-    <Container maxWidth="lg" sx={{ py: 6 }}>
-      <Typography variant="h2" fontSize={48}>
-        Shortlist with signal.
-      </Typography>
-      <Paper sx={{ p: 3, mt: 4 }}>
+    <Page>
+      <PageHeader
+        eyebrow="RANKING"
+        title="Shortlist with signal."
+        subtitle="Filter by score, skills, and experience — then open evidence."
+        actions={
+          <Button component={Link} to={`/recruiter/jobs/${jobId}/applications`} variant="outlined">
+            Open pipeline
+          </Button>
+        }
+      />
+      <Paper sx={{ p: 3, mb: 3, bgcolor: 'rgba(255,255,255,0.92)' }}>
         <Grid container spacing={3} alignItems="center">
           <Grid item xs={12} md={4}>
             <Typography gutterBottom>Minimum match: {filters.minScore}</Typography>
             <Slider color="secondary" value={filters.minScore} onChange={(_, v) => setFilters({ ...filters, minScore: v })} />
           </Grid>
           <Grid item xs={12} md={3}>
-            <TextField
-              fullWidth
-              label="Required skill"
-              value={filters.skill}
-              onChange={(e) => setFilters({ ...filters, skill: e.target.value })}
-            />
+            <TextField fullWidth label="Required skill" value={filters.skill} onChange={(e) => setFilters({ ...filters, skill: e.target.value })} />
           </Grid>
           <Grid item xs={12} md={2}>
             <TextField
@@ -595,13 +697,7 @@ export function RankingPage() {
             />
           </Grid>
           <Grid item xs={12} md={3}>
-            <TextField
-              fullWidth
-              select
-              label="Sort"
-              value={filters.sort}
-              onChange={(e) => setFilters({ ...filters, sort: e.target.value })}
-            >
+            <TextField fullWidth select label="Sort" value={filters.sort} onChange={(e) => setFilters({ ...filters, sort: e.target.value })}>
               <MenuItem value="score_desc">Highest score</MenuItem>
               <MenuItem value="newest">Newest first</MenuItem>
             </TextField>
@@ -609,19 +705,19 @@ export function RankingPage() {
         </Grid>
       </Paper>
       {(error || actionError) && (
-        <Alert severity="error" sx={{ mt: 3 }}>
+        <Alert severity="error" sx={{ mb: 2 }}>
           {error || actionError}
         </Alert>
       )}
-      <Stack mt={3} spacing={1.5}>
+      <Stack spacing={1.5}>
         {isLoading ? (
-          <Typography>Ranking candidates…</Typography>
+          <LoadingRows height={110} />
         ) : apps.length ? (
           apps.map((a) => {
             const matched = a.aiAnalysis?.skillsMatched || a.aiAnalysis?.matchedSkills || [];
             const missing = a.aiAnalysis?.skillsMissing || [];
             return (
-              <Paper key={a.id || a._id} sx={{ p: 0, overflow: 'hidden' }}>
+              <Paper key={a.id || a._id} sx={{ p: 0, overflow: 'hidden', bgcolor: 'rgba(255,255,255,0.92)' }}>
                 <Box sx={{ p: 2.5 }}>
                   <Grid container spacing={2} alignItems="center">
                     <Grid item xs={12} md={4}>
@@ -631,8 +727,8 @@ export function RankingPage() {
                       </Typography>
                     </Grid>
                     <Grid item xs={6} md={2}>
-                      <Typography color="secondary.main" fontWeight={700}>
-                        {a.aiAnalysis?.matchScore ?? a.matchScore ?? '—'}% match
+                      <Typography color="secondary.main" fontWeight={700} fontSize={22}>
+                        {a.aiAnalysis?.matchScore ?? a.matchScore ?? '—'}%
                       </Typography>
                       <Typography variant="caption" color="text.secondary">
                         AI: {a.aiStatus || 'pending'}
@@ -646,16 +742,15 @@ export function RankingPage() {
                     </Grid>
                     <Grid item xs={12} md={3}>
                       <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-                        <Chip label={a.stage} />
-                        <Button size="small" startIcon={<Description />} onClick={() => openResume(a.id || a._id).catch((e) => setActionError(String(e.message || e)))}>
-                          Resume
-                        </Button>
+                        <Chip label={a.stage} sx={{ textTransform: 'capitalize' }} />
                         <Button
                           size="small"
-                          startIcon={<Refresh />}
-                          disabled={reanalyze.isPending}
-                          onClick={() => reanalyze.mutate(a.id || a._id)}
+                          startIcon={<Description />}
+                          onClick={() => openResume(a.id || a._id).catch((e) => setActionError(String(e.message || e)))}
                         >
+                          Resume
+                        </Button>
+                        <Button size="small" startIcon={<Refresh />} disabled={reanalyze.isPending} onClick={() => reanalyze.mutate(a.id || a._id)}>
                           Reanalyze
                         </Button>
                       </Stack>
@@ -684,9 +779,9 @@ export function RankingPage() {
             );
           })
         ) : (
-          <Empty title="No candidates meet these filters." text="Widen the score threshold or skill filter." />
+          <EmptyState title="No candidates meet these filters." text="Widen the score threshold or skill filter." />
         )}
       </Stack>
-    </Container>
+    </Page>
   );
 }

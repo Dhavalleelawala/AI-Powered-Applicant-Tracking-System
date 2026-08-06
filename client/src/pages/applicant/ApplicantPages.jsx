@@ -6,8 +6,7 @@ import {
   AccordionSummary,
   Alert,
   Button,
-  Chip,
-  Container,
+  LinearProgress,
   Paper,
   Stack,
   TextField,
@@ -17,17 +16,9 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { applicationsApi, authApi, jobsApi } from '../../api/client';
-import { Empty } from '../PublicPages';
+import { EmptyState, LoadingRows, Page, PageHeader, StageChip } from '../../components/ui/Primitives';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
-
-const StageChip = ({ stage }) => (
-  <Chip
-    label={stage || 'applied'}
-    size="small"
-    color={({ interview: 'warning', offered: 'success', rejected: 'error' })[stage] || 'info'}
-  />
-);
 
 export function ApplyJobPage() {
   const { jobId } = useParams();
@@ -72,13 +63,12 @@ export function ApplyJobPage() {
   };
 
   return (
-    <Container maxWidth="sm" sx={{ py: 7 }}>
-      <Typography variant="h2" fontSize={48}>
-        Put yourself forward.
-      </Typography>
-      <Typography color="text.secondary" mt={1}>
-        {job ? `Applying to ${job.title}` : 'Add your resume and a short note for the hiring team.'}
-      </Typography>
+    <Page narrow>
+      <PageHeader
+        eyebrow="APPLICATION"
+        title="Put yourself forward."
+        subtitle={job ? `Applying to ${job.title}` : 'Add your resume and a short note for the hiring team.'}
+      />
       <Paper
         component="form"
         onSubmit={(e) => {
@@ -86,16 +76,27 @@ export function ApplyJobPage() {
           if (!resume) return setError('A resume is required.');
           apply.mutate();
         }}
-        sx={{ p: 4, mt: 4 }}
+        sx={{ p: { xs: 3, md: 4 }, bgcolor: 'rgba(255,255,255,0.92)' }}
       >
+        {apply.isPending && <LinearProgress color="secondary" sx={{ mb: 2, borderRadius: 1 }} />}
         <Stack spacing={3}>
-          <Button component="label" variant="outlined" startIcon={<CloudUpload />}>
+          <Button
+            component="label"
+            variant="outlined"
+            startIcon={<CloudUpload />}
+            sx={{
+              py: 2.5,
+              borderStyle: 'dashed',
+              justifyContent: 'flex-start',
+              bgcolor: resume ? 'rgba(31,167,160,0.06)' : 'transparent',
+            }}
+          >
             {resume ? resume.name : 'Choose resume (PDF or DOCX)'}
             <input hidden type="file" accept=".pdf,.doc,.docx" onChange={select} />
           </Button>
           {resume && (
             <Typography variant="body2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <AttachFile fontSize="small" /> {resume.name}
+              <AttachFile fontSize="small" /> {resume.name} · {(resume.size / 1024).toFixed(0)} KB
             </Typography>
           )}
           <TextField
@@ -104,9 +105,10 @@ export function ApplyJobPage() {
             rows={7}
             value={coverLetter}
             onChange={(e) => setCoverLetter(e.target.value)}
+            placeholder="A short note on why this role fits your craft."
           />
           {error && <Alert severity="error">{error}</Alert>}
-          <Button type="submit" variant="contained" color="secondary" disabled={apply.isPending}>
+          <Button type="submit" variant="contained" color="secondary" size="large" disabled={apply.isPending}>
             {apply.isPending ? 'Submitting…' : 'Submit application'}
           </Button>
           <Button component={Link} to={`/jobs/${jobId}`}>
@@ -114,7 +116,7 @@ export function ApplyJobPage() {
           </Button>
         </Stack>
       </Paper>
-    </Container>
+    </Page>
   );
 }
 
@@ -130,81 +132,93 @@ export function MyApplicationsPage() {
   const apps = data || [];
 
   return (
-    <Container maxWidth="lg" sx={{ py: 7 }}>
-      <Typography variant="h2" fontSize={48}>
-        My applications
-      </Typography>
-      <Typography color="text.secondary" mt={1}>
-        A clear view of every opportunity you are pursuing.
-      </Typography>
+    <Page>
+      <PageHeader
+        eyebrow="YOUR PIPELINE"
+        title="My applications"
+        subtitle="A clear view of every opportunity you are pursuing."
+        actions={
+          <Button component={Link} to="/jobs" variant="contained" color="secondary">
+            Browse roles
+          </Button>
+        }
+      />
       {error ? (
-        <Alert severity="error" action={<Button onClick={refetch}>Retry</Button>} sx={{ mt: 4 }}>
-          {error}
+        <Alert severity="error" action={<Button onClick={refetch}>Retry</Button>}>
+          {String(error)}
         </Alert>
-      ) : (
-        <Stack spacing={1.5} mt={4}>
-          {isLoading ? (
-            Array.from({ length: 3 }).map((_, i) => <Paper key={i} sx={{ height: 90 }} />)
-          ) : apps.length ? (
-            apps.map((a) => (
-              <Paper key={a.id || a._id} sx={{ overflow: 'hidden' }}>
-                <Stack
-                  direction={{ xs: 'column', sm: 'row' }}
-                  gap={2}
-                  justifyContent="space-between"
-                  alignItems={{ sm: 'center' }}
-                  sx={{ p: 2.5 }}
-                >
-                  <Stack>
-                    <Typography fontWeight={700}>{a.jobTitle || a.job?.title || a.jobId?.title || 'Role'}</Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Applied {new Date(a.createdAt).toLocaleDateString()} · AI review: {a.aiStatus || 'pending'}
-                      {a.aiAnalysis?.matchScore != null ? ` · ${a.aiAnalysis.matchScore}% match` : ''}
-                    </Typography>
-                  </Stack>
-                  <StageChip stage={a.stage} />
+      ) : isLoading ? (
+        <LoadingRows count={3} />
+      ) : apps.length ? (
+        <Stack spacing={1.5}>
+          {apps.map((a) => (
+            <Paper key={a.id || a._id} sx={{ overflow: 'hidden', bgcolor: 'rgba(255,255,255,0.92)' }}>
+              <Stack
+                direction={{ xs: 'column', sm: 'row' }}
+                gap={2}
+                justifyContent="space-between"
+                alignItems={{ sm: 'center' }}
+                sx={{ p: 2.5 }}
+              >
+                <Stack spacing={0.5}>
+                  <Typography fontWeight={700} fontSize={18}>
+                    {a.jobTitle || a.job?.title || a.jobId?.title || 'Role'}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Applied {new Date(a.createdAt).toLocaleDateString()} · AI review: {a.aiStatus || 'pending'}
+                    {a.aiAnalysis?.matchScore != null ? ` · ${a.aiAnalysis.matchScore}% match` : ''}
+                  </Typography>
+                  {['pending', 'processing'].includes(a.aiStatus) && (
+                    <LinearProgress color="secondary" sx={{ mt: 1, maxWidth: 220, borderRadius: 1 }} />
+                  )}
                 </Stack>
-                {(a.aiAnalysis?.summary || (a.stageHistory || []).length > 0) && (
-                  <Accordion disableGutters elevation={0}>
-                    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                      <Typography variant="body2">Details & history</Typography>
-                    </AccordionSummary>
-                    <AccordionDetails>
-                      {a.aiAnalysis?.summary && (
-                        <>
-                          <Typography fontWeight={700}>AI summary</Typography>
-                          <Typography variant="body2" sx={{ whiteSpace: 'pre-line', mt: 0.5 }}>
-                            {a.aiAnalysis.summary}
-                          </Typography>
-                        </>
-                      )}
-                      {(a.stageHistory || []).length > 0 && (
-                        <>
-                          <Typography fontWeight={700} mt={2}>
-                            Stage history
-                          </Typography>
-                          <Stack spacing={0.75} mt={1}>
-                            {(a.stageHistory || []).map((entry, index) => (
-                              <Typography key={`${entry.changedAt || index}-${entry.to}`} variant="body2" color="text.secondary">
-                                {entry.from || '—'} → {entry.to}
-                                {entry.changedAt ? ` · ${new Date(entry.changedAt).toLocaleString()}` : ''}
-                                {entry.note ? ` · ${entry.note}` : ''}
-                              </Typography>
-                            ))}
-                          </Stack>
-                        </>
-                      )}
-                    </AccordionDetails>
-                  </Accordion>
-                )}
-              </Paper>
-            ))
-          ) : (
-            <Empty title="No applications yet." text="Explore open roles and take the first step." />
-          )}
+                <StageChip stage={a.stage} />
+              </Stack>
+              {(a.aiAnalysis?.summary || (a.stageHistory || []).length > 0) && (
+                <Accordion disableGutters elevation={0}>
+                  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                    <Typography variant="body2">Details & history</Typography>
+                  </AccordionSummary>
+                  <AccordionDetails>
+                    {a.aiAnalysis?.summary && (
+                      <>
+                        <Typography fontWeight={700}>AI summary</Typography>
+                        <Typography variant="body2" sx={{ whiteSpace: 'pre-line', mt: 0.5 }}>
+                          {a.aiAnalysis.summary}
+                        </Typography>
+                      </>
+                    )}
+                    {(a.stageHistory || []).length > 0 && (
+                      <>
+                        <Typography fontWeight={700} mt={2}>
+                          Stage history
+                        </Typography>
+                        <Stack spacing={0.75} mt={1}>
+                          {(a.stageHistory || []).map((entry, index) => (
+                            <Typography key={`${entry.changedAt || index}-${entry.to}`} variant="body2" color="text.secondary">
+                              {entry.from || '—'} → {entry.to}
+                              {entry.changedAt ? ` · ${new Date(entry.changedAt).toLocaleString()}` : ''}
+                              {entry.note ? ` · ${entry.note}` : ''}
+                            </Typography>
+                          ))}
+                        </Stack>
+                      </>
+                    )}
+                  </AccordionDetails>
+                </Accordion>
+              )}
+            </Paper>
+          ))}
         </Stack>
+      ) : (
+        <EmptyState
+          title="No applications yet."
+          text="Explore open roles and take the first step."
+          actionLabel="Browse roles"
+          actionTo="/jobs"
+        />
       )}
-    </Container>
+    </Page>
   );
 }
 
@@ -230,18 +244,20 @@ export function ProfilePage() {
   const set = (key) => (event) => setForm({ ...form, [key]: event.target.value });
 
   return (
-    <Container maxWidth="sm" sx={{ py: 7 }}>
-      <Typography variant="h2" fontSize={48}>Your profile</Typography>
-      <Typography color="text.secondary" mt={1}>Keep your experience current for sharper matches.</Typography>
+    <Page narrow>
+      <PageHeader eyebrow="PROFILE" title="Your profile" subtitle="Keep your experience current for sharper matches." />
       <Paper
         component="form"
-        sx={{ p: { xs: 2.5, md: 4 }, mt: 4 }}
+        sx={{ p: { xs: 2.5, md: 4 }, bgcolor: 'rgba(255,255,255,0.92)' }}
         onSubmit={(event) => {
           event.preventDefault();
           update.mutate({
             ...form,
             experienceYears: Number(form.experienceYears),
-            skills: form.skills.split(',').map((skill) => skill.trim()).filter(Boolean),
+            skills: form.skills
+              .split(',')
+              .map((skill) => skill.trim())
+              .filter(Boolean),
           });
         }}
       >
@@ -250,15 +266,21 @@ export function ProfilePage() {
           <TextField label="Phone" value={form.phone} onChange={set('phone')} />
           <TextField label="Professional headline" value={form.headline} onChange={set('headline')} />
           <TextField label="Location" value={form.location} onChange={set('location')} />
-          <TextField label="Years of experience" type="number" inputProps={{ min: 0 }} value={form.experienceYears} onChange={set('experienceYears')} />
+          <TextField
+            label="Years of experience"
+            type="number"
+            inputProps={{ min: 0 }}
+            value={form.experienceYears}
+            onChange={set('experienceYears')}
+          />
           <TextField label="Skills" helperText="Separate skills with commas." value={form.skills} onChange={set('skills')} />
           {update.error && <Alert severity="error">{String(update.error)}</Alert>}
-          <Button type="submit" variant="contained" color="secondary" disabled={update.isPending}>
+          <Button type="submit" variant="contained" color="secondary" size="large" disabled={update.isPending}>
             {update.isPending ? 'Saving…' : 'Save profile'}
           </Button>
         </Stack>
       </Paper>
-    </Container>
+    </Page>
   );
 }
 
@@ -282,26 +304,46 @@ export function SavedJobsPage() {
   const jobs = data || [];
 
   return (
-    <Container maxWidth="lg" sx={{ py: 7 }}>
-      <Typography variant="h2" fontSize={48}>Saved roles</Typography>
-      <Typography color="text.secondary" mt={1}>Return to opportunities worth another look.</Typography>
+    <Page>
+      <PageHeader eyebrow="SAVED" title="Saved roles" subtitle="Return to opportunities worth another look." />
       {error ? (
-        <Alert severity="error" action={<Button onClick={refetch}>Retry</Button>} sx={{ mt: 4 }}>{String(error)}</Alert>
-      ) : (
-        <Stack spacing={2} mt={4}>
-          {isLoading ? <Typography>Loading saved roles…</Typography> : jobs.length ? jobs.map((job) => (
-            <Paper key={job.id || job._id} sx={{ p: 2.5, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 2 }}>
+        <Alert severity="error" action={<Button onClick={refetch}>Retry</Button>}>
+          {String(error)}
+        </Alert>
+      ) : isLoading ? (
+        <LoadingRows />
+      ) : jobs.length ? (
+        <Stack spacing={1.5}>
+          {jobs.map((job) => (
+            <Paper
+              key={job.id || job._id}
+              className="surface-hover"
+              sx={{ p: 2.5, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 2, bgcolor: 'rgba(255,255,255,0.92)' }}
+            >
               <Stack sx={{ flex: 1, minWidth: 220 }}>
                 <Typography fontWeight={700}>{job.title}</Typography>
-                <Typography variant="body2" color="text.secondary">{job.companyName || 'Rolefit partner'} · {job.location || 'Flexible'}</Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {job.companyName || 'Rolefit partner'} · {job.location || 'Flexible'}
+                </Typography>
               </Stack>
-              <Button component={Link} to={`/jobs/${job.id || job._id}`}>View role</Button>
-              <Button color="error" disabled={toggleSaved.isPending} onClick={() => toggleSaved.mutate(job.id || job._id)}>Unsave</Button>
+              <Button component={Link} to={`/jobs/${job.id || job._id}`} variant="outlined">
+                View role
+              </Button>
+              <Button color="error" disabled={toggleSaved.isPending} onClick={() => toggleSaved.mutate(job.id || job._id)}>
+                Unsave
+              </Button>
             </Paper>
-          )) : <Empty title="No saved roles yet." text="Save roles while you explore to find them here." />}
+          ))}
           {toggleSaved.error && <Alert severity="error">{String(toggleSaved.error)}</Alert>}
         </Stack>
+      ) : (
+        <EmptyState
+          title="No saved roles yet."
+          text="Save roles while you explore to find them here."
+          actionLabel="Browse roles"
+          actionTo="/jobs"
+        />
       )}
-    </Container>
+    </Page>
   );
 }
