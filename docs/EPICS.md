@@ -69,6 +69,14 @@ Status: `planned` · `in_progress` · `done`
 - **Notes:** Structured resume draft on User; PDF via pdfkit; builder UI; apply “Use Rolefit resume”.
 - **Paths:** `server/src/services/resumePdfService.js`, `client/src/pages/applicant/ResumeBuilderPage.jsx`, auth resume routes
 
+### E11 — Applicant pages required-details hub
+- **Status:** done
+- **Goal:** All applicant pages collect/show required career details with completeness guidance.
+- **Accept:** Profile + resume validate required fields; dashboard shows gaps; apply/saved surfaces next steps.
+- **Shipped:** 2026-08-06
+- **Notes:** Applicant home readiness hub; expanded profile (links, availability, prefs); resume required validation; apply gated until complete.
+- **Paths:** `client/src/pages/applicant/*`, `client/src/utils/applicantCompleteness.js`, User profile fields
+
 ---
 
 ## Planned (next)

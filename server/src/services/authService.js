@@ -138,7 +138,7 @@ async function login({ email, password }) {
 
 async function getMe(userId) {
   const user = await User.findById(userId).select(
-    '_id name email role companyId isActive phone headline location experienceYears skills savedJobs resumeDraft'
+    '_id name email role companyId isActive phone headline location experienceYears skills savedJobs resumeDraft linkedInUrl portfolioUrl preferredEmploymentType availability noticePeriodDays openToRemote openToRelocate workAuthorization about'
   );
 
   if (!user || !user.isActive) {
@@ -172,6 +172,27 @@ async function updateProfile(userId, body) {
           .map((s) => s.trim())
           .filter(Boolean);
   }
+  if (body.linkedInUrl !== undefined) user.linkedInUrl = String(body.linkedInUrl).trim().slice(0, 300);
+  if (body.portfolioUrl !== undefined) user.portfolioUrl = String(body.portfolioUrl).trim().slice(0, 300);
+  if (body.preferredEmploymentType !== undefined) {
+    const allowed = new Set(['', 'full-time', 'part-time', 'contract', 'internship', 'any']);
+    const value = String(body.preferredEmploymentType || 'any');
+    user.preferredEmploymentType = allowed.has(value) ? value || 'any' : 'any';
+  }
+  if (body.availability !== undefined) {
+    const allowed = new Set(['', 'immediate', '2-weeks', '1-month', '3-months', 'flexible']);
+    const value = String(body.availability || '');
+    user.availability = allowed.has(value) ? value : '';
+  }
+  if (body.noticePeriodDays !== undefined) {
+    user.noticePeriodDays = Math.max(0, Number(body.noticePeriodDays) || 0);
+  }
+  if (body.openToRemote !== undefined) user.openToRemote = Boolean(body.openToRemote);
+  if (body.openToRelocate !== undefined) user.openToRelocate = Boolean(body.openToRelocate);
+  if (body.workAuthorization !== undefined) {
+    user.workAuthorization = String(body.workAuthorization).trim().slice(0, 200);
+  }
+  if (body.about !== undefined) user.about = String(body.about).trim().slice(0, 2000);
 
   if (!user.name) {
     throw new AppError('Name is required', { status: 400, code: 'VALIDATION_ERROR' });

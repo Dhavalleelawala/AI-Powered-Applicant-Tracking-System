@@ -7,8 +7,11 @@ import {
   Alert,
   Box,
   Button,
+  Checkbox,
   Chip,
+  FormControlLabel,
   LinearProgress,
+  MenuItem,
   Paper,
   Stack,
   TextField,
@@ -23,10 +26,12 @@ import { AppBreadcrumbs } from '../../components/ui/AppBreadcrumbs';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { useBeforeUnloadWarning, useLeaveConfirm } from '../../hooks/useUnsavedWarning';
+import { applicantReadiness, profileChecklist } from '../../utils/applicantCompleteness';
 
 export function ApplyJobPage() {
   const { jobId } = useParams();
   const nav = useNavigate();
+  const { user } = useAuth();
   const { showToast, showError } = useToast();
   const [resume, setResume] = useState(null);
   const [coverLetter, setCoverLetter] = useState('');
@@ -35,6 +40,7 @@ export function ApplyJobPage() {
   const [loadingBuilt, setLoadingBuilt] = useState(false);
   const dirty = Boolean(resume || coverLetter.trim());
   useBeforeUnloadWarning(dirty);
+  const readiness = applicantReadiness(user);
   const { data: job, isLoading: jobLoading, error: jobError, refetch: refetchJob } = useQuery({
     queryKey: ['job', jobId],
     queryFn: () => jobsApi.get(jobId).then((r) => r.data),
@@ -121,6 +127,32 @@ export function ApplyJobPage() {
         title="Put yourself forward."
         subtitle={job ? `Applying to ${job.title}` : 'Add your resume and a short note for the hiring team.'}
       />
+      {!readiness.readyToApply && (
+        <Alert
+          severity="warning"
+          sx={{ mb: 2 }}
+          action={
+            <Stack direction="row" spacing={1}>
+              {!readiness.profile.complete && (
+                <Button component={Link} to="/applicant/profile" color="inherit" size="small">
+                  Profile
+                </Button>
+              )}
+              {!readiness.resume.complete && (
+                <Button component={Link} to="/applicant/resume" color="inherit" size="small">
+                  Resume
+                </Button>
+              )}
+            </Stack>
+          }
+        >
+          Complete required profile and resume details before applying ({readiness.percent}% ready). Missing:{' '}
+          {[...readiness.profile.missingRequired, ...readiness.resume.missingRequired]
+            .map((item) => item.label)
+            .join(', ')}
+          .
+        </Alert>
+      )}
       {jobError ? (
         <Alert severity="error" action={<Button onClick={refetchJob}>Retry</Button>} sx={{ mb: 2 }}>
           {String(jobError)}
@@ -133,6 +165,10 @@ export function ApplyJobPage() {
         component="form"
         onSubmit={(e) => {
           e.preventDefault();
+          if (!readiness.readyToApply) {
+            setError('Finish required profile and resume details before submitting.');
+            return;
+          }
           if (!resume) return setError('A resume is required.');
           apply.mutate();
         }}
@@ -193,8 +229,14 @@ export function ApplyJobPage() {
             helperText={`${coverLetter.length} characters`}
           />
           {error && <Alert severity="error">{error}</Alert>}
-          <Button type="submit" variant="contained" color="secondary" size="large" disabled={apply.isPending}>
-            {apply.isPending ? 'Submitting…' : 'Submit application'}
+          <Button
+            type="submit"
+            variant="contained"
+            color="secondary"
+            size="large"
+            disabled={apply.isPending || !readiness.readyToApply}
+          >
+            {apply.isPending ? 'Submitting…' : readiness.readyToApply ? 'Submit application' : 'Complete profile first'}
           </Button>
           <Button component={Link} to={`/jobs/${jobId}`}>
             Back to role
@@ -418,9 +460,14 @@ export function MyApplicationsPage() {
         title="My applications"
         subtitle="See fit score, stage, and what happens next — without digging."
         actions={
-          <Button component={Link} to="/jobs" variant="contained" color="secondary">
-            Browse roles
-          </Button>
+          <Stack direction="row" spacing={1}>
+            <Button component={Link} to="/applicant" variant="text">
+              Applicant home
+            </Button>
+            <Button component={Link} to="/jobs" variant="contained" color="secondary">
+              Browse roles
+            </Button>
+          </Stack>
         }
       />
       {error ? (
@@ -476,7 +523,18 @@ export function ProfilePage() {
     location: user?.location || '',
     experienceYears: user?.experienceYears ?? 0,
     skills: (user?.skills || []).join(', '),
+    linkedInUrl: user?.linkedInUrl || '',
+    portfolioUrl: user?.portfolioUrl || '',
+    preferredEmploymentType: user?.preferredEmploymentType || 'any',
+    availability: user?.availability || '',
+    noticePeriodDays: user?.noticePeriodDays ?? 0,
+    openToRemote: user?.openToRemote !== false,
+    openToRelocate: Boolean(user?.openToRelocate),
+    workAuthorization: user?.workAuthorization || '',
+    about: user?.about || '',
   }));
+  const readiness = profileChecklist({ ...user, ...form, skills: form.skills.split(',').map((s) => s.trim()).filter(Boolean) });
+
   const update = useMutation({
     mutationFn: (body) => authApi.updateProfile(body),
     onSuccess: (response) => {
@@ -489,33 +547,91 @@ export function ProfilePage() {
   });
   const set = (key) => (event) => {
     setDirty(true);
-    setForm({ ...form, [key]: event.target.value });
+    const value = event?.target?.type === 'checkbox' ? event.target.checked : event.target.value;
+    setForm({ ...form, [key]: value });
   };
 
+  const validate = () => {
+    if (!form.name.trim()) return 'Full name is required';
+    if (!form.phone.trim()) return 'Phone number is required';
+    if (!form.headline.trim()) return 'Professional headline is required';
+    if (!form.location.trim()) return 'Location is required';
+    const skills = form.skills.split(',').map((s) => s.trim()).filter(Boolean);
+    if (skills.length < 3) return 'Add at least 3 skills';
+    if (!form.availability) return 'Select your availability';
+    return '';
+  };
+
+  const resetForm = () =>
+    setForm({
+      name: user?.name || '',
+      phone: user?.phone || '',
+      headline: user?.headline || '',
+      location: user?.location || '',
+      experienceYears: user?.experienceYears ?? 0,
+      skills: (user?.skills || []).join(', '),
+      linkedInUrl: user?.linkedInUrl || '',
+      portfolioUrl: user?.portfolioUrl || '',
+      preferredEmploymentType: user?.preferredEmploymentType || 'any',
+      availability: user?.availability || '',
+      noticePeriodDays: user?.noticePeriodDays ?? 0,
+      openToRemote: user?.openToRemote !== false,
+      openToRelocate: Boolean(user?.openToRelocate),
+      workAuthorization: user?.workAuthorization || '',
+      about: user?.about || '',
+    });
+
   return (
-    <Page narrow>
+    <Page>
       <PageHeader
         eyebrow="PROFILE"
-        title="Your profile"
-        subtitle="Keep your experience current for sharper matches."
+        title="Your applicant profile"
+        subtitle="Recruiters use these details to understand fit before they open your resume."
         actions={
-          <Button component={Link} to="/applicant/resume" variant="outlined">
-            Resume builder
-          </Button>
+          <Stack direction="row" spacing={1}>
+            <Button component={Link} to="/applicant" variant="text">
+              Applicant home
+            </Button>
+            <Button component={Link} to="/applicant/resume" variant="outlined">
+              Resume builder
+            </Button>
+          </Stack>
         }
       />
+
+      <Paper sx={{ p: 2.5, mb: 2.5, bgcolor: 'rgba(255,255,255,0.96)' }}>
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems={{ sm: 'center' }} justifyContent="space-between">
+          <Box>
+            <Typography variant="body2" color="text.secondary" fontWeight={700}>
+              Profile completeness
+            </Typography>
+            <Typography variant="h3" mt={0.5}>
+              {readiness.percent}% required
+            </Typography>
+          </Box>
+          <LinearProgress variant="determinate" color="secondary" value={readiness.percent} sx={{ flex: 1, maxWidth: 360 }} />
+        </Stack>
+        {readiness.missingRequired.length > 0 && (
+          <Typography variant="body2" color="warning.main" mt={1.5}>
+            Still needed: {readiness.missingRequired.map((item) => item.label).join(', ')}
+          </Typography>
+        )}
+      </Paper>
+
       <Paper
         component="form"
-        sx={{ p: { xs: 2.5, md: 4 }, bgcolor: 'rgba(255,255,255,0.92)' }}
+        sx={{ p: { xs: 2.5, md: 4 }, bgcolor: 'rgba(255,255,255,0.96)' }}
         onSubmit={(event) => {
           event.preventDefault();
-          if (!form.name.trim()) {
-            showError('Name is required');
+          const problem = validate();
+          if (problem) {
+            showError(problem);
             return;
           }
           update.mutate({
             ...form,
             experienceYears: Number(form.experienceYears),
+            noticePeriodDays: Number(form.noticePeriodDays) || 0,
             skills: form.skills
               .split(',')
               .map((skill) => skill.trim())
@@ -523,19 +639,114 @@ export function ProfilePage() {
           });
         }}
       >
-        <Stack spacing={2.5}>
-          <TextField label="Name" required value={form.name} onChange={set('name')} />
-          <TextField label="Phone" value={form.phone} onChange={set('phone')} />
-          <TextField label="Professional headline" value={form.headline} onChange={set('headline')} />
-          <TextField label="Location" value={form.location} onChange={set('location')} />
-          <TextField
-            label="Years of experience"
-            type="number"
-            inputProps={{ min: 0 }}
-            value={form.experienceYears}
-            onChange={set('experienceYears')}
-          />
-          <TextField label="Skills" helperText="Separate skills with commas." value={form.skills} onChange={set('skills')} />
+        <Stack spacing={3}>
+          <Box>
+            <Typography variant="h3" mb={2}>
+              Basics
+            </Typography>
+            <Stack spacing={2}>
+              <TextField label="Full name" required value={form.name} onChange={set('name')} />
+              <TextField label="Email" value={user?.email || ''} disabled helperText="Managed by your account login." />
+              <TextField label="Phone" required value={form.phone} onChange={set('phone')} placeholder="+91 …" />
+              <TextField label="Professional headline" required value={form.headline} onChange={set('headline')} placeholder="Full-stack engineer" />
+              <TextField label="Location" required value={form.location} onChange={set('location')} placeholder="Bengaluru / Remote" />
+              <TextField
+                label="Years of experience"
+                type="number"
+                required
+                inputProps={{ min: 0 }}
+                value={form.experienceYears}
+                onChange={set('experienceYears')}
+              />
+              <TextField
+                label="Skills"
+                required
+                helperText="At least 3 skills, separated by commas."
+                value={form.skills}
+                onChange={set('skills')}
+              />
+              <TextField
+                label="About you"
+                multiline
+                minRows={3}
+                value={form.about}
+                onChange={set('about')}
+                helperText="Optional short bio for recruiters."
+              />
+            </Stack>
+          </Box>
+
+          <Box>
+            <Typography variant="h3" mb={2}>
+              Links
+            </Typography>
+            <Stack spacing={2}>
+              <TextField label="LinkedIn URL" value={form.linkedInUrl} onChange={set('linkedInUrl')} placeholder="https://linkedin.com/in/…" />
+              <TextField label="Portfolio / GitHub URL" value={form.portfolioUrl} onChange={set('portfolioUrl')} placeholder="https://…" />
+            </Stack>
+          </Box>
+
+          <Box>
+            <Typography variant="h3" mb={2}>
+              Preferences
+            </Typography>
+            <Stack spacing={2}>
+              <TextField
+                select
+                label="Preferred employment type"
+                value={form.preferredEmploymentType}
+                onChange={set('preferredEmploymentType')}
+              >
+                {[
+                  ['any', 'Any'],
+                  ['full-time', 'Full-time'],
+                  ['part-time', 'Part-time'],
+                  ['contract', 'Contract'],
+                  ['internship', 'Internship'],
+                ].map(([value, label]) => (
+                  <MenuItem key={value} value={value}>
+                    {label}
+                  </MenuItem>
+                ))}
+              </TextField>
+              <TextField select label="Availability" required value={form.availability} onChange={set('availability')}>
+                <MenuItem value="">Select availability</MenuItem>
+                {[
+                  ['immediate', 'Immediate'],
+                  ['2-weeks', 'In about 2 weeks'],
+                  ['1-month', 'In about 1 month'],
+                  ['3-months', 'In about 3 months'],
+                  ['flexible', 'Flexible'],
+                ].map(([value, label]) => (
+                  <MenuItem key={value} value={value}>
+                    {label}
+                  </MenuItem>
+                ))}
+              </TextField>
+              <TextField
+                label="Notice period (days)"
+                type="number"
+                inputProps={{ min: 0 }}
+                value={form.noticePeriodDays}
+                onChange={set('noticePeriodDays')}
+              />
+              <TextField
+                label="Work authorization"
+                value={form.workAuthorization}
+                onChange={set('workAuthorization')}
+                placeholder="e.g. Authorized to work in India"
+              />
+              <FormControlLabel
+                control={<Checkbox checked={Boolean(form.openToRemote)} onChange={set('openToRemote')} />}
+                label="Open to remote roles"
+              />
+              <FormControlLabel
+                control={<Checkbox checked={Boolean(form.openToRelocate)} onChange={set('openToRelocate')} />}
+                label="Open to relocating"
+              />
+            </Stack>
+          </Box>
+
           {update.error && <Alert severity="error">{String(update.error)}</Alert>}
           <Stack direction="row" spacing={1.5} alignItems="center">
             <Button type="submit" variant="contained" color="secondary" size="large" disabled={update.isPending || !dirty}>
@@ -545,14 +756,7 @@ export function ProfilePage() {
               <Button
                 onClick={() =>
                   requestLeave(() => {
-                    setForm({
-                      name: user?.name || '',
-                      phone: user?.phone || '',
-                      headline: user?.headline || '',
-                      location: user?.location || '',
-                      experienceYears: user?.experienceYears ?? 0,
-                      skills: (user?.skills || []).join(', '),
-                    });
+                    resetForm();
                     setDirty(false);
                   })
                 }
@@ -572,6 +776,7 @@ export function SavedJobsPage() {
   const qc = useQueryClient();
   const { token, user, login } = useAuth();
   const { showToast } = useToast();
+  const readiness = applicantReadiness(user);
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['saved-jobs'],
     queryFn: () => authApi.savedJobs().then((response) => response.data?.jobs || response.data || []),
@@ -589,7 +794,22 @@ export function SavedJobsPage() {
 
   return (
     <Page>
-      <PageHeader eyebrow="SAVED" title="Saved roles" subtitle="Return to opportunities worth another look." />
+      <PageHeader
+        eyebrow="SAVED"
+        title="Saved roles"
+        subtitle="Return to opportunities worth another look — apply when your profile is ready."
+        actions={
+          <Button component={Link} to="/applicant" variant="text">
+            Applicant home
+          </Button>
+        }
+      />
+      {!readiness.readyToApply && jobs.length > 0 && (
+        <Alert severity="info" sx={{ mb: 2 }}>
+          You’re {readiness.percent}% ready to apply. Finish required profile and resume details so you can submit
+          quickly from these saved roles.
+        </Alert>
+      )}
       {error ? (
         <Alert severity="error" action={<Button onClick={refetch}>Retry</Button>}>
           {String(error)}
@@ -598,26 +818,63 @@ export function SavedJobsPage() {
         <LoadingRows />
       ) : jobs.length ? (
         <Stack spacing={1.5}>
-          {jobs.map((job) => (
-            <Paper
-              key={job.id || job._id}
-              className="surface-hover"
-              sx={{ p: 2.5, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 2, bgcolor: 'rgba(255,255,255,0.92)' }}
-            >
-              <Stack sx={{ flex: 1, minWidth: 220 }}>
-                <Typography fontWeight={700}>{job.title}</Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {job.companyName || 'Rolefit partner'} · {job.location || 'Flexible'}
-                </Typography>
-              </Stack>
-              <Button component={Link} to={`/jobs/${job.id || job._id}`} variant="outlined">
-                View role
-              </Button>
-              <Button color="error" disabled={toggleSaved.isPending} onClick={() => toggleSaved.mutate(job.id || job._id)}>
-                Unsave
-              </Button>
-            </Paper>
-          ))}
+          {jobs.map((job) => {
+            const id = job.id || job._id;
+            return (
+              <Paper
+                key={id}
+                className="surface-hover"
+                sx={{ p: 2.5, bgcolor: 'rgba(255,255,255,0.92)' }}
+              >
+                <Stack
+                  direction={{ xs: 'column', md: 'row' }}
+                  spacing={2}
+                  alignItems={{ md: 'center' }}
+                  justifyContent="space-between"
+                >
+                  <Stack sx={{ flex: 1, minWidth: 220 }} spacing={0.75}>
+                    <Typography fontWeight={700} fontSize={17}>
+                      {job.title}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {job.companyName || 'Rolefit partner'} · {job.location || 'Flexible'}
+                      {job.employmentType ? ` · ${job.employmentType}` : ''}
+                    </Typography>
+                    {(job.skills || []).length > 0 && (
+                      <Stack direction="row" spacing={0.75} flexWrap="wrap" useFlexGap>
+                        {job.skills.slice(0, 6).map((skill) => (
+                          <Chip key={skill} size="small" label={skill} variant="outlined" />
+                        ))}
+                      </Stack>
+                    )}
+                    {job.description && (
+                      <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 560 }}>
+                        {String(job.description).slice(0, 160)}
+                        {String(job.description).length > 160 ? '…' : ''}
+                      </Typography>
+                    )}
+                  </Stack>
+                  <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                    <Button component={Link} to={`/jobs/${id}`} variant="outlined">
+                      View role
+                    </Button>
+                    <Button
+                      component={Link}
+                      to={`/applicant/jobs/${id}/apply`}
+                      variant="contained"
+                      color="secondary"
+                      disabled={!readiness.readyToApply}
+                    >
+                      {readiness.readyToApply ? 'Apply' : 'Complete profile'}
+                    </Button>
+                    <Button color="error" disabled={toggleSaved.isPending} onClick={() => toggleSaved.mutate(id)}>
+                      Unsave
+                    </Button>
+                  </Stack>
+                </Stack>
+              </Paper>
+            );
+          })}
           {toggleSaved.error && <Alert severity="error">{String(toggleSaved.error)}</Alert>}
         </Stack>
       ) : (

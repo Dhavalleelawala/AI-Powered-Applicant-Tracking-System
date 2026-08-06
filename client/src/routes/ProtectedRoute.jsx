@@ -15,7 +15,7 @@ export function ProtectedRoute({ role, children }) {
   }
   if (!user) return <Navigate to="/login" state={{ from: location }} replace />;
   if (role && user.role !== role) {
-    return <Navigate to={user.role === 'recruiter' ? '/recruiter' : '/jobs'} replace />;
+    return <Navigate to={user.role === 'recruiter' ? '/recruiter' : '/applicant'} replace />;
   }
   return children;
 }

@@ -70,6 +70,23 @@ const userSchema = new mongoose.Schema(
       set: (skills) =>
         [...new Set((skills || []).map((s) => String(s).trim().toLowerCase()).filter(Boolean))].slice(0, 40),
     },
+    linkedInUrl: { type: String, default: '', trim: true },
+    portfolioUrl: { type: String, default: '', trim: true },
+    preferredEmploymentType: {
+      type: String,
+      enum: ['', 'full-time', 'part-time', 'contract', 'internship', 'any'],
+      default: 'any',
+    },
+    availability: {
+      type: String,
+      enum: ['', 'immediate', '2-weeks', '1-month', '3-months', 'flexible'],
+      default: '',
+    },
+    noticePeriodDays: { type: Number, default: 0, min: 0 },
+    openToRemote: { type: Boolean, default: true },
+    openToRelocate: { type: Boolean, default: false },
+    workAuthorization: { type: String, default: '', trim: true },
+    about: { type: String, default: '', trim: true, maxlength: 2000 },
     resumeDraft: { type: resumeDraftSchema, default: () => ({}) },
     savedJobs: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Job' }],
     isActive: { type: Boolean, default: true },

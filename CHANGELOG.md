@@ -3,6 +3,13 @@
 All notable Rolefit changes are listed here. Newest first.
 Epics are tracked in [`docs/EPICS.md`](./docs/EPICS.md) — **one completed epic → one commit**.
 
+## 2026-08-06 (E11 — Applicant pages required-details hub)
+
+- Applicant home (`/applicant`) shows overall readiness % with profile/resume checklists
+- Profile collects required career details: phone, headline, location, skills, availability, plus optional links and prefs
+- Resume builder validates required summary, experience, education, and skills with a live completeness meter
+- Apply and saved roles warn/gate until required profile + resume details are complete
+
 ## 2026-08-06 (E10 — Applicant resume builder)
 
 - Applicants can create/edit a structured resume (summary, experience, education, skills)

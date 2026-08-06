@@ -61,6 +61,7 @@ export function AppShell({ children }) {
         ]
       : user
         ? [
+            ['Home', '/applicant'],
             ['Jobs', '/jobs'],
             ['Applications', '/applicant/applications'],
             ['Resume', '/applicant/resume'],

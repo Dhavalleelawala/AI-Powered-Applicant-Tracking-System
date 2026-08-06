@@ -9,11 +9,11 @@ function redirectAfterAuth(user, location) {
   const from = location.state?.from;
   if (typeof from === 'string' && from) return from;
   if (from?.pathname) return from.pathname;
-  return user.role === 'recruiter' ? '/recruiter' : '/jobs';
+  return user.role === 'recruiter' ? '/recruiter' : '/applicant';
 }
 
 function homeForRole(user) {
-  return user?.role === 'recruiter' ? '/recruiter' : '/jobs';
+  return user?.role === 'recruiter' ? '/recruiter' : '/applicant';
 }
 
 function passwordHint(password) {
