@@ -1,3 +1,5 @@
+const path = require('path');
+const fs = require('fs');
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -17,6 +19,7 @@ require('./models');
 function isAllowedOrigin(origin) {
   if (!origin) return true;
   if (origin === config.clientUrl) return true;
+  if (config.clientUrls.includes(origin)) return true;
   if (config.env !== 'production') {
     return /^http:\/\/(localhost|127\.0\.0\.1):\d+$/.test(origin);
   }
@@ -26,7 +29,26 @@ function isAllowedOrigin(origin) {
 const app = express();
 
 app.set('trust proxy', 1);
-app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+    contentSecurityPolicy: config.serveClient
+      ? {
+          directives: {
+            defaultSrc: ["'self'"],
+            connectSrc: ["'self'"],
+            imgSrc: ["'self'", 'data:', 'blob:'],
+            styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+            fontSrc: ["'self'", 'https://fonts.gstatic.com', 'data:'],
+            scriptSrc: ["'self'"],
+            objectSrc: ["'none'"],
+            baseUri: ["'self'"],
+            frameAncestors: ["'none'"],
+          },
+        }
+      : false,
+  })
+);
 app.use(
   cors({
     origin(origin, callback) {
@@ -44,7 +66,7 @@ app.use(express.urlencoded({ extended: true }));
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 40,
+  max: config.env === 'production' ? 30 : 200,
   standardHeaders: true,
   legacyHeaders: false,
   message: {
@@ -55,7 +77,7 @@ const authLimiter = rateLimit({
 
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 600,
+  max: config.env === 'production' ? 400 : 600,
   standardHeaders: true,
   legacyHeaders: false,
 });
@@ -67,6 +89,18 @@ app.use('/api/recruiter', recruiterRoutes);
 app.use('/api/files', fileRoutes);
 app.use('/api', applicationRoutes);
 app.use('/api/jobs', jobRoutes);
+
+const clientDist = path.resolve(__dirname, '../../client-dist');
+const legacyDist = path.resolve(__dirname, '../../../client/dist');
+const staticRoot = fs.existsSync(clientDist) ? clientDist : legacyDist;
+
+if (config.serveClient && fs.existsSync(path.join(staticRoot, 'index.html'))) {
+  app.use(express.static(staticRoot, { maxAge: '1h', index: false }));
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api')) return next();
+    return res.sendFile(path.join(staticRoot, 'index.html'));
+  });
+}
 
 app.use(notFoundHandler);
 app.use(errorHandler);

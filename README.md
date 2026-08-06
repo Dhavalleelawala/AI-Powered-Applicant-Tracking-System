@@ -83,14 +83,36 @@ Seed also creates **Demo Corp**, **2 open jobs**, and **1 sample application**.
 Requires Docker Desktop. From the repo root:
 
 ```bash
+# set strong secrets first
+export JWT_SECRET="$(openssl rand -hex 32)"
+export FILE_TOKEN_SECRET="$(openssl rand -hex 32)"
+
 docker compose up --build
 ```
 
-- Web UI: http://localhost:8080  
-- API: http://localhost:5000  
-- MongoDB: localhost:27017  
+App (API + UI): http://localhost:5000  
+MongoDB: localhost:27017  
 
-Set `JWT_SECRET`, `FILE_TOKEN_SECRET`, and optional `OPENAI_API_KEY` in your environment before starting.
+Optional: set `OPENAI_API_KEY` for LLM ranking (heuristic fallback works without it).
+
+---
+
+## Deploy on Render
+
+1. Create a free **MongoDB Atlas** cluster and copy the connection string.
+2. In Render, create a new **Blueprint** from this repo (`render.yaml`), or a Docker web service using the root `Dockerfile`.
+3. Set env vars:
+   - `MONGODB_URI` — Atlas URI
+   - `CLIENT_URL` — your Render URL, e.g. `https://rolefit.onrender.com`
+   - `JWT_SECRET` / `FILE_TOKEN_SECRET` — strong random values (Blueprint can generate)
+4. After deploy, open `/api/health`, then seed once:
+
+```bash
+# from a machine that can reach Atlas with the same MONGODB_URI
+cd server && npm run seed
+```
+
+The production image serves the React app and API together (`SERVE_CLIENT=true`, `VITE_API_BASE_URL=/api`).
 
 ---
 

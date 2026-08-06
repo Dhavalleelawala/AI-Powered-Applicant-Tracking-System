@@ -278,7 +278,7 @@ startxref
       password: 'Secret123',
     }),
   });
-  assert(otherApplicant.status === 201 && otherApplicant.body.data?.token, 'late applicant register failed');
+  assert(otherApplicant.status === 201 && otherApplicant.body.data?.token, `late applicant register failed: ${otherApplicant.status} ${otherApplicant.body?.error?.message || ''}`);
 
   const applyArchived = await fetch(`${BASE}/jobs/${jobId}/applications`, {
     method: 'POST',

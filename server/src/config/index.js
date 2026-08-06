@@ -2,7 +2,12 @@ const dotenv = require('dotenv');
 
 dotenv.config();
 
+const env = process.env.NODE_ENV || 'development';
 const required = ['MONGODB_URI'];
+
+if (env === 'production') {
+  required.push('JWT_SECRET', 'CLIENT_URL');
+}
 
 for (const key of required) {
   if (!process.env[key]) {
@@ -10,11 +15,25 @@ for (const key of required) {
   }
 }
 
+if (env === 'production') {
+  const weakSecrets = new Set(['', 'dev-only-change-me', 'replace_with_long_random_string', 'change-me-in-production-please']);
+  if (weakSecrets.has(String(process.env.JWT_SECRET || ''))) {
+    throw new Error('JWT_SECRET must be set to a strong unique value in production');
+  }
+}
+
+const extraOrigins = String(process.env.CLIENT_URLS || '')
+  .split(',')
+  .map((value) => value.trim())
+  .filter(Boolean);
+
 const config = {
-  env: process.env.NODE_ENV || 'development',
+  env,
   port: Number(process.env.PORT) || 5000,
   clientUrl: process.env.CLIENT_URL || 'http://localhost:5173',
+  clientUrls: extraOrigins,
   mongodbUri: process.env.MONGODB_URI,
+  serveClient: process.env.SERVE_CLIENT === 'true' || process.env.SERVE_CLIENT === '1',
   jwt: {
     secret: process.env.JWT_SECRET || 'dev-only-change-me',
     expiresIn: process.env.JWT_EXPIRES_IN || '7d',
@@ -24,7 +43,9 @@ const config = {
     bucket: process.env.S3_BUCKET || '',
     region: process.env.AWS_REGION || 'us-east-1',
     localUploadDir: process.env.LOCAL_UPLOAD_DIR || 'uploads',
-    fileTokenSecret: process.env.FILE_TOKEN_SECRET || process.env.JWT_SECRET || 'dev-only-change-me',
+    fileTokenSecret:
+      process.env.FILE_TOKEN_SECRET ||
+      (env === 'production' ? process.env.JWT_SECRET : process.env.JWT_SECRET || 'dev-only-change-me'),
   },
   maxResumeSizeBytes: (Number(process.env.MAX_RESUME_SIZE_MB) || 5) * 1024 * 1024,
   ai: {

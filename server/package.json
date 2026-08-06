@@ -9,7 +9,7 @@
     "start": "node src/server.js",
     "seed": "node src/scripts/seed.js",
     "smoke": "node src/scripts/smoke.js",
-    "test": "node --test src/scripts/unit/**/*.test.js",
+    "test": "node src/scripts/run-unit.js",
     "lint": "eslint src --ext .js"
   },
   "dependencies": {

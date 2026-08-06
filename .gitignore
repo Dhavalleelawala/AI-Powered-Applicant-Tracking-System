@@ -16,6 +16,7 @@ build/
 .vite/
 coverage/
 *.tsbuildinfo
+server/client-dist/
 
 # Logs
 logs/
