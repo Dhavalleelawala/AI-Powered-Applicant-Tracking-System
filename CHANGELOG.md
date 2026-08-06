@@ -3,6 +3,12 @@
 All notable Rolefit changes are listed here. Newest first.
 Epics are tracked in [`docs/EPICS.md`](./docs/EPICS.md) — **one completed epic → one commit**.
 
+## 2026-08-06 (E23 — Recruiter mobile pipeline)
+
+- Pipeline on phones uses stage tabs instead of horizontal kanban scroll
+- Selected-stage candidate list is full-width with thumb-sized advance/reject
+- Sticky bulk “Move to Interview” bar when cards are selected; ranking actions sized for one-thumb use
+
 ## 2026-08-06 (E22 — Light theme + resume craftsmanship)
 
 - Landing, auth, and workspace chrome use a readable light theme (mist/paper + ink text)

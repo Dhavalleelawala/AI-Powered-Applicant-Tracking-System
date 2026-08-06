@@ -165,14 +165,13 @@ Status: `planned` · `in_progress` · `done`
 - **Notes:** Full light chrome; auth/landing mist panels; resume Summary→Experience→Education→Review wizard with live preview; PDF date formatting; download/attach as `{Name}.pdf`.
 - **Paths:** `AppShell.jsx`, `AuthPages.jsx`, `PublicPages.jsx`, `ResumeBuilderPage.jsx`, `resumePdfService.js`, `client.js`
 
----
-
-## In progress
-
 ### E23 — Recruiter mobile pipeline
-- **Status:** in_progress
+- **Status:** done
 - **Goal:** Pipeline/ranking usable on phone (stacked columns or stage tabs; sticky stage actions).
 - **Accept:** No horizontal-only kanban trap under 600px; advance/reject reachable one-thumb.
+- **Shipped:** 2026-08-06
+- **Notes:** Mobile stage tabs (2×2) replace horizontal kanban; full-width stage list; sticky bulk Interview CTA; ranking actions thumb-sized on xs.
+- **Paths:** `RecruiterPages.jsx` PipelinePage/RankingPage, `styles.css`
 
 ---
 

@@ -42,7 +42,7 @@ Ordered by demo clarity and craft.
 ### E23 — Recruiter mobile pipeline
 - **Goal:** Pipeline/ranking usable on phone (stacked columns or stage tabs; sticky stage actions).
 - **Accept:** No horizontal-only kanban trap under 600px; advance/reject reachable one-thumb.
-- **Status:** in_progress
+- **Status:** done
 
 ### E24 — Applicant apply trust
 - **Goal:** Apply wizard shows readiness + resume preview confidence before submit.

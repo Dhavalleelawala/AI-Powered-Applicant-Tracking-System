@@ -210,6 +210,56 @@ a { color: inherit; }
   }
 }
 
+.pipeline-stage-tabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.pipeline-stage-tab {
+  justify-content: space-between !important;
+  min-height: 44px !important;
+  border: 1px solid var(--rf-line) !important;
+  background: rgba(255, 255, 255, 0.92) !important;
+  color: var(--rf-muted) !important;
+  font-weight: 700 !important;
+  border-radius: 10px !important;
+  padding: 8px 10px !important;
+}
+
+.pipeline-stage-tab.is-active {
+  border-color: var(--rf-ember) !important;
+  color: var(--rf-text) !important;
+  background: rgba(255, 92, 53, 0.08) !important;
+}
+
+.pipeline-column--mobile {
+  min-height: 280px;
+}
+
+.pipeline-mobile-cta {
+  margin-top: 12px;
+}
+
+@media (max-width: 599px) {
+  .pipeline-board {
+    display: none;
+  }
+
+  .pipeline-card {
+    cursor: default;
+  }
+
+  .pipeline-card__actions .MuiButton-root {
+    min-height: 40px;
+  }
+
+  .hiring-keys-hint {
+    display: none;
+  }
+}
+
 .skip-link {
   position: absolute !important;
   left: 16px;

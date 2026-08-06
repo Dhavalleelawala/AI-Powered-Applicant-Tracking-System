@@ -21,6 +21,8 @@ import {
   TableRow,
   TextField,
   Typography,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -907,7 +909,14 @@ function PipelineCard({
         <Chip label={score == null ? '—' : `${score}`} color="secondary" size="small" sx={{ height: 22, fontSize: 11 }} />
       </Stack>
 
-      <Stack direction="row" spacing={0.75} mt={1.25} flexWrap="wrap" useFlexGap>
+      <Stack
+        className="pipeline-card__actions"
+        direction="row"
+        spacing={0.75}
+        mt={1.25}
+        flexWrap="wrap"
+        useFlexGap
+      >
         {next && (
           <Button
             size="small"
@@ -916,7 +925,7 @@ function PipelineCard({
             endIcon={<ArrowForward sx={{ fontSize: 14 }} />}
             disabled={movePending}
             onClick={() => onAdvance(a, next)}
-            sx={{ py: 0.25, px: 1, fontSize: 12, minHeight: 28 }}
+            sx={{ py: 0.25, px: 1, fontSize: 12, minHeight: { xs: 40, sm: 28 }, flex: { xs: '1 1 auto', sm: '0 0 auto' } }}
           >
             {next}
           </Button>
@@ -928,7 +937,7 @@ function PipelineCard({
             variant="outlined"
             disabled={movePending}
             onClick={() => onReject(a)}
-            sx={{ py: 0.25, px: 1, fontSize: 12, minHeight: 28 }}
+            sx={{ py: 0.25, px: 1, fontSize: 12, minHeight: { xs: 40, sm: 28 }, flex: { xs: '1 1 auto', sm: '0 0 auto' } }}
           >
             Reject
           </Button>
@@ -937,7 +946,7 @@ function PipelineCard({
           size="small"
           startIcon={<Description sx={{ fontSize: 14 }} />}
           onClick={() => onResume(id)}
-          sx={{ py: 0.25, px: 1, fontSize: 12, minHeight: 28 }}
+          sx={{ py: 0.25, px: 1, fontSize: 12, minHeight: { xs: 40, sm: 28 } }}
         >
           Resume
         </Button>
@@ -996,6 +1005,8 @@ function PipelineCard({
 }
 
 export function PipelinePage() {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { jobId } = useParams();
   const qc = useQueryClient();
   const { showToast, showError } = useToast();
@@ -1006,6 +1017,7 @@ export function PipelinePage() {
   const [drawerId, setDrawerId] = useState(null);
   const [flashId, setFlashId] = useState(null);
   const [showKeys, setShowKeys] = useState(true);
+  const [mobileStage, setMobileStage] = useState('applied');
   const { data: job } = useQuery({
     queryKey: ['job', jobId],
     queryFn: () => jobsApi.get(jobId).then((r) => r.data),
@@ -1115,14 +1127,18 @@ export function PipelinePage() {
       <PageHeader
         eyebrow="PIPELINE"
         title={job?.title ? `${job.title} pipeline` : 'Candidate pipeline'}
-        subtitle="Drag cards between columns, or advance in one click. Focus a card and use keyboard shortcuts."
+        subtitle={
+          isMobile
+            ? 'Switch stages below, then advance or reject in one tap.'
+            : 'Drag cards between columns, or advance in one click. Focus a card and use keyboard shortcuts.'
+        }
         actions={
           <Button component={Link} to={`/recruiter/jobs/${jobId}/ranking`} variant="outlined">
             Open ranking
           </Button>
         }
       />
-      {showKeys && (
+      {showKeys && !isMobile && (
         <Alert
           severity="info"
           onClose={() => setShowKeys(false)}
@@ -1135,8 +1151,20 @@ export function PipelinePage() {
           </Typography>
         </Alert>
       )}
-      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} alignItems={{ sm: 'center' }} mb={2.5}>
-        <Button variant="contained" color="secondary" disabled={!selected.length || bulkMove.isPending} onClick={() => bulkMove.mutate(selected)}>
+      <Stack
+        className="pipeline-toolbar"
+        direction={{ xs: 'column', sm: 'row' }}
+        spacing={1}
+        alignItems={{ sm: 'center' }}
+        mb={2.5}
+      >
+        <Button
+          variant="contained"
+          color="secondary"
+          disabled={!selected.length || bulkMove.isPending}
+          onClick={() => bulkMove.mutate(selected)}
+          sx={{ minHeight: { xs: 44, sm: 36 }, width: { xs: '100%', sm: 'auto' } }}
+        >
           Move selected to Interview ({selected.length})
         </Button>
         <Typography variant="body2" color="text.secondary">
@@ -1154,6 +1182,86 @@ export function PipelinePage() {
           actionLabel="View public role"
           actionTo={`/jobs/${jobId}`}
         />
+      ) : isMobile ? (
+        <Box className="pipeline-mobile">
+          <Box className="pipeline-stage-tabs" role="tablist" aria-label="Pipeline stages">
+            {stages.map((stage) => {
+              const count = (byStage[stage] || []).length;
+              const active = mobileStage === stage;
+              return (
+                <Button
+                  key={stage}
+                  role="tab"
+                  aria-selected={active}
+                  className={`pipeline-stage-tab${active ? ' is-active' : ''}`}
+                  onClick={() => setMobileStage(stage)}
+                  sx={{ textTransform: 'capitalize' }}
+                >
+                  {stage}
+                  <Chip size="small" label={isLoading ? '…' : count} sx={{ ml: 0.75, height: 22 }} />
+                </Button>
+              );
+            })}
+          </Box>
+          <Paper className="pipeline-column pipeline-column--mobile" sx={{ p: 1.75, border: '1px solid', borderColor: 'divider' }}>
+            <Typography variant="h3" fontSize={16} sx={{ textTransform: 'capitalize', mb: 1.5 }}>
+              {mobileStage}
+            </Typography>
+            <Stack spacing={1.1}>
+              {isLoading ? (
+                <>
+                  <Skeleton variant="rounded" height={96} />
+                  <Skeleton variant="rounded" height={96} />
+                </>
+              ) : (byStage[mobileStage] || []).length === 0 ? (
+                <Typography variant="body2" color="text.secondary" sx={{ py: 2.5, px: 0.5, textAlign: 'center' }}>
+                  No candidates in {mobileStage}
+                </Typography>
+              ) : (
+                (byStage[mobileStage] || []).map((a) => {
+                  const id = a.id || a._id;
+                  return (
+                    <PipelineCard
+                      key={id}
+                      application={a}
+                      stage={mobileStage}
+                      selected={selected.includes(id)}
+                      onToggle={() => toggleSelected(id)}
+                      onAdvance={requestStageChange}
+                      onReject={(app) => setRejectTarget(app)}
+                      onDropStage={requestStageChange}
+                      notes={notes}
+                      setNote={(cardId, text) => setNotes((current) => ({ ...current, [cardId]: text }))}
+                      onAddNote={(cardId, text) => addNote.mutate({ id: cardId, text })}
+                      notePending={addNote.isPending}
+                      movePending={move.isPending}
+                      onResume={(cardId) => openResume(cardId).catch((err) => showError(err.message || err))}
+                      onOpen={() => setDrawerId(id)}
+                      flashing={flashId === id}
+                    />
+                  );
+                })
+              )}
+            </Stack>
+          </Paper>
+          {selected.length > 0 && (
+            <Stack className="pipeline-mobile-cta apply-wizard__cta" spacing={1}>
+              <Button
+                variant="contained"
+                color="secondary"
+                disabled={bulkMove.isPending}
+                onClick={() => bulkMove.mutate(selected)}
+                fullWidth
+                sx={{ minHeight: 44 }}
+              >
+                Move {selected.length} to Interview
+              </Button>
+              <Button onClick={() => setSelected([])} fullWidth>
+                Clear selection
+              </Button>
+            </Stack>
+          )}
+        </Box>
       ) : (
         <Box className="pipeline-board" role="list">
           {stages.map((stage) => {
@@ -1713,7 +1821,14 @@ export function RankingPage() {
                     </Stack>
                   </Box>
 
-                  <Stack spacing={1} sx={{ flexShrink: 0, minWidth: { md: 160 } }}>
+                  <Stack
+                    className="ranking-card__actions"
+                    spacing={1}
+                    direction={{ xs: 'row', md: 'column' }}
+                    flexWrap="wrap"
+                    useFlexGap
+                    sx={{ flexShrink: 0, minWidth: { md: 160 }, width: { xs: '100%', md: 'auto' } }}
+                  >
                     {next && (
                       <Button
                         variant="contained"
@@ -1722,17 +1837,24 @@ export function RankingPage() {
                         endIcon={<ArrowForward />}
                         disabled={move.isPending}
                         onClick={() => move.mutate({ id, stage: next })}
+                        sx={{ flex: { xs: '1 1 auto', md: '0 0 auto' }, minHeight: { xs: 44, md: 32 } }}
                       >
                         Advance to {next}
                       </Button>
                     )}
-                    <Button size="small" variant="outlined" onClick={() => setDrawerId(id)}>
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      onClick={() => setDrawerId(id)}
+                      sx={{ flex: { xs: '1 1 auto', md: '0 0 auto' }, minHeight: { xs: 44, md: 32 } }}
+                    >
                       Review brief
                     </Button>
                     <Button
                       size="small"
                       startIcon={<Description />}
                       onClick={() => openResume(id).catch((e) => setActionError(String(e.message || e)))}
+                      sx={{ minHeight: { xs: 44, md: 32 } }}
                     >
                       Resume
                     </Button>
@@ -1741,11 +1863,18 @@ export function RankingPage() {
                       startIcon={<Refresh />}
                       disabled={reanalyze.isPending}
                       onClick={() => reanalyze.mutate(id)}
+                      sx={{ minHeight: { xs: 44, md: 32 } }}
                     >
                       Re-score
                     </Button>
                     {stage !== 'rejected' && (
-                      <Button size="small" color="error" disabled={move.isPending} onClick={() => setRejectTarget(a)}>
+                      <Button
+                        size="small"
+                        color="error"
+                        disabled={move.isPending}
+                        onClick={() => setRejectTarget(a)}
+                        sx={{ flex: { xs: '1 1 auto', md: '0 0 auto' }, minHeight: { xs: 44, md: 32 } }}
+                      >
                         Reject
                       </Button>
                     )}
