@@ -3,6 +3,12 @@
 All notable Rolefit changes are listed here. Newest first.
 Epics are tracked in [`docs/EPICS.md`](./docs/EPICS.md) — **one completed epic → one commit**.
 
+## 2026-08-06 (E12 — Public brand & jobs IA)
+
+- Landing hero leads with the Rolefit wordmark, one line, dual CTAs, and a ledger visual plane
+- Jobs board is an editorial title-led list with a sticky filter bar (no card grid)
+- Job detail adds a sticky “Next step” apply rail on desktop; mobile keeps inline actions
+
 ## 2026-08-06 (E11 — Applicant pages required-details hub)
 
 - Applicant home (`/applicant`) shows overall readiness % with profile/resume checklists

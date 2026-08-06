@@ -77,9 +77,25 @@ Status: `planned` · `in_progress` · `done`
 - **Notes:** Applicant home readiness hub; expanded profile (links, availability, prefs); resume required validation; apply gated until complete.
 - **Paths:** `client/src/pages/applicant/*`, `client/src/utils/applicantCompleteness.js`, User profile fields
 
+### E12 — Public brand & jobs IA
+- **Status:** done
+- **Goal:** Landing + jobs board + job detail feel unmistakably Rolefit with clearer next actions.
+- **Accept:** Brand-first landing; editorial jobs list with sticky filters; job detail sticky apply rail.
+- **Shipped:** 2026-08-06
+- **Notes:** Hero wordmark Rolefit; ledger visual plane; title-led job rows; sticky filter/apply rail.
+- **Paths:** `client/src/pages/PublicPages.jsx`, `client/src/styles.css`
+
 ---
 
 ## Planned (next)
+
+### E13 — Applicant journey polish
+- **Status:** planned
+- **Goal:** Home → profile/resume → apply feels one continuous flow.
+
+### E14 — Recruiter decision cockpit
+- **Status:** planned
+- **Goal:** Dashboard “needs attention” queue + candidate drawer.
 
 ### E7b — Live production cutover
 - **Status:** planned

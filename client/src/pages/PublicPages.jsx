@@ -26,67 +26,52 @@ import { useUrlFilters } from '../hooks/useUrlFilters';
 export function LandingPage() {
   return (
     <>
-      <Box
-        sx={{
-          minHeight: 'calc(100vh - 68px)',
-          bgcolor: 'primary.main',
-          color: '#F7F8FB',
-          position: 'relative',
-          overflow: 'hidden',
-          display: 'flex',
-          alignItems: 'center',
-        }}
-      >
-        <Box
-          sx={{
-            position: 'absolute',
-            inset: 0,
-            background:
-              'radial-gradient(ellipse 75% 55% at 82% 18%, rgba(255,92,53,0.28), transparent 58%), radial-gradient(ellipse 45% 40% at 8% 88%, rgba(62,107,138,0.18), transparent 55%)',
-          }}
-        />
-        <Box
-          className="hero-orb"
-          sx={{
-            position: 'absolute',
-            width: { xs: 300, md: 560 },
-            height: { xs: 300, md: 560 },
-            borderRadius: '50%',
-            border: '1px solid rgba(255,92,53,.28)',
-            right: { xs: '-28%', md: '-8%' },
-            top: { xs: '-16%', md: '-20%' },
-          }}
-        />
-        <Box
-          sx={{
-            position: 'absolute',
-            inset: 0,
-            opacity: 0.35,
-            backgroundImage:
-              'linear-gradient(rgba(247,248,251,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(247,248,251,0.04) 1px, transparent 1px)',
-            backgroundSize: '64px 64px',
-            maskImage: 'radial-gradient(ellipse 70% 60% at 50% 40%, black, transparent)',
-          }}
-        />
-        <Container maxWidth="lg" sx={{ position: 'relative', py: { xs: 10, md: 8 } }}>
+      <Box className="landing-hero" component="section" aria-label="Rolefit">
+        <Box className="landing-hero__atmosphere" aria-hidden />
+        <Box className="landing-hero__ledger" aria-hidden>
+          <span />
+          <span />
+          <span />
+          <span />
+        </Box>
+        <Container maxWidth="lg" sx={{ position: 'relative', py: { xs: 11, md: 14 } }}>
           <Typography
-            className="reveal"
-            sx={{ color: 'secondary.main', fontFamily: 'Outfit', fontWeight: 700, letterSpacing: '.14em', fontSize: 13 }}
+            className="reveal landing-hero__brand"
+            component="h1"
+            sx={{
+              fontFamily: 'Outfit',
+              fontWeight: 700,
+              letterSpacing: '-0.055em',
+              lineHeight: 0.92,
+              fontSize: { xs: 'clamp(3.4rem, 14vw, 5rem)', md: 'clamp(5.5rem, 11vw, 8.5rem)' },
+              color: '#F7F8FB',
+            }}
           >
-            ROLEFIT
-          </Typography>
-          <Typography className="reveal" variant="h1" sx={{ maxWidth: 860, mt: 2.25 }}>
-            Hiring clarity,
-            <br />
-            at human speed.
+            Rolefit
           </Typography>
           <Typography
             className="reveal-delay"
-            sx={{ maxWidth: 460, fontSize: { xs: '1.05rem', md: '1.2rem' }, lineHeight: 1.7, mt: 3.5, color: '#B8C0CC' }}
+            component="p"
+            sx={{
+              mt: { xs: 3, md: 4 },
+              maxWidth: 420,
+              fontFamily: 'Outfit',
+              fontWeight: 650,
+              letterSpacing: '-0.03em',
+              fontSize: { xs: '1.35rem', md: '1.65rem' },
+              lineHeight: 1.25,
+              color: '#F7F8FB',
+            }}
           >
-            Semantic ranking meets a focused pipeline, so every candidate gets the attention they deserve.
+            Hiring clarity, at human speed.
           </Typography>
-          <Stack className="reveal-late" direction={{ xs: 'column', sm: 'row' }} spacing={1.5} mt={4.5} alignItems={{ sm: 'center' }}>
+          <Typography
+            className="reveal-delay"
+            sx={{ maxWidth: 400, mt: 2, fontSize: { xs: '1rem', md: '1.08rem' }, lineHeight: 1.7, color: '#B8C0CC' }}
+          >
+            Rank resumes with evidence, then move the pipeline without the noise.
+          </Typography>
+          <Stack className="reveal-late" direction={{ xs: 'column', sm: 'row' }} spacing={1.5} mt={4.5}>
             <Button variant="contained" color="secondary" component={Link} to="/register/recruiter" endIcon={<ArrowOutward />} size="large">
               Start hiring
             </Button>
@@ -97,15 +82,9 @@ export function LandingPage() {
               size="large"
               sx={{ color: '#F7F8FB', borderColor: '#5A6578', '&:hover': { borderColor: '#F7F8FB', bgcolor: 'rgba(247,248,251,0.06)' } }}
             >
-              Explore open roles
+              Find work
             </Button>
           </Stack>
-          <Typography className="reveal-late" mt={2.5} variant="body2" sx={{ color: '#8B95A5' }}>
-            Looking for work?{' '}
-            <Box component={Link} to="/register/applicant" sx={{ color: '#FF8A6A', textDecoration: 'none', fontWeight: 700, '&:hover': { textDecoration: 'underline' } }}>
-              Join as an applicant
-            </Box>
-          </Typography>
         </Container>
       </Box>
 
@@ -136,6 +115,14 @@ export function LandingPage() {
               </Grid>
             ))}
           </Grid>
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} mt={6}>
+            <Button component={Link} to="/register/applicant" variant="outlined" color="primary">
+              Join as an applicant
+            </Button>
+            <Button component={Link} to="/jobs" color="secondary" endIcon={<ArrowOutward />}>
+              Browse open roles
+            </Button>
+          </Stack>
         </Container>
       </Box>
     </>
@@ -171,7 +158,12 @@ export function JobsPage() {
         title="Find a role with room to grow."
         subtitle="Search by craft, place, or team — then apply in minutes."
       />
-      <Paper className="filter-bar" sx={{ p: { xs: 2, md: 2.5 }, mb: 3 }} component="form" onSubmit={(e) => e.preventDefault()}>
+      <Paper
+        className="filter-bar filter-bar--sticky"
+        sx={{ p: { xs: 2, md: 2.25 }, mb: 2.5 }}
+        component="form"
+        onSubmit={(e) => e.preventDefault()}
+      >
         <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5}>
           <TextField
             value={values.q}
@@ -179,26 +171,32 @@ export function JobsPage() {
             placeholder="Search by title or skill"
             fullWidth
             inputProps={{ 'aria-label': 'Search jobs' }}
-            InputProps={{ startAdornment: <InputAdornment position="start"><Search /></InputAdornment> }}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <Search />
+                </InputAdornment>
+              ),
+            }}
           />
           <TextField
             label="Location"
             value={values.location}
             onChange={(e) => setFilter('location', e.target.value)}
-            sx={{ minWidth: { md: 160 } }}
+            sx={{ minWidth: { md: 150 } }}
           />
           <TextField
             label="Department"
             value={values.department}
             onChange={(e) => setFilter('department', e.target.value)}
-            sx={{ minWidth: { md: 150 } }}
+            sx={{ minWidth: { md: 140 } }}
           />
           <TextField
             select
             label="Type"
             value={values.employmentType}
             onChange={(e) => setFilter('employmentType', e.target.value)}
-            sx={{ minWidth: { md: 150 } }}
+            sx={{ minWidth: { md: 140 } }}
           >
             <MenuItem value="">All types</MenuItem>
             {['full-time', 'part-time', 'contract', 'internship'].map((type) => (
@@ -214,116 +212,171 @@ export function JobsPage() {
           )}
         </Stack>
       </Paper>
+
       {error ? (
         <Alert severity="error" action={<Button onClick={refetch}>Retry</Button>}>
           {String(error)}
         </Alert>
       ) : (
         <>
-          <Typography variant="body2" color="text.secondary" mb={2} aria-live="polite">
+          <Typography variant="body2" color="text.secondary" mb={1.5} aria-live="polite">
             {isLoading ? 'Loading roles…' : `${jobs.length} role${jobs.length === 1 ? '' : 's'}${isFetching ? ' · updating' : ''}`}
           </Typography>
-          <Grid container spacing={2}>
+          <Box className="job-list" role="list">
             {isLoading
-              ? Array.from({ length: 6 }).map((_, i) => (
-                  <Grid item xs={12} md={6} key={i}>
-                    <Skeleton variant="rounded" height={190} />
-                  </Grid>
+              ? Array.from({ length: 5 }).map((_, i) => (
+                  <Skeleton key={i} variant="rounded" height={96} sx={{ mb: 1.25, borderRadius: 2 }} />
                 ))
               : jobs.length
-                ? jobs.map((job) => (
-                    <Grid item xs={12} md={6} key={job.id || job._id}>
-                      <JobCard job={job} />
-                    </Grid>
-                  ))
+                ? jobs.map((job) => <JobRow key={job.id || job._id} job={job} />)
                 : (
-                  <Grid item xs={12}>
-                    <EmptyState
-                      title="No roles match that search."
-                      text="Try a different title, skill, or clear filters to see everything open."
-                      actionLabel={activeCount ? 'Clear filters' : 'Browse later'}
-                      actionTo="/jobs"
-                    />
-                    {activeCount > 0 && (
-                      <Box textAlign="center" mt={2}>
-                        <Button onClick={clearFilters} variant="outlined">
-                          Clear filters
-                        </Button>
-                      </Box>
-                    )}
-                  </Grid>
+                  <EmptyState
+                    title="No roles match that search."
+                    text="Try a different title, skill, or clear filters to see everything open."
+                    actionLabel={activeCount ? 'Clear filters' : undefined}
+                    onAction={activeCount ? clearFilters : undefined}
+                  />
                 )}
-          </Grid>
+          </Box>
         </>
       )}
     </Page>
   );
 }
 
+/** Editorial list row — title-led, no card chrome. */
 export function JobCard({ job }) {
+  return <JobRow job={job} />;
+}
+
+function JobRow({ job }) {
   const id = job.id || job._id;
   const company = job.companyName || job.company?.name || job.companyId?.name || 'Rolefit partner';
+  const skills = (job.requiredSkills || []).slice(0, 5);
+
   return (
-    <Link to={`/jobs/${id}`} className="job-card-link">
-      <Paper
-        className="surface-hover"
-        sx={{
-          p: 3,
-          height: '100%',
-          display: 'flex',
-          flexDirection: 'column',
-          bgcolor: 'rgba(255,255,255,0.94)',
-          position: 'relative',
-          overflow: 'hidden',
-          '&::after': {
-            content: '""',
-            position: 'absolute',
-            left: 0,
-            top: 0,
-            bottom: 0,
-            width: 3,
-            bgcolor: 'secondary.main',
-            opacity: 0,
-            transition: 'opacity .2s ease',
-          },
-          '&:hover::after': { opacity: 1 },
-        }}
+    <Box
+      component={Link}
+      to={`/jobs/${id}`}
+      role="listitem"
+      className="job-row"
+    >
+      <Stack
+        direction={{ xs: 'column', md: 'row' }}
+        spacing={{ xs: 1.5, md: 3 }}
+        alignItems={{ md: 'center' }}
+        justifyContent="space-between"
       >
-        <Typography color="text.secondary" variant="body2" fontWeight={600}>
-          {company}
-        </Typography>
-        <Typography variant="h3" fontSize={{ xs: 22, md: 24 }} mt={0.75} sx={{ letterSpacing: '-0.03em' }}>
-          {job.title}
-        </Typography>
-        <Typography color="text.secondary" mt={1.25} sx={{ fontSize: 14 }}>
-          {job.location || 'Flexible'} · {job.employmentType || 'Full-time'}
-        </Typography>
-        <Stack direction="row" gap={0.75} mt={2} flexWrap="wrap" useFlexGap>
-          {job.department && <Chip size="small" label={job.department} variant="outlined" />}
-          {job.openings != null && <Chip size="small" label={`${job.openings} opening${job.openings === 1 ? '' : 's'}`} />}
-          {job.priority && job.priority !== 'medium' && (
-            <Chip size="small" color={job.priority === 'critical' ? 'error' : job.priority === 'high' ? 'warning' : 'default'} label={job.priority} />
+        <Box sx={{ flex: 1, minWidth: 0 }}>
+          <Typography
+            sx={{
+              fontFamily: 'Outfit',
+              fontWeight: 700,
+              letterSpacing: '-0.03em',
+              fontSize: { xs: '1.2rem', md: '1.35rem' },
+              lineHeight: 1.2,
+            }}
+          >
+            {job.title}
+          </Typography>
+          <Typography color="text.secondary" mt={0.75} sx={{ fontSize: 14 }}>
+            {company}
+            <Box component="span" sx={{ mx: 0.85, opacity: 0.45 }}>
+              ·
+            </Box>
+            {job.location || 'Flexible'}
+            <Box component="span" sx={{ mx: 0.85, opacity: 0.45 }}>
+              ·
+            </Box>
+            {job.employmentType || 'Full-time'}
+            {job.department ? (
+              <>
+                <Box component="span" sx={{ mx: 0.85, opacity: 0.45 }}>
+                  ·
+                </Box>
+                {job.department}
+              </>
+            ) : null}
+          </Typography>
+          {(skills.length > 0 || job.priority) && (
+            <Stack direction="row" gap={0.75} mt={1.25} flexWrap="wrap" useFlexGap>
+              {job.priority && job.priority !== 'medium' && (
+                <Chip
+                  size="small"
+                  color={job.priority === 'critical' ? 'error' : job.priority === 'high' ? 'warning' : 'default'}
+                  label={job.priority}
+                />
+              )}
+              {skills.map((s) => (
+                <Chip key={s} size="small" label={s} variant="outlined" />
+              ))}
+            </Stack>
           )}
-          {(job.requiredSkills || []).slice(0, 4).map((s) => (
-            <Chip key={s} size="small" label={s} color="secondary" variant="outlined" />
-          ))}
-        </Stack>
+        </Box>
         <Typography
+          className="job-row__cta"
           sx={{
-            mt: 'auto',
-            pt: 3,
             color: 'secondary.dark',
             fontWeight: 700,
             fontSize: 14,
             display: 'inline-flex',
             alignItems: 'center',
             gap: 0.5,
+            whiteSpace: 'nowrap',
+            flexShrink: 0,
           }}
         >
           View role <ArrowOutward sx={{ fontSize: 16 }} />
         </Typography>
-      </Paper>
-    </Link>
+      </Stack>
+    </Box>
+  );
+}
+
+function ApplyActions({ jobId, existingApp, saved, toggleSaved, user, nav, applyPath }) {
+  if (user?.role === 'recruiter') {
+    return (
+      <Button variant="contained" color="secondary" size="large" fullWidth component={Link} to="/recruiter">
+        Open recruiter dashboard
+      </Button>
+    );
+  }
+  if (existingApp) {
+    return (
+      <Button variant="contained" color="secondary" size="large" fullWidth component={Link} to="/applicant/applications">
+        View my application
+      </Button>
+    );
+  }
+  return (
+    <Stack spacing={1.25}>
+      <Button
+        variant="contained"
+        color="secondary"
+        size="large"
+        fullWidth
+        onClick={() => (user?.role === 'applicant' ? nav(applyPath) : nav('/login', { state: { from: applyPath } }))}
+      >
+        Apply for this role
+      </Button>
+      {user?.role === 'applicant' && (
+        <Button
+          variant="outlined"
+          size="large"
+          fullWidth
+          startIcon={saved ? <Bookmark /> : <BookmarkBorder />}
+          disabled={toggleSaved.isPending}
+          onClick={() => toggleSaved.mutate()}
+        >
+          {saved ? 'Saved' : 'Save job'}
+        </Button>
+      )}
+      {!user && (
+        <Typography variant="body2" color="text.secondary" textAlign="center">
+          Sign in as an applicant to apply or save.
+        </Typography>
+      )}
+    </Stack>
   );
 }
 
@@ -355,10 +408,10 @@ export function JobDetailPage() {
 
   if (isLoading) {
     return (
-      <Page narrow>
-        <Skeleton height={48} width="40%" />
-        <Skeleton height={80} />
-        <Skeleton height={220} sx={{ mt: 2 }} />
+      <Page>
+        <Skeleton height={36} width="30%" />
+        <Skeleton height={64} width="70%" sx={{ mt: 1 }} />
+        <Skeleton height={280} sx={{ mt: 3 }} />
       </Page>
     );
   }
@@ -375,78 +428,117 @@ export function JobDetailPage() {
   const job = data;
   const applyPath = `/applicant/jobs/${jobId}/apply`;
   const saved = user?.savedJobs?.some((id) => String(id) === String(jobId));
+  const company = job.companyName || job.company?.name || job.companyId?.name;
 
   return (
-    <Page narrow>
-      <Button component={Link} to="/jobs" sx={{ mb: 2, px: 0 }}>
+    <Page>
+      <Button component={Link} to="/jobs" sx={{ mb: 2.5, px: 0 }}>
         ← All roles
       </Button>
-      <Typography color="secondary.main" fontWeight={700}>
-        {job.companyName || job.company?.name || job.companyId?.name}
-      </Typography>
-      <Typography variant="h2" fontSize={{ xs: 40, md: 56 }} mt={1} sx={{ letterSpacing: '-0.045em', maxWidth: 720 }}>
-        {job.title}
-      </Typography>
-      <Typography color="text.secondary" mt={2} sx={{ fontSize: 17 }}>
-        {job.location} · {job.employmentType}
-      </Typography>
-      <Stack direction="row" gap={1} flexWrap="wrap" useFlexGap mt={3}>
-        {job.department && <Chip label={job.department} />}
-        {job.openings != null && <Chip label={`${job.openings} opening${job.openings === 1 ? '' : 's'}`} />}
-        {job.priority && <Chip label={job.priority} color={job.priority === 'critical' ? 'error' : job.priority === 'high' ? 'warning' : 'default'} />}
-        {(job.requiredSkills || []).map((s) => (
-          <Chip key={s} label={s} color="secondary" variant="outlined" />
-        ))}
-      </Stack>
-      {existingApp && user?.role === 'applicant' && (
-        <Alert severity="info" sx={{ mt: 3 }}>
-          You already applied on {new Date(existingApp.createdAt).toLocaleDateString()} · Stage:{' '}
-          <strong style={{ textTransform: 'capitalize' }}>{existingApp.stage}</strong>
-          {existingApp.aiAnalysis?.matchScore != null ? ` · ${existingApp.aiAnalysis.matchScore}% match` : ''}
-        </Alert>
-      )}
-      {user?.role === 'recruiter' && (
-        <Alert severity="info" sx={{ mt: 3 }}>
-          You’re signed in as a recruiter. Use your dashboard to manage pipelines — applicants apply from a candidate account.
-        </Alert>
-      )}
-      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.25} mt={4}>
-        {user?.role === 'recruiter' ? (
-          <Button variant="contained" color="secondary" size="large" component={Link} to="/recruiter">
-            Open recruiter dashboard
-          </Button>
-        ) : existingApp ? (
-          <Button variant="contained" color="secondary" size="large" component={Link} to="/applicant/applications">
-            View my application
-          </Button>
-        ) : (
-          <Button
-            variant="contained"
-            color="secondary"
-            size="large"
-            onClick={() =>
-              user?.role === 'applicant'
-                ? nav(applyPath)
-                : nav('/login', { state: { from: applyPath } })
-            }
+
+      <Box className="job-detail">
+        <Box className="job-detail__main">
+          <Typography color="secondary.main" fontWeight={700} letterSpacing="0.04em">
+            {company}
+          </Typography>
+          <Typography variant="h2" fontSize={{ xs: 36, md: 52 }} mt={1} sx={{ letterSpacing: '-0.045em', maxWidth: 720 }}>
+            {job.title}
+          </Typography>
+          <Typography color="text.secondary" mt={2} sx={{ fontSize: 17 }}>
+            {job.location || 'Flexible'} · {job.employmentType || 'Full-time'}
+            {job.department ? ` · ${job.department}` : ''}
+          </Typography>
+
+          <Stack direction="row" gap={1} flexWrap="wrap" useFlexGap mt={3}>
+            {job.openings != null && <Chip label={`${job.openings} opening${job.openings === 1 ? '' : 's'}`} />}
+            {job.priority && (
+              <Chip
+                label={job.priority}
+                color={job.priority === 'critical' ? 'error' : job.priority === 'high' ? 'warning' : 'default'}
+              />
+            )}
+            {(job.requiredSkills || []).map((s) => (
+              <Chip key={s} label={s} color="secondary" variant="outlined" />
+            ))}
+          </Stack>
+
+          {existingApp && user?.role === 'applicant' && (
+            <Alert severity="info" sx={{ mt: 3 }}>
+              You already applied on {new Date(existingApp.createdAt).toLocaleDateString()} · Stage:{' '}
+              <strong style={{ textTransform: 'capitalize' }}>{existingApp.stage}</strong>
+              {existingApp.aiAnalysis?.matchScore != null ? ` · ${existingApp.aiAnalysis.matchScore}% match` : ''}
+            </Alert>
+          )}
+          {user?.role === 'recruiter' && (
+            <Alert severity="info" sx={{ mt: 3 }}>
+              You’re signed in as a recruiter. Use your dashboard to manage pipelines — applicants apply from a candidate
+              account.
+            </Alert>
+          )}
+
+          <Box sx={{ display: { xs: 'block', md: 'none' }, mt: 3.5 }}>
+            <ApplyActions
+              jobId={jobId}
+              existingApp={existingApp}
+              saved={saved}
+              toggleSaved={toggleSaved}
+              user={user}
+              nav={nav}
+              applyPath={applyPath}
+            />
+            {toggleSaved.error && (
+              <Alert severity="error" sx={{ mt: 2 }}>
+                {String(toggleSaved.error)}
+              </Alert>
+            )}
+          </Box>
+
+          <Typography
+            component="h3"
+            sx={{ mt: 5, mb: 2, fontFamily: 'Outfit', fontWeight: 700, fontSize: '1.15rem', letterSpacing: '-0.02em' }}
           >
-            Apply for this role
-          </Button>
-        )}
-        {user?.role === 'applicant' && (
-          <Button
-            variant="outlined"
-            size="large"
-            startIcon={saved ? <Bookmark /> : <BookmarkBorder />}
-            disabled={toggleSaved.isPending}
-            onClick={() => toggleSaved.mutate()}
-          >
-            {saved ? 'Saved' : 'Save job'}
-          </Button>
-        )}
-      </Stack>
-      {toggleSaved.error && <Alert severity="error" sx={{ mt: 2 }}>{String(toggleSaved.error)}</Alert>}
-      <Typography sx={{ mt: 6, whiteSpace: 'pre-line', lineHeight: 1.85, color: 'text.primary' }}>{job.description}</Typography>
+            About this role
+          </Typography>
+          <Typography sx={{ whiteSpace: 'pre-line', lineHeight: 1.85, color: 'text.primary', maxWidth: 680 }}>
+            {job.description}
+          </Typography>
+        </Box>
+
+        <Box className="job-detail__rail" component="aside" aria-label="Apply">
+          <Typography variant="body2" color="text.secondary" fontWeight={700} mb={0.5}>
+            Next step
+          </Typography>
+          <Typography sx={{ fontFamily: 'Outfit', fontWeight: 700, fontSize: '1.15rem', letterSpacing: '-0.02em', mb: 2 }}>
+            {existingApp ? 'You’re already in the pipeline' : 'Put yourself forward'}
+          </Typography>
+          <ApplyActions
+            jobId={jobId}
+            existingApp={existingApp}
+            saved={saved}
+            toggleSaved={toggleSaved}
+            user={user}
+            nav={nav}
+            applyPath={applyPath}
+          />
+          {toggleSaved.error && (
+            <Alert severity="error" sx={{ mt: 2 }}>
+              {String(toggleSaved.error)}
+            </Alert>
+          )}
+          {(job.requiredSkills || []).length > 0 && (
+            <Box mt={3} pt={2.5} borderTop="1px solid" borderColor="divider">
+              <Typography variant="body2" color="text.secondary" fontWeight={700} mb={1}>
+                Skills they look for
+              </Typography>
+              <Stack direction="row" gap={0.75} flexWrap="wrap" useFlexGap>
+                {(job.requiredSkills || []).map((s) => (
+                  <Chip key={s} size="small" label={s} variant="outlined" />
+                ))}
+              </Stack>
+            </Box>
+          )}
+        </Box>
+      </Box>
     </Page>
   );
 }
@@ -459,10 +551,18 @@ export function NotFoundPage() {
   return (
     <Page narrow>
       <Box textAlign="center" py={6}>
-        <Typography color="secondary.main" fontFamily="Outfit" fontWeight={700} letterSpacing=".1em">
-          ROLEFIT
+        <Typography
+          sx={{
+            fontFamily: 'Outfit',
+            fontWeight: 700,
+            letterSpacing: '-0.04em',
+            fontSize: { xs: 40, md: 56 },
+            color: 'primary.main',
+          }}
+        >
+          Rolefit
         </Typography>
-        <Typography variant="h2" fontSize={{ xs: 40, md: 56 }} mt={2}>
+        <Typography variant="h3" mt={2}>
           This page is off the map.
         </Typography>
         <Typography color="text.secondary" mt={2}>
