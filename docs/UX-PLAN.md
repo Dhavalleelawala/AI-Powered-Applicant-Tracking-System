@@ -25,17 +25,19 @@ Ordered by demo impact and trust.
 ### E17 — Dual workspace shell
 - **Goal:** Recruiter and applicant chrome feel like different products that share Rolefit.
 - **Accept:** Distinct nav density, header treatment, and home CTA language per role; public shell stays light.
-- **Why next:** Shell still reads as one app; brand test fails after login.
+- **Status:** done
 
 ### E18 — Ranking explainability
 - **Goal:** Score always pairs with “why” and one-click pipeline move.
 - **Accept:** Ranking cards show matched/gap skills + AI summary without accordion; advance from ranking.
+- **Status:** done
 - **Why:** AI trust is the product differentiator.
 
 ### E19 — Recruiter job authoring flow
 - **Goal:** Posting a role feels guided, not admin CRUD.
 - **Accept:** Sectioned job form (basics → skills → hiring prefs → publish); live preview of public card.
 - **Why:** First recruiter action after signup.
+- **Status:** planned
 
 ### E20 — Accessibility & keyboard hiring
 - **Goal:** Pipeline and drawer usable without a mouse; focus rings consistent.

@@ -3,6 +3,12 @@
 All notable Rolefit changes are listed here. Newest first.
 Epics are tracked in [`docs/EPICS.md`](./docs/EPICS.md) — **one completed epic → one commit**.
 
+## 2026-08-06 (E18 — Ranking explainability)
+
+- Ranking cards show score + AI brief without an accordion
+- Matched / gap skill chips explain the score (“why they fit”)
+- Advance, reject, and open candidate drawer directly from ranking
+
 ## 2026-08-06 (E17 — Dual workspace shell)
 
 - Phase 2 UX plan published (`docs/UX-PLAN.md`)

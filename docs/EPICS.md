@@ -125,13 +125,17 @@ Status: `planned` · `in_progress` · `done`
 - **Notes:** Hiring ink bar vs Career mist bar; workspace chips; role nav labels; primary CTA in header; footer copy per role. UX plan in `docs/UX-PLAN.md`.
 - **Paths:** `AppShell.jsx`, `styles.css`, `docs/UX-PLAN.md`
 
+### E18 — Ranking explainability
+- **Status:** done
+- **Goal:** Score always pairs with “why” and one-click pipeline move from ranking.
+- **Accept:** Ranking cards show matched/gap skills + AI summary; advance/reject from ranking without leaving the page.
+- **Shipped:** 2026-08-06
+- **Notes:** Visible AI brief; why-fit / gaps chips; Advance / Review / Reject; CandidateDrawer from ranking.
+- **Paths:** `client/src/pages/recruiter/RecruiterPages.jsx` RankingPage
+
 ---
 
 ## Planned (next)
-
-### E18 — Ranking explainability
-- **Status:** planned
-- **Goal:** Score always pairs with “why” and one-click pipeline move from ranking.
 
 ### E19 — Recruiter job authoring flow
 - **Status:** planned

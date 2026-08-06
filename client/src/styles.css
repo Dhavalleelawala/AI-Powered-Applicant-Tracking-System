@@ -581,6 +581,13 @@ a { color: inherit; }
   transition: transform 0.28s var(--rf-ease) !important;
 }
 
+.ranking-card {
+  transition: border-color 0.18s ease;
+}
+.ranking-card:hover {
+  border-color: var(--rf-ember) !important;
+}
+
 .workspace-chip--recruiter {
   background: rgba(255, 92, 53, 0.18);
   color: #ff8a6a;

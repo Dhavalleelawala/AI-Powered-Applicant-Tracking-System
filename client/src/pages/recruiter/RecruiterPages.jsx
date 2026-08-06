@@ -1141,6 +1141,8 @@ export function RankingPage() {
     sort: values.sort || 'score_desc',
   };
   const [actionError, setActionError] = useState('');
+  const [drawerId, setDrawerId] = useState(null);
+  const [rejectTarget, setRejectTarget] = useState(null);
   const { data: job } = useQuery({
     queryKey: ['job', jobId],
     queryFn: () => jobsApi.get(jobId).then((r) => r.data),
@@ -1171,6 +1173,16 @@ export function RankingPage() {
       showError(err);
     },
   });
+  const move = useMutation({
+    mutationFn: ({ id, stage, rejectionReason }) => applicationsApi.move(id, { stage, rejectionReason }),
+    onSuccess: () => {
+      setRejectTarget(null);
+      qc.invalidateQueries({ queryKey: ['job-applications', jobId] });
+      qc.invalidateQueries({ queryKey: ['recruiter-attention'] });
+      showToast('Candidate stage updated');
+    },
+    onError: (err) => showError(err),
+  });
   const apps = data || [];
 
   return (
@@ -1184,8 +1196,8 @@ export function RankingPage() {
       />
       <PageHeader
         eyebrow="RANKING"
-        title={job?.title ? `Shortlist · ${job.title}` : 'Shortlist with signal.'}
-        subtitle="Filter by score, skills, and experience — then open evidence."
+        title={job?.title ? `Why they match · ${job.title}` : 'Shortlist with signal.'}
+        subtitle="Score, evidence, and the next stage — without opening another page."
         actions={
           <Stack direction="row" spacing={1}>
             {activeCount > 0 && <Button onClick={clearFilters}>Clear filters</Button>}
@@ -1195,10 +1207,15 @@ export function RankingPage() {
           </Stack>
         }
       />
-      <Paper sx={{ p: 3, mb: 3, bgcolor: 'rgba(255,255,255,0.92)', position: 'sticky', top: 72, zIndex: 2 }}>
-        <Grid container spacing={3} alignItems="center">
+      <Paper
+        className="filter-bar filter-bar--sticky"
+        sx={{ p: 2.5, mb: 3, bgcolor: 'rgba(255,255,255,0.92)', top: 64 }}
+      >
+        <Grid container spacing={2.5} alignItems="center">
           <Grid item xs={12} md={4}>
-            <Typography gutterBottom>Minimum match: {filters.minScore}</Typography>
+            <Typography gutterBottom variant="body2" fontWeight={700}>
+              Minimum match: {filters.minScore}%
+            </Typography>
             <Slider
               color="secondary"
               value={filters.minScore}
@@ -1232,72 +1249,153 @@ export function RankingPage() {
       {(error || actionError) && (
         <ErrorState error={error || actionError} title="Couldn’t load ranking" sx={{ mb: 2 }} />
       )}
-      <Stack spacing={1.5}>
+      <Stack spacing={1.75} className="stagger-in">
         {isLoading ? (
-          <LoadingRows height={110} />
+          <LoadingRows height={140} />
         ) : apps.length ? (
-          apps.map((a) => {
+          apps.map((a, index) => {
+            const id = a.id || a._id;
             const matched = a.aiAnalysis?.skillsMatched || a.aiAnalysis?.matchedSkills || [];
-            const missing = a.aiAnalysis?.skillsMissing || [];
+            const missing = a.aiAnalysis?.skillsMissing || a.aiAnalysis?.gaps || [];
+            const score = a.aiAnalysis?.matchScore ?? a.matchScore;
+            const stage = a.stage || 'applied';
+            const next = nextStageOf[stage];
+            const name = a.applicant?.name || a.applicantName || a.applicantId?.name || 'Candidate';
+            const email = a.applicant?.email || a.applicantEmail || a.applicantId?.email || '';
+            const summary = a.aiAnalysis?.summary;
+            const reviewing = ['pending', 'processing'].includes(a.aiStatus);
+
             return (
-              <Paper key={a.id || a._id} sx={{ p: 0, overflow: 'hidden', bgcolor: 'rgba(255,255,255,0.92)' }}>
-                <Box sx={{ p: 2.5 }}>
-                  <Grid container spacing={2} alignItems="center">
-                    <Grid item xs={12} md={4}>
-                      <Typography fontWeight={700}>{a.applicant?.name || a.applicantName || a.applicantId?.name}</Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        {a.applicant?.email || a.applicantEmail || a.applicantId?.email}
+              <Paper key={id} className="ranking-card" sx={{ p: { xs: 2.25, md: 2.75 }, bgcolor: 'rgba(255,255,255,0.96)' }}>
+                <Stack direction={{ xs: 'column', md: 'row' }} spacing={2.5} alignItems={{ md: 'flex-start' }}>
+                  <Box sx={{ width: { md: 88 }, flexShrink: 0 }}>
+                    <Typography
+                      sx={{
+                        fontFamily: 'Outfit',
+                        fontWeight: 800,
+                        fontSize: { xs: 28, md: 32 },
+                        letterSpacing: '-0.04em',
+                        color: 'secondary.main',
+                        lineHeight: 1,
+                      }}
+                    >
+                      {score != null ? `${score}` : '—'}
+                      {score != null && (
+                        <Typography component="span" color="text.secondary" fontWeight={600} fontSize={16}>
+                          %
+                        </Typography>
+                      )}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary" display="block" mt={0.5}>
+                      #{index + 1} · AI {a.aiStatus || 'pending'}
+                    </Typography>
+                  </Box>
+
+                  <Box sx={{ flex: 1, minWidth: 0 }}>
+                    <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap mb={0.5}>
+                      <Typography
+                        fontWeight={700}
+                        fontSize={17}
+                        sx={{ cursor: 'pointer', '&:hover': { color: 'secondary.dark' } }}
+                        onClick={() => setDrawerId(id)}
+                      >
+                        {name}
                       </Typography>
-                    </Grid>
-                    <Grid item xs={6} md={2}>
-                      <Typography color="secondary.main" fontWeight={700} fontSize={22}>
-                        {a.aiAnalysis?.matchScore ?? a.matchScore ?? '—'}%
+                      <Chip size="small" label={stage} sx={{ textTransform: 'capitalize' }} />
+                    </Stack>
+                    <Typography variant="body2" color="text.secondary">
+                      {email}
+                      {a.applicant?.headline ? ` · ${a.applicant.headline}` : ''}
+                    </Typography>
+
+                    {summary ? (
+                      <Typography variant="body2" mt={1.5} sx={{ lineHeight: 1.65, maxWidth: 640 }}>
+                        {summary}
                       </Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        AI: {a.aiStatus || 'pending'}
+                    ) : reviewing ? (
+                      <Typography variant="body2" color="text.secondary" mt={1.5}>
+                        AI is still scoring this resume against the role.
                       </Typography>
-                    </Grid>
-                    <Grid item xs={6} md={3}>
-                      <Typography variant="body2">Matched: {matched.join(', ') || '—'}</Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        Missing: {missing.join(', ') || '—'}
+                    ) : (
+                      <Typography variant="body2" color="text.secondary" mt={1.5}>
+                        No AI brief yet — open the candidate or re-score.
                       </Typography>
-                    </Grid>
-                    <Grid item xs={12} md={3}>
-                      <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-                        <Chip label={a.stage} sx={{ textTransform: 'capitalize' }} />
-                        <Button
-                          size="small"
-                          startIcon={<Description />}
-                          onClick={() => openResume(a.id || a._id).catch((e) => setActionError(String(e.message || e)))}
-                        >
-                          Resume
-                        </Button>
-                        <Button size="small" startIcon={<Refresh />} disabled={reanalyze.isPending} onClick={() => reanalyze.mutate(a.id || a._id)}>
-                          Reanalyze
-                        </Button>
-                      </Stack>
-                    </Grid>
-                  </Grid>
-                </Box>
-                {(a.aiAnalysis?.summary || a.aiAnalysis?.strengths?.length || a.aiAnalysis?.gaps?.length) && (
-                  <Accordion disableGutters elevation={0}>
-                    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                      <Typography variant="body2">AI summary & evidence</Typography>
-                    </AccordionSummary>
-                    <AccordionDetails>
-                      <Typography sx={{ whiteSpace: 'pre-line' }}>{a.aiAnalysis?.summary || 'No summary yet.'}</Typography>
-                      <Typography mt={2} fontWeight={700}>
-                        Strengths
-                      </Typography>
-                      <Typography variant="body2">{(a.aiAnalysis?.strengths || []).join(', ') || '—'}</Typography>
-                      <Typography mt={2} fontWeight={700}>
-                        Gaps
-                      </Typography>
-                      <Typography variant="body2">{(a.aiAnalysis?.gaps || []).join(', ') || '—'}</Typography>
-                    </AccordionDetails>
-                  </Accordion>
-                )}
+                    )}
+
+                    <Stack direction="row" spacing={2} flexWrap="wrap" useFlexGap mt={1.75}>
+                      <Box>
+                        <Typography variant="caption" color="text.secondary" fontWeight={700} display="block" mb={0.75}>
+                          Why they fit
+                        </Typography>
+                        <Stack direction="row" gap={0.75} flexWrap="wrap" useFlexGap>
+                          {matched.length ? (
+                            matched.slice(0, 6).map((skill) => (
+                              <Chip key={skill} size="small" color="success" variant="outlined" label={skill} />
+                            ))
+                          ) : (
+                            <Typography variant="caption" color="text.secondary">
+                              No matched skills listed
+                            </Typography>
+                          )}
+                        </Stack>
+                      </Box>
+                      <Box>
+                        <Typography variant="caption" color="text.secondary" fontWeight={700} display="block" mb={0.75}>
+                          Gaps
+                        </Typography>
+                        <Stack direction="row" gap={0.75} flexWrap="wrap" useFlexGap>
+                          {missing.length ? (
+                            missing.slice(0, 6).map((skill) => (
+                              <Chip key={skill} size="small" color="warning" variant="outlined" label={skill} />
+                            ))
+                          ) : (
+                            <Typography variant="caption" color="text.secondary">
+                              No gaps flagged
+                            </Typography>
+                          )}
+                        </Stack>
+                      </Box>
+                    </Stack>
+                  </Box>
+
+                  <Stack spacing={1} sx={{ flexShrink: 0, minWidth: { md: 160 } }}>
+                    {next && (
+                      <Button
+                        variant="contained"
+                        color="secondary"
+                        size="small"
+                        endIcon={<ArrowForward />}
+                        disabled={move.isPending}
+                        onClick={() => move.mutate({ id, stage: next })}
+                      >
+                        Advance to {next}
+                      </Button>
+                    )}
+                    <Button size="small" variant="outlined" onClick={() => setDrawerId(id)}>
+                      Review brief
+                    </Button>
+                    <Button
+                      size="small"
+                      startIcon={<Description />}
+                      onClick={() => openResume(id).catch((e) => setActionError(String(e.message || e)))}
+                    >
+                      Resume
+                    </Button>
+                    <Button
+                      size="small"
+                      startIcon={<Refresh />}
+                      disabled={reanalyze.isPending}
+                      onClick={() => reanalyze.mutate(id)}
+                    >
+                      Re-score
+                    </Button>
+                    {stage !== 'rejected' && (
+                      <Button size="small" color="error" disabled={move.isPending} onClick={() => setRejectTarget(a)}>
+                        Reject
+                      </Button>
+                    )}
+                  </Stack>
+                </Stack>
               </Paper>
             );
           })
@@ -1305,6 +1403,35 @@ export function RankingPage() {
           <EmptyState title="No candidates meet these filters." text="Widen the score threshold or skill filter." />
         )}
       </Stack>
+
+      <CandidateDrawer
+        applicationId={drawerId}
+        open={Boolean(drawerId)}
+        onClose={() => setDrawerId(null)}
+        invalidateKeys={[['job-applications', jobId], ['recruiter-attention']]}
+      />
+      <ConfirmDialog
+        open={Boolean(rejectTarget)}
+        title="Reject this candidate?"
+        description={
+          rejectTarget
+            ? `${rejectTarget.applicant?.name || rejectTarget.applicantName || 'This candidate'} will move to Rejected.`
+            : ''
+        }
+        requireReason
+        reasonLabel="Rejection reason (optional)"
+        confirmLabel="Reject"
+        confirmColor="error"
+        loading={move.isPending}
+        onClose={() => setRejectTarget(null)}
+        onConfirm={(reason) => {
+          move.mutate({
+            id: rejectTarget.id || rejectTarget._id,
+            stage: 'rejected',
+            rejectionReason: reason || undefined,
+          });
+        }}
+      />
     </Page>
   );
 }
