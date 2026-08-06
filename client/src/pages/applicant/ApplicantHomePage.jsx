@@ -3,6 +3,7 @@ import { Alert, Box, Button, LinearProgress, List, ListItem, ListItemIcon, ListI
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { applicationsApi } from '../../api/client';
+import { ApplicantJourney } from '../../components/applicant/ApplicantJourney';
 import { Page, PageHeader } from '../../components/ui/Primitives';
 import { useAuth } from '../../context/AuthContext';
 import { applicantReadiness } from '../../utils/applicantCompleteness';
@@ -52,18 +53,26 @@ export function ApplicantHomePage() {
   });
   const appCount = (apps || []).length;
 
+  const primaryCta = !readiness.profile.complete
+    ? { label: 'Start with profile', to: '/applicant/profile' }
+    : !readiness.resume.complete
+      ? { label: 'Continue to resume', to: '/applicant/resume' }
+      : { label: 'Browse roles to apply', to: '/jobs' };
+
   return (
     <Page>
       <PageHeader
         eyebrow="APPLICANT HOME"
         title={`Welcome back, ${(user?.name || 'there').split(' ')[0]}.`}
-        subtitle="Complete your profile and resume, then apply with confidence."
+        subtitle="One path: finish profile, polish resume, then apply."
         actions={
-          <Button component={Link} to="/jobs" variant="contained" color="secondary" endIcon={<ArrowOutward />}>
-            Browse roles
+          <Button component={Link} to={primaryCta.to} variant="contained" color="secondary" endIcon={<ArrowOutward />}>
+            {primaryCta.label}
           </Button>
         }
       />
+
+      <ApplicantJourney current="home" />
 
       <Paper sx={{ p: { xs: 2.5, md: 3 }, mb: 3, bgcolor: 'rgba(255,255,255,0.96)' }}>
         <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems={{ md: 'center' }} justifyContent="space-between">
@@ -77,19 +86,16 @@ export function ApplicantHomePage() {
             <LinearProgress variant="determinate" color="secondary" value={readiness.percent} sx={{ mt: 1.5, maxWidth: 420 }} />
             <Typography variant="body2" color="text.secondary" mt={1.25}>
               {readiness.readyToApply
-                ? 'You’re ready to apply — profile and resume required details are complete.'
+                ? 'You’re ready — pick a role and submit with your Rolefit resume.'
                 : 'Finish the required items below before recruiters review your applications.'}
             </Typography>
           </Box>
           <Stack direction="row" spacing={1.25} flexWrap="wrap" useFlexGap>
-            <Button component={Link} to="/applicant/profile" variant="outlined">
-              Edit profile
-            </Button>
-            <Button component={Link} to="/applicant/resume" variant="outlined">
-              Edit resume
-            </Button>
             <Button component={Link} to="/applicant/applications" variant="outlined">
               Applications ({appCount})
+            </Button>
+            <Button component={Link} to="/applicant/saved" variant="outlined">
+              Saved roles
             </Button>
           </Stack>
         </Stack>
@@ -97,28 +103,36 @@ export function ApplicantHomePage() {
 
       {!readiness.readyToApply && (
         <Alert severity="warning" sx={{ mb: 3 }}>
-          Missing required details:{' '}
+          Next up:{' '}
           {[...readiness.profile.missingRequired, ...readiness.resume.missingRequired]
+            .slice(0, 4)
             .map((item) => item.label)
             .join(', ') || 'Complete profile and resume.'}
+          {[...readiness.profile.missingRequired, ...readiness.resume.missingRequired].length > 4 ? '…' : ''}
         </Alert>
       )}
 
       <Stack direction={{ xs: 'column', md: 'row' }} spacing={2.5} alignItems="stretch">
         <Box sx={{ flex: 1 }}>
           <ChecklistCard
-            title="Profile details"
+            title="1 · Profile details"
             checklist={readiness.profile}
-            actionLabel="Complete profile"
+            actionLabel={readiness.profile.complete ? 'Review profile' : 'Complete profile'}
             actionTo="/applicant/profile"
           />
         </Box>
         <Box sx={{ flex: 1 }}>
           <ChecklistCard
-            title="Resume details"
+            title="2 · Resume details"
             checklist={readiness.resume}
-            actionLabel="Complete resume"
-            actionTo="/applicant/resume"
+            actionLabel={
+              !readiness.profile.complete
+                ? 'Finish profile first'
+                : readiness.resume.complete
+                  ? 'Review resume'
+                  : 'Complete resume'
+            }
+            actionTo={readiness.profile.complete ? '/applicant/resume' : '/applicant/profile'}
           />
         </Box>
       </Stack>

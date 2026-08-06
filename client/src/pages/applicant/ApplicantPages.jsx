@@ -19,7 +19,7 @@ import {
 } from '@mui/material';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { applicationsApi, authApi, jobsApi } from '../../api/client';
 import { EmptyState, LoadingRows, Page, PageHeader, StageChip } from '../../components/ui/Primitives';
 import { AppBreadcrumbs } from '../../components/ui/AppBreadcrumbs';
@@ -27,6 +27,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { useBeforeUnloadWarning, useLeaveConfirm } from '../../hooks/useUnsavedWarning';
 import { applicantReadiness, profileChecklist } from '../../utils/applicantCompleteness';
+import { ApplicantJourney, JourneyFooter } from '../../components/applicant/ApplicantJourney';
 
 export function ApplyJobPage() {
   const { jobId } = useParams();
@@ -38,6 +39,7 @@ export function ApplyJobPage() {
   const [error, setError] = useState('');
   const [dragging, setDragging] = useState(false);
   const [loadingBuilt, setLoadingBuilt] = useState(false);
+  const [step, setStep] = useState(0);
   const dirty = Boolean(resume || coverLetter.trim());
   useBeforeUnloadWarning(dirty);
   const readiness = applicantReadiness(user);
@@ -60,6 +62,10 @@ export function ApplyJobPage() {
     }
   }, [alreadyApplied, nav, showToast]);
 
+  useEffect(() => {
+    if (!readiness.readyToApply) setStep(0);
+  }, [readiness.readyToApply]);
+
   const apply = useMutation({
     mutationFn: () => {
       const form = new FormData();
@@ -69,7 +75,7 @@ export function ApplyJobPage() {
     },
     onSuccess: () => {
       showToast('Application submitted — AI review is starting');
-      nav('/applicant/applications');
+      nav('/applicant/applications', { state: { justApplied: true, jobTitle: job?.title } });
     },
     onError: (err) => {
       setError(String(err));
@@ -113,135 +119,203 @@ export function ApplyJobPage() {
     }
   };
 
+  const steps = ['Ready', 'Resume', 'Submit'];
+
   return (
     <Page narrow>
       <AppBreadcrumbs
         items={[
+          { label: 'Home', to: '/applicant' },
           { label: 'Jobs', to: '/jobs' },
           { label: job?.title || 'Role', to: `/jobs/${jobId}` },
           { label: 'Apply' },
         ]}
       />
+      <ApplicantJourney current="apply" nextHint={readiness.readyToApply ? null : undefined} />
       <PageHeader
         eyebrow="APPLICATION"
         title="Put yourself forward."
-        subtitle={job ? `Applying to ${job.title}` : 'Add your resume and a short note for the hiring team.'}
+        subtitle={job ? `Applying to ${job.title}` : 'Confirm readiness, attach a resume, then send.'}
       />
-      {!readiness.readyToApply && (
-        <Alert
-          severity="warning"
-          sx={{ mb: 2 }}
-          action={
-            <Stack direction="row" spacing={1}>
-              {!readiness.profile.complete && (
-                <Button component={Link} to="/applicant/profile" color="inherit" size="small">
-                  Profile
-                </Button>
-              )}
-              {!readiness.resume.complete && (
-                <Button component={Link} to="/applicant/resume" color="inherit" size="small">
-                  Resume
-                </Button>
-              )}
-            </Stack>
-          }
-        >
-          Complete required profile and resume details before applying ({readiness.percent}% ready). Missing:{' '}
-          {[...readiness.profile.missingRequired, ...readiness.resume.missingRequired]
-            .map((item) => item.label)
-            .join(', ')}
-          .
-        </Alert>
-      )}
+
+      <Box className="apply-stepper" role="list" aria-label="Apply steps">
+        {steps.map((label, index) => (
+          <Box
+            key={label}
+            role="listitem"
+            className={`apply-stepper__item${index === step ? ' is-active' : ''}${index < step ? ' is-done' : ''}`}
+          >
+            {index + 1}. {label}
+          </Box>
+        ))}
+      </Box>
+
       {jobError ? (
         <Alert severity="error" action={<Button onClick={refetchJob}>Retry</Button>} sx={{ mb: 2 }}>
           {String(jobError)}
         </Alert>
       ) : null}
-      {jobLoading && !job ? (
-        <LinearProgress color="secondary" sx={{ mb: 2, borderRadius: 1 }} />
-      ) : null}
-      <Paper
-        component="form"
-        onSubmit={(e) => {
-          e.preventDefault();
-          if (!readiness.readyToApply) {
-            setError('Finish required profile and resume details before submitting.');
-            return;
-          }
-          if (!resume) return setError('A resume is required.');
-          apply.mutate();
-        }}
-        sx={{ p: { xs: 3, md: 4 }, bgcolor: 'rgba(255,255,255,0.92)' }}
-      >
+      {jobLoading && !job ? <LinearProgress color="secondary" sx={{ mb: 2, borderRadius: 1 }} /> : null}
+
+      <Paper sx={{ p: { xs: 3, md: 4 }, bgcolor: 'rgba(255,255,255,0.92)' }}>
         {apply.isPending && <LinearProgress color="secondary" sx={{ mb: 2, borderRadius: 1 }} />}
-        <Stack spacing={3}>
-          <Button
-            component="label"
-            variant="outlined"
-            startIcon={<CloudUpload />}
-            aria-label="Upload resume PDF or Word document"
-            onDragEnter={(e) => {
-              e.preventDefault();
-              setDragging(true);
-            }}
-            onDragOver={(e) => e.preventDefault()}
-            onDragLeave={() => setDragging(false)}
-            onDrop={(e) => {
-              e.preventDefault();
-              setDragging(false);
-              acceptFile(e.dataTransfer.files?.[0]);
-            }}
-            sx={{
-              py: 3,
-              borderStyle: 'dashed',
-              justifyContent: 'flex-start',
-              bgcolor: dragging || resume ? 'rgba(255,92,53,0.08)' : 'transparent',
-              borderColor: dragging ? 'secondary.main' : undefined,
-            }}
-          >
-            {resume ? resume.name : 'Drop resume here, or choose PDF/DOCX'}
-            <input hidden type="file" accept=".pdf,.doc,.docx" aria-label="Resume file" onChange={select} />
-          </Button>
-          {resume && (
-            <Typography variant="body2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <AttachFile fontSize="small" /> {resume.name} · {(resume.size / 1024).toFixed(0)} KB
-              <Button size="small" onClick={() => setResume(null)} sx={{ ml: 1 }}>
-                Remove
-              </Button>
+
+        {step === 0 && (
+          <Stack spacing={2.5}>
+            <Typography variant="h3">Confirm you’re ready</Typography>
+            <Typography color="text.secondary">
+              Recruiters see your profile and resume together. Finish required details before you attach a file.
             </Typography>
-          )}
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
-            <Button variant="outlined" onClick={useBuiltResume} disabled={loadingBuilt || apply.isPending}>
-              {loadingBuilt ? 'Loading resume…' : 'Use Rolefit resume'}
-            </Button>
-            <Button component={Link} to="/applicant/resume" size="small">
-              Create or edit resume
-            </Button>
+            <Stack spacing={1}>
+              <Alert severity={readiness.profile.complete ? 'success' : 'warning'}>
+                Profile {readiness.profile.percent}%
+                {!readiness.profile.complete && (
+                  <>
+                    {' '}
+                    — missing {readiness.profile.missingRequired.map((i) => i.label).join(', ')}.{' '}
+                    <Button component={Link} to="/applicant/profile" size="small" color="inherit">
+                      Fix profile
+                    </Button>
+                  </>
+                )}
+              </Alert>
+              <Alert severity={readiness.resume.complete ? 'success' : 'warning'}>
+                Resume {readiness.resume.percent}%
+                {!readiness.resume.complete && (
+                  <>
+                    {' '}
+                    — missing {readiness.resume.missingRequired.map((i) => i.label).join(', ')}.{' '}
+                    <Button component={Link} to="/applicant/resume" size="small" color="inherit">
+                      Fix resume
+                    </Button>
+                  </>
+                )}
+              </Alert>
+            </Stack>
+            <Stack direction="row" spacing={1.25} justifyContent="flex-end">
+              <Button component={Link} to={`/jobs/${jobId}`}>
+                Back to role
+              </Button>
+              <Button
+                variant="contained"
+                color="secondary"
+                disabled={!readiness.readyToApply}
+                onClick={() => setStep(1)}
+              >
+                {readiness.readyToApply ? 'Continue to resume' : 'Complete details first'}
+              </Button>
+            </Stack>
           </Stack>
-          <TextField
-            label="Cover letter (optional)"
-            multiline
-            rows={7}
-            value={coverLetter}
-            onChange={(e) => setCoverLetter(e.target.value)}
-            placeholder="A short note on why this role fits your craft."
-            helperText={`${coverLetter.length} characters`}
-          />
-          {error && <Alert severity="error">{error}</Alert>}
-          <Button
-            type="submit"
-            variant="contained"
-            color="secondary"
-            size="large"
-            disabled={apply.isPending || !readiness.readyToApply}
+        )}
+
+        {step === 1 && (
+          <Stack spacing={2.5}>
+            <Typography variant="h3">Attach your resume</Typography>
+            <Button
+              component="label"
+              variant="outlined"
+              startIcon={<CloudUpload />}
+              aria-label="Upload resume PDF or Word document"
+              onDragEnter={(e) => {
+                e.preventDefault();
+                setDragging(true);
+              }}
+              onDragOver={(e) => e.preventDefault()}
+              onDragLeave={() => setDragging(false)}
+              onDrop={(e) => {
+                e.preventDefault();
+                setDragging(false);
+                acceptFile(e.dataTransfer.files?.[0]);
+              }}
+              sx={{
+                py: 3,
+                borderStyle: 'dashed',
+                justifyContent: 'flex-start',
+                bgcolor: dragging || resume ? 'rgba(255,92,53,0.08)' : 'transparent',
+                borderColor: dragging ? 'secondary.main' : undefined,
+              }}
+            >
+              {resume ? resume.name : 'Drop resume here, or choose PDF/DOCX'}
+              <input hidden type="file" accept=".pdf,.doc,.docx" aria-label="Resume file" onChange={select} />
+            </Button>
+            {resume && (
+              <Typography variant="body2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <AttachFile fontSize="small" /> {resume.name} · {(resume.size / 1024).toFixed(0)} KB
+                <Button size="small" onClick={() => setResume(null)} sx={{ ml: 1 }}>
+                  Remove
+                </Button>
+              </Typography>
+            )}
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
+              <Button variant="outlined" onClick={useBuiltResume} disabled={loadingBuilt || apply.isPending}>
+                {loadingBuilt ? 'Loading resume…' : 'Use Rolefit resume'}
+              </Button>
+              <Button component={Link} to="/applicant/resume" size="small">
+                Edit Rolefit resume
+              </Button>
+            </Stack>
+            {error && <Alert severity="error">{error}</Alert>}
+            <Stack direction="row" spacing={1.25} justifyContent="space-between">
+              <Button onClick={() => setStep(0)}>Back</Button>
+              <Button
+                variant="contained"
+                color="secondary"
+                disabled={!resume}
+                onClick={() => {
+                  setError('');
+                  setStep(2);
+                }}
+              >
+                Continue to note
+              </Button>
+            </Stack>
+          </Stack>
+        )}
+
+        {step === 2 && (
+          <Stack
+            component="form"
+            spacing={2.5}
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (!readiness.readyToApply) {
+                setError('Finish required profile and resume details before submitting.');
+                setStep(0);
+                return;
+              }
+              if (!resume) {
+                setError('A resume is required.');
+                setStep(1);
+                return;
+              }
+              apply.mutate();
+            }}
           >
-            {apply.isPending ? 'Submitting…' : readiness.readyToApply ? 'Submit application' : 'Complete profile first'}
-          </Button>
-          <Button component={Link} to={`/jobs/${jobId}`}>
-            Back to role
-          </Button>
-        </Stack>
+            <Typography variant="h3">Add a short note</Typography>
+            <Alert severity="info">
+              Submitting to <strong>{job?.title || 'this role'}</strong>
+              {resume ? ` with ${resume.name}` : ''}.
+            </Alert>
+            <TextField
+              label="Cover letter (optional)"
+              multiline
+              rows={6}
+              value={coverLetter}
+              onChange={(e) => setCoverLetter(e.target.value)}
+              placeholder="A short note on why this role fits your craft."
+              helperText={`${coverLetter.length} characters`}
+            />
+            {error && <Alert severity="error">{error}</Alert>}
+            <Stack direction="row" spacing={1.25} justifyContent="space-between">
+              <Button onClick={() => setStep(1)} disabled={apply.isPending}>
+                Back
+              </Button>
+              <Button type="submit" variant="contained" color="secondary" size="large" disabled={apply.isPending}>
+                {apply.isPending ? 'Submitting…' : 'Submit application'}
+              </Button>
+            </Stack>
+          </Stack>
+        )}
       </Paper>
     </Page>
   );
@@ -436,6 +510,9 @@ function ApplicationCard({ application: a }) {
 }
 
 export function MyApplicationsPage() {
+  const location = useLocation();
+  const justApplied = Boolean(location.state?.justApplied);
+  const justAppliedTitle = location.state?.jobTitle;
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['applicant-applications'],
     queryFn: () => applicationsApi.mine().then((r) => r.data),
@@ -470,6 +547,12 @@ export function MyApplicationsPage() {
           </Stack>
         }
       />
+      {justApplied && (
+        <Alert severity="success" sx={{ mb: 2.5 }}>
+          Application submitted{justAppliedTitle ? ` for ${justAppliedTitle}` : ''}. AI is scoring your resume —
+          this list updates automatically.
+        </Alert>
+      )}
       {error ? (
         <Alert severity="error" action={<Button onClick={refetch}>Retry</Button>}>
           {String(error)}
@@ -541,7 +624,7 @@ export function ProfilePage() {
       const updatedUser = response.data?.user || response.data;
       login({ token, user: updatedUser });
       setDirty(false);
-      showToast('Profile saved');
+      showToast(profileChecklist(updatedUser).complete ? 'Profile saved — continue to resume' : 'Profile saved');
     },
     onError: (err) => showError(err),
   });
@@ -598,6 +681,8 @@ export function ProfilePage() {
           </Stack>
         }
       />
+
+      <ApplicantJourney current="profile" />
 
       <Paper sx={{ p: 2.5, mb: 2.5, bgcolor: 'rgba(255,255,255,0.96)' }}>
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems={{ sm: 'center' }} justifyContent="space-between">
@@ -767,6 +852,13 @@ export function ProfilePage() {
           </Stack>
         </Stack>
       </Paper>
+      <JourneyFooter
+        backTo="/applicant"
+        backLabel="Back to home"
+        nextTo="/applicant/resume"
+        nextLabel={readiness.complete ? 'Continue to resume' : 'Resume next'}
+        nextDisabled={!readiness.complete}
+      />
       {leaveDialog}
     </Page>
   );
@@ -802,6 +894,14 @@ export function SavedJobsPage() {
           <Button component={Link} to="/applicant" variant="text">
             Applicant home
           </Button>
+        }
+      />
+      <ApplicantJourney
+        current="apply"
+        nextHint={
+          readiness.readyToApply
+            ? { label: 'Browse more roles', to: '/jobs' }
+            : { label: 'Finish readiness', to: '/applicant' }
         }
       />
       {!readiness.readyToApply && jobs.length > 0 && (

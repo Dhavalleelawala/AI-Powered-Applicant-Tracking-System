@@ -3,6 +3,12 @@
 All notable Rolefit changes are listed here. Newest first.
 Epics are tracked in [`docs/EPICS.md`](./docs/EPICS.md) — **one completed epic → one commit**.
 
+## 2026-08-06 (E13 — Applicant journey polish)
+
+- Shared Ready → Profile → Resume → Apply journey stepper across applicant surfaces
+- Apply form is a 3-step wizard: confirm readiness, attach resume, note + submit
+- Profile/resume footers guide the next step; applications celebrate a fresh submit
+
 ## 2026-08-06 (E12 — Public brand & jobs IA)
 
 - Landing hero leads with the Rolefit wordmark, one line, dual CTAs, and a ledger visual plane

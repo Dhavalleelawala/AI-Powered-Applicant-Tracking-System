@@ -17,11 +17,12 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { authApi } from '../../api/client';
 import { AppBreadcrumbs } from '../../components/ui/AppBreadcrumbs';
+import { ApplicantJourney, JourneyFooter } from '../../components/applicant/ApplicantJourney';
 import { LoadingRows, Page, PageHeader } from '../../components/ui/Primitives';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { useBeforeUnloadWarning } from '../../hooks/useUnsavedWarning';
-import { resumeChecklist } from '../../utils/applicantCompleteness';
+import { applicantReadiness, resumeChecklist } from '../../utils/applicantCompleteness';
 
 const emptyExperience = () => ({
   title: '',
@@ -112,7 +113,8 @@ export function ResumeBuilderPage() {
       if (nextUser) login({ token, user: nextUser });
       setDirty(false);
       qc.invalidateQueries({ queryKey: ['resume-draft'] });
-      showToast('Resume saved');
+      const ready = nextUser ? applicantReadiness(nextUser).readyToApply : false;
+      showToast(ready ? 'Resume saved — you’re ready to apply' : 'Resume saved');
     },
     onError: (err) => showError(err),
   });
@@ -206,6 +208,8 @@ export function ResumeBuilderPage() {
           </Stack>
         }
       />
+
+      <ApplicantJourney current="resume" />
 
       <Paper sx={{ p: 2.5, mb: 2.5, bgcolor: 'rgba(255,255,255,0.96)' }}>
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems={{ sm: 'center' }} justifyContent="space-between">
@@ -398,6 +402,13 @@ export function ResumeBuilderPage() {
           </Button>
           .
         </Alert>
+
+        <JourneyFooter
+          backTo="/applicant/profile"
+          backLabel="Back to profile"
+          nextTo="/jobs"
+          nextLabel={liveChecklist.complete ? 'Browse roles to apply' : 'Browse roles'}
+        />
       </Stack>
     </Page>
   );

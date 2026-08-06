@@ -85,13 +85,17 @@ Status: `planned` · `in_progress` · `done`
 - **Notes:** Hero wordmark Rolefit; ledger visual plane; title-led job rows; sticky filter/apply rail.
 - **Paths:** `client/src/pages/PublicPages.jsx`, `client/src/styles.css`
 
+### E13 — Applicant journey polish
+- **Status:** done
+- **Goal:** Home → profile/resume → apply feels one continuous flow.
+- **Accept:** Shared journey chrome, step progress, apply confirms readiness, smoother CTAs between surfaces.
+- **Shipped:** 2026-08-06
+- **Notes:** Shared ApplicantJourney stepper; apply Ready→Resume→Submit wizard; journey footers; post-submit celebration.
+- **Paths:** `client/src/components/applicant/ApplicantJourney.jsx`, applicant pages, `styles.css`
+
 ---
 
 ## Planned (next)
-
-### E13 — Applicant journey polish
-- **Status:** planned
-- **Goal:** Home → profile/resume → apply feels one continuous flow.
 
 ### E14 — Recruiter decision cockpit
 - **Status:** planned

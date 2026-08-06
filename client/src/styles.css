@@ -350,6 +350,119 @@ a { color: inherit; }
   }
 }
 
+.applicant-journey {
+  padding: 1rem 1.15rem;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid var(--rf-line);
+  border-radius: 12px;
+}
+
+.applicant-journey__track {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0;
+}
+
+.applicant-journey__step {
+  display: flex;
+  align-items: center;
+}
+
+.applicant-journey__line {
+  width: 22px;
+  height: 2px;
+  margin: 0 4px;
+  background: var(--rf-line);
+}
+
+.applicant-journey__step.is-done .applicant-journey__line,
+.applicant-journey__step.is-current .applicant-journey__line {
+  background: var(--rf-ember);
+}
+
+.applicant-journey__dot-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  color: inherit;
+  padding: 4px 6px;
+  border-radius: 8px;
+}
+
+.applicant-journey__dot-wrap:hover {
+  background: rgba(255, 92, 53, 0.06);
+}
+
+.applicant-journey__dot {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  font-family: var(--rf-display);
+  border: 2px solid var(--rf-line);
+  background: #fff;
+  color: var(--rf-muted);
+}
+
+.applicant-journey__step.is-done .applicant-journey__dot {
+  background: var(--rf-ember);
+  border-color: var(--rf-ember);
+  color: #fff;
+}
+
+.applicant-journey__step.is-current .applicant-journey__dot {
+  border-color: var(--rf-ember);
+  color: var(--rf-ember);
+  box-shadow: 0 0 0 3px rgba(255, 92, 53, 0.16);
+}
+
+.applicant-journey__label {
+  font-size: 13px !important;
+  font-weight: 650 !important;
+  color: var(--rf-muted);
+}
+
+.applicant-journey__step.is-current .applicant-journey__label,
+.applicant-journey__step.is-done .applicant-journey__label {
+  color: var(--rf-text);
+}
+
+.apply-stepper {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 1.25rem;
+}
+
+.apply-stepper__item {
+  flex: 1;
+  text-align: center;
+  padding: 10px 8px;
+  border-radius: 10px;
+  border: 1px solid var(--rf-line);
+  background: rgba(255, 255, 255, 0.7);
+  font-size: 12px;
+  font-weight: 700;
+  font-family: var(--rf-display);
+  color: var(--rf-muted);
+}
+
+.apply-stepper__item.is-active {
+  border-color: var(--rf-ember);
+  color: var(--rf-text);
+  background: rgba(255, 92, 53, 0.08);
+}
+
+.apply-stepper__item.is-done {
+  border-color: rgba(15, 138, 95, 0.45);
+  color: #0f8a5f;
+}
+
 .auth-panel {
   background:
     radial-gradient(ellipse 70% 60% at 20% 20%, rgba(255,92,53,0.22), transparent 60%),
