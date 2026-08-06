@@ -6,7 +6,7 @@
   --rf-mist: #F7F8FB;
   --rf-line: #D5DBE5;
   --rf-text: #171A22;
-  --rf-muted: #667085;
+  --rf-muted: #556074;
   --rf-display: "Outfit", sans-serif;
   --rf-body: "Manrope", sans-serif;
   --rf-page-py: 4.5rem;
@@ -171,15 +171,57 @@ a { color: inherit; }
   }
 }
 
+.skip-link {
+  position: absolute !important;
+  left: 16px;
+  top: 12px;
+  z-index: 2000;
+  transform: translateY(-160%);
+  background: var(--rf-ember) !important;
+  color: #fff !important;
+  font-weight: 700;
+  border-radius: 10px;
+  padding: 10px 16px !important;
+  transition: transform 0.15s var(--rf-ease);
+}
+.skip-link:focus,
+.skip-link:focus-visible {
+  transform: translateY(0);
+  outline: 2px solid #fff;
+  outline-offset: 3px;
+}
+
 .pipeline-card {
   cursor: grab;
-  transition: border-color 0.15s ease, transform 0.15s ease;
+  transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+.pipeline-card:focus {
+  outline: none;
+}
+.pipeline-card:focus-visible {
+  outline: 2px solid var(--rf-ember);
+  outline-offset: 2px;
+  border-color: var(--rf-ember);
 }
 .pipeline-card:active {
   cursor: grabbing;
 }
 .pipeline-card.is-dragging {
   opacity: 0.45;
+}
+
+.ranking-card:focus {
+  outline: none;
+}
+.ranking-card:focus-visible {
+  outline: 2px solid var(--rf-ember);
+  outline-offset: 3px;
+}
+
+.app-shell--recruiter .shell-bar .nav-link:focus-visible {
+  outline: 2px solid #ff8a6a;
+  outline-offset: 4px;
+  border-radius: 4px;
 }
 
 .app-stage-track {

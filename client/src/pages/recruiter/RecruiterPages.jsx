@@ -23,7 +23,7 @@ import {
   Typography,
 } from '@mui/material';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { applicationsApi, hiringApi, jobsApi } from '../../api/client';
 import { CandidateDrawer } from '../../components/recruiter/CandidateDrawer';
@@ -31,6 +31,7 @@ import { AppBreadcrumbs } from '../../components/ui/AppBreadcrumbs';
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { EmptyState, ErrorState, LoadingRows, Page, PageHeader, SectionLabel, StatTile, FunnelBars } from '../../components/ui/Primitives';
 import { useToast } from '../../context/ToastContext';
+import { useHiringHotkeys } from '../../hooks/useHiringHotkeys';
 import { useUrlFilters } from '../../hooks/useUrlFilters';
 import { useBeforeUnloadWarning, useLeaveConfirm } from '../../hooks/useUnsavedWarning';
 
@@ -856,6 +857,13 @@ function PipelineCard({
   return (
     <Paper
       className={`pipeline-card${dragging ? ' is-dragging' : ''}${flashing ? ' is-flash' : ''}`}
+      data-hiring-card
+      data-application-id={id}
+      data-stage={stage}
+      data-next-stage={next || ''}
+      role="article"
+      tabIndex={0}
+      aria-label={`${name}, ${stage}${score != null ? `, ${score}% match` : ''}`}
       draggable
       onDragStart={(event) => {
         event.dataTransfer.setData('applicationId', id);
@@ -864,6 +872,13 @@ function PipelineCard({
         setDragging(true);
       }}
       onDragEnd={() => setDragging(false)}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          if (event.target !== event.currentTarget) return;
+          event.preventDefault();
+          onOpen?.();
+        }
+      }}
       sx={{ p: 1.5, bgcolor: '#fff', borderColor: selected ? 'secondary.main' : 'divider' }}
     >
       <Stack direction="row" alignItems="flex-start" spacing={0.5}>
@@ -990,6 +1005,7 @@ export function PipelinePage() {
   const [dropStage, setDropStage] = useState(null);
   const [drawerId, setDrawerId] = useState(null);
   const [flashId, setFlashId] = useState(null);
+  const [showKeys, setShowKeys] = useState(true);
   const { data: job } = useQuery({
     queryKey: ['job', jobId],
     queryFn: () => jobsApi.get(jobId).then((r) => r.data),
@@ -1055,6 +1071,27 @@ export function PipelinePage() {
     move.mutate({ id: application.id || application._id, stage: nextStage });
   };
 
+  const findApp = useCallback(
+    (id) => apps.find((row) => String(row.id || row._id) === String(id)),
+    [apps],
+  );
+
+  useHiringHotkeys({
+    enabled: !isLoading && apps.length > 0,
+    drawerOpen: Boolean(drawerId),
+    onCloseDrawer: () => setDrawerId(null),
+    onToggleHelp: () => setShowKeys((current) => !current),
+    onOpen: (id) => setDrawerId(id),
+    onAdvance: (id, next) => {
+      const application = findApp(id);
+      if (application) requestStageChange(application, next);
+    },
+    onReject: (id) => {
+      const application = findApp(id);
+      if (application) setRejectTarget(application);
+    },
+  });
+
   const onColumnDrop = (stage, event) => {
     event.preventDefault();
     setDropStage(null);
@@ -1078,13 +1115,26 @@ export function PipelinePage() {
       <PageHeader
         eyebrow="PIPELINE"
         title={job?.title ? `${job.title} pipeline` : 'Candidate pipeline'}
-        subtitle="Drag cards between columns, or advance in one click."
+        subtitle="Drag cards between columns, or advance in one click. Focus a card and use keyboard shortcuts."
         actions={
           <Button component={Link} to={`/recruiter/jobs/${jobId}/ranking`} variant="outlined">
             Open ranking
           </Button>
         }
       />
+      {showKeys && (
+        <Alert
+          severity="info"
+          onClose={() => setShowKeys(false)}
+          sx={{ mb: 2, bgcolor: 'rgba(18,21,28,0.04)' }}
+          className="hiring-keys-hint"
+        >
+          <Typography variant="body2" component="span">
+            Keyboard: focus a card, then <strong>A</strong> advance · <strong>R</strong> reject ·{' '}
+            <strong>Enter</strong> open drawer · <strong>Esc</strong> close drawer · <strong>?</strong> toggle this tip
+          </Typography>
+        </Alert>
+      )}
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} alignItems={{ sm: 'center' }} mb={2.5}>
         <Button variant="contained" color="secondary" disabled={!selected.length || bulkMove.isPending} onClick={() => bulkMove.mutate(selected)}>
           Move selected to Interview ({selected.length})
@@ -1397,6 +1447,7 @@ export function RankingPage() {
   const [actionError, setActionError] = useState('');
   const [drawerId, setDrawerId] = useState(null);
   const [rejectTarget, setRejectTarget] = useState(null);
+  const [showKeys, setShowKeys] = useState(true);
   const { data: job } = useQuery({
     queryKey: ['job', jobId],
     queryFn: () => jobsApi.get(jobId).then((r) => r.data),
@@ -1439,6 +1490,32 @@ export function RankingPage() {
   });
   const apps = data || [];
 
+  const findRankedApp = useCallback(
+    (id) => apps.find((row) => String(row.id || row._id) === String(id)),
+    [apps],
+  );
+
+  useHiringHotkeys({
+    enabled: !isLoading && apps.length > 0,
+    drawerOpen: Boolean(drawerId),
+    onCloseDrawer: () => setDrawerId(null),
+    onToggleHelp: () => setShowKeys((current) => !current),
+    onOpen: (id) => setDrawerId(id),
+    onAdvance: (id, next) => {
+      const application = findRankedApp(id);
+      if (!application || application.stage === next) return;
+      if (next === 'rejected') {
+        setRejectTarget(application);
+        return;
+      }
+      move.mutate({ id, stage: next });
+    },
+    onReject: (id) => {
+      const application = findRankedApp(id);
+      if (application) setRejectTarget(application);
+    },
+  });
+
   return (
     <Page>
       <AppBreadcrumbs
@@ -1461,6 +1538,19 @@ export function RankingPage() {
           </Stack>
         }
       />
+      {showKeys && (
+        <Alert
+          severity="info"
+          onClose={() => setShowKeys(false)}
+          sx={{ mb: 2, bgcolor: 'rgba(18,21,28,0.04)' }}
+          className="hiring-keys-hint"
+        >
+          <Typography variant="body2" component="span">
+            Keyboard: focus a row, then <strong>A</strong> advance · <strong>R</strong> reject ·{' '}
+            <strong>Enter</strong> open · <strong>Esc</strong> close drawer · <strong>?</strong> toggle tip
+          </Typography>
+        </Alert>
+      )}
       <Paper
         className="filter-bar filter-bar--sticky"
         sx={{ p: 2.5, mb: 3, bgcolor: 'rgba(255,255,255,0.92)', top: 64 }}
@@ -1520,7 +1610,18 @@ export function RankingPage() {
             const reviewing = ['pending', 'processing'].includes(a.aiStatus);
 
             return (
-              <Paper key={id} className="ranking-card" sx={{ p: { xs: 2.25, md: 2.75 }, bgcolor: 'rgba(255,255,255,0.96)' }}>
+              <Paper
+                key={id}
+                className="ranking-card"
+                data-hiring-card
+                data-application-id={id}
+                data-stage={stage}
+                data-next-stage={nextStageOf[stage] || ''}
+                role="article"
+                tabIndex={0}
+                aria-label={`${name}, ${score != null ? `${score}% match` : 'score pending'}, ${stage}`}
+                sx={{ p: { xs: 2.25, md: 2.75 }, bgcolor: 'rgba(255,255,255,0.96)' }}
+              >
                 <Stack direction={{ xs: 'column', md: 'row' }} spacing={2.5} alignItems={{ md: 'flex-start' }}>
                   <Box sx={{ width: { md: 88 }, flexShrink: 0 }}>
                     <Typography

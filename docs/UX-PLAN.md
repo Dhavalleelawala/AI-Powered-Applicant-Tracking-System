@@ -43,11 +43,13 @@ Ordered by demo impact and trust.
 - **Goal:** Pipeline and drawer usable without a mouse; focus rings consistent.
 - **Accept:** Keyboard stage advance shortcuts documented; skip links; drawer focus trap; contrast check on ember/ink.
 - **Why:** Professional HR tools must be operable under pressure.
+- **Status:** done
 
 ### E21 — Mobile applicant polish
 - **Goal:** Apply + readiness work one-thumb on small screens.
 - **Accept:** Journey stepper wraps cleanly; apply wizard sticky primary CTA; profile sections collapse on mobile.
 - **Why:** Candidates often apply on phones.
+- **Status:** planned
 
 ---
 

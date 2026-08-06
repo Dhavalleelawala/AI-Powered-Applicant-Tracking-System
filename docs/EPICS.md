@@ -141,13 +141,17 @@ Status: `planned` · `in_progress` · `done`
 - **Notes:** Four-step authoring wizard; sticky board preview matching editorial jobs list; draft vs publish.
 - **Paths:** `RecruiterPages.jsx` JobFormPage
 
+### E20 — Accessibility & keyboard hiring
+- **Status:** done
+- **Goal:** Pipeline/drawer keyboard operable; consistent focus; contrast check.
+- **Accept:** Keyboard stage advance shortcuts documented; skip links; drawer focus trap; contrast check on ember/ink.
+- **Shipped:** 2026-08-06
+- **Notes:** A/R/Enter/Esc/? hotkeys on pipeline + ranking; skip-to-content focuses main; drawer dialog focus; ember focus rings; secondary text contrast bump.
+- **Paths:** `useHiringHotkeys.js`, `CandidateDrawer.jsx`, `AppShell.jsx`, `RecruiterPages.jsx`, `theme/index.js`, `styles.css`
+
 ---
 
 ## Planned (next)
-
-### E20 — Accessibility & keyboard hiring
-- **Status:** planned
-- **Goal:** Pipeline/drawer keyboard operable; consistent focus; contrast check.
 
 ### E21 — Mobile applicant polish
 - **Status:** planned

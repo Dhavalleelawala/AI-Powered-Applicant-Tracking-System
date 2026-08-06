@@ -9,7 +9,7 @@ const paper = '#EEF1F6';
 const mist = '#F7F8FB';
 const line = '#D5DBE5';
 const textPrimary = '#171A22';
-const textSecondary = '#667085';
+const textSecondary = '#556074';
 
 const display = '"Outfit", sans-serif';
 const body = '"Manrope", sans-serif';

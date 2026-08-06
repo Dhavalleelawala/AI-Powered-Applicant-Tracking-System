@@ -165,16 +165,14 @@ export function AppShell({ children }) {
       sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}
     >
       <Button
+        className="skip-link"
         href="#main-content"
-        sx={{
-          position: 'absolute',
-          left: 16,
-          top: 12,
-          zIndex: 2000,
-          transform: 'translateY(-120%)',
-          bgcolor: 'secondary.main',
-          color: 'primary.main',
-          '&:focus': { transform: 'translateY(0)' },
+        onClick={(event) => {
+          const main = document.getElementById('main-content');
+          if (!main) return;
+          event.preventDefault();
+          main.focus({ preventScroll: false });
+          main.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }}
       >
         Skip to content
@@ -219,7 +217,14 @@ export function AppShell({ children }) {
                     '&.active': {
                       opacity: 1,
                       fontWeight: 700,
-                      color: lightChrome ? '#FF8A6A' : 'secondary.main',
+                      color: lightChrome ? '#FF9A7A' : 'secondary.main',
+                    },
+                    '&:focus-visible': {
+                      opacity: 1,
+                      outline: lightChrome ? '2px solid #FF9A7A' : '2px solid',
+                      outlineColor: lightChrome ? undefined : 'secondary.main',
+                      outlineOffset: 4,
+                      borderRadius: 4,
                     },
                     '&:hover': { opacity: 1 },
                   }}

@@ -3,6 +3,12 @@
 All notable Rolefit changes are listed here. Newest first.
 Epics are tracked in [`docs/EPICS.md`](./docs/EPICS.md) — **one completed epic → one commit**.
 
+## 2026-08-06 (E20 — Accessibility & keyboard hiring)
+
+- Pipeline and ranking: focus a card, then A advance / R reject / Enter open / Esc close / ? tip
+- Skip-to-content focuses `#main-content`; candidate drawer is a labeled dialog with initial focus
+- Ember focus rings on hiring cards; secondary text darkened for contrast on mist/paper
+
 ## 2026-08-06 (E19 — Recruiter job authoring flow)
 
 - Job create/edit is a four-step flow: Basics → Skills → Hiring → Review

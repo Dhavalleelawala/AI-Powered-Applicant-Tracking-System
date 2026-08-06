@@ -14,7 +14,7 @@ import {
   Typography,
 } from '@mui/material';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useEffect, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { applicationsApi } from '../../api/client';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
@@ -40,6 +40,8 @@ export function CandidateDrawer({ applicationId, open, onClose, invalidateKeys =
   const { showToast, showError } = useToast();
   const [note, setNote] = useState('');
   const [rejectOpen, setRejectOpen] = useState(false);
+  const titleId = useId();
+  const closeRef = useRef(null);
 
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['application', applicationId],
@@ -51,7 +53,10 @@ export function CandidateDrawer({ applicationId, open, onClose, invalidateKeys =
     if (!open) {
       setNote('');
       setRejectOpen(false);
+      return undefined;
     }
+    const timer = window.setTimeout(() => closeRef.current?.focus(), 50);
+    return () => window.clearTimeout(timer);
   }, [open, applicationId]);
 
   const bust = () => {
@@ -107,8 +112,15 @@ export function CandidateDrawer({ applicationId, open, onClose, invalidateKeys =
         anchor="right"
         open={open}
         onClose={onClose}
+        ModalProps={{
+          keepMounted: false,
+          disableRestoreFocus: false,
+        }}
         PaperProps={{
           className: 'candidate-drawer',
+          'aria-labelledby': titleId,
+          role: 'dialog',
+          'aria-modal': true,
           sx: { width: { xs: '100%', sm: 420 }, maxWidth: '100%' },
         }}
       >
@@ -117,11 +129,14 @@ export function CandidateDrawer({ applicationId, open, onClose, invalidateKeys =
             <Typography variant="overline" color="secondary.main" fontWeight={700} letterSpacing="0.12em">
               CANDIDATE
             </Typography>
-            <Typography sx={{ fontFamily: 'Outfit', fontWeight: 700, fontSize: '1.35rem', letterSpacing: '-0.03em' }}>
+            <Typography
+              id={titleId}
+              sx={{ fontFamily: 'Outfit', fontWeight: 700, fontSize: '1.35rem', letterSpacing: '-0.03em' }}
+            >
               {isLoading ? 'Loading…' : app?.applicant?.name || 'Candidate'}
             </Typography>
           </Box>
-          <IconButton onClick={onClose} aria-label="Close candidate drawer">
+          <IconButton ref={closeRef} onClick={onClose} aria-label="Close candidate drawer">
             <Close />
           </IconButton>
         </Box>
